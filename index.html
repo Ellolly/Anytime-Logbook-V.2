@@ -843,7 +843,7 @@ function adminDepartmentsHtml(){
         <div class="sub-list">
           ${(d.courses||[]).map(c=>`
             <div class="list-item">
-              <div class="txt">${esc(c.name)}<small>${c.steps.length} ${t('tabSteps')}</small></div>
+              <div class="txt">${esc(c.name)}<small>${(c.steps||[]).length} ${t('tabSteps')}</small></div>
               <div class="row" style="width:auto;gap:2px;">
                 <button class="icon-btn up-down" data-act="rename-course" data-did="${d.id}" data-cid="${c.id}">✏️</button>
                 <button class="icon-btn" data-act="del-course" data-did="${d.id}" data-cid="${c.id}">🗑</button>
