@@ -1,0 +1,1703 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fixed Prosthodontics Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1C2321; --bg:#F6F3EC; --card:#FFFFFF;
+    --teal-900:#173B38; --teal-700:#1F4E4A; --teal-500:#4F8A85; --teal-100:#DCEAE8;
+    --gold:#C99A3C; --gold-light:#F2E3BE; --rust:#B5563B; --rust-light:#F4DCD3;
+    --line:#E4DFD2; --banner-text:#5A430F; --banner-err-text:#7A2E1B; --radius:14px;
+  }
+  html[data-theme="dark"]{
+    --ink:#E8E4DA; --bg:#101513; --card:#1B2320; --teal-900:#EDEAE2; --teal-500:#8CBEB7;
+    --teal-100:#213330; --gold-light:#3A2E12; --rust-light:#3A211B; --line:#2B3532;
+    --banner-text:#E7CE8F; --banner-err-text:#F0B3A2;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--bg);color:var(--ink);font-family:'Cairo',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;transition:background .2s ease,color .2s ease;}
+  #root{max-width:780px;margin:0 auto;padding:16px 14px 60px;}
+  .brand{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+  .brand img{width:38px;height:38px;border-radius:10px;object-fit:cover;flex-shrink:0;}
+  .brand svg{flex-shrink:0;}
+  .brand-text{flex:1;min-width:0;}
+  .brand h1{font-size:17px;font-weight:800;margin:0;color:var(--teal-900);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .brand span{display:block;font-size:11.5px;font-weight:500;color:var(--teal-500);letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .lang-toggle{flex-shrink:0;background:var(--teal-100);color:var(--teal-900);border:none;border-radius:9px;padding:7px 10px;font-family:inherit;font-weight:800;font-size:11.5px;cursor:pointer;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:12px;}
+  .card h2{margin:0 0 12px;font-size:15px;font-weight:700;color:var(--teal-900);}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--teal-700);color:#fff;border:none;border-radius:10px;padding:11px 16px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;transition:opacity .15s ease;width:100%;}
+  .btn:active{opacity:.8;}
+  .btn.secondary{background:var(--teal-100);color:var(--teal-900);}
+  .btn.gold{background:var(--gold);color:#3A2C08;}
+  .btn.rust{background:var(--rust-light);color:var(--rust);}
+  .btn.ghost{background:transparent;color:var(--teal-700);border:1px solid var(--line);}
+  .btn.sm{width:auto;padding:7px 12px;font-size:12.5px;border-radius:8px;}
+  .btn:disabled{opacity:.45;cursor:not-allowed;}
+  .row{display:flex;gap:8px;}
+  .row.wrap{flex-wrap:wrap;}
+  label{font-size:12.5px;font-weight:600;color:var(--teal-700);margin-bottom:4px;display:block;}
+  input[type=text],input[type=password],input[type=number],select,textarea{width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;font-family:inherit;font-size:14px;background:var(--card);color:var(--ink);}
+  input[type=color]{width:56px;height:40px;padding:2px;border:1.5px solid var(--line);border-radius:10px;background:var(--card);cursor:pointer;}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--teal-500);outline-offset:1px;border-color:var(--teal-500);}
+  .field{margin-bottom:10px;}
+  .top-actions{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:8px;flex-wrap:wrap;}
+  .pill{font-size:11.5px;font-weight:700;background:var(--teal-100);color:var(--teal-900);padding:5px 10px;border-radius:20px;}
+  .context-bar{display:flex;gap:8px;margin-bottom:14px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;}
+  .context-bar .field{flex:1;margin-bottom:0;}
+  .tabbar{display:flex;gap:4px;margin-bottom:14px;background:var(--teal-100);padding:4px;border-radius:12px;overflow-x:auto;}
+  .tabbar button{flex:1;border:none;background:transparent;padding:9px 6px;border-radius:9px;font-family:inherit;font-weight:700;font-size:11px;color:var(--teal-700);cursor:pointer;white-space:nowrap;}
+  .tabbar button.active{background:var(--teal-700);color:#fff;}
+  .course-card{display:flex;align-items:center;gap:12px;padding:14px;border:1.5px solid var(--line);border-radius:12px;margin-bottom:10px;cursor:pointer;background:var(--card);}
+  .course-card b{color:var(--teal-900);font-size:14.5px;}
+  .student-card{border:1px solid var(--line);border-radius:12px;margin-bottom:10px;overflow:hidden;background:var(--card);}
+  .student-head{display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer;}
+  .ring{position:relative;width:42px;height:42px;flex-shrink:0;}
+  .ring svg{transform:rotate(-90deg);}
+  .ring .pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:800;color:var(--teal-900);font-family:'Space Mono',monospace;}
+  .student-info{flex:1;min-width:0;}
+  .student-info .nm{font-weight:700;font-size:14.5px;color:var(--teal-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .student-info .meta{font-size:12px;color:var(--teal-500);margin-top:2px;}
+  .chev{color:var(--teal-500);font-size:13px;flex-shrink:0;}
+  .student-body{border-top:1px solid var(--line);padding:10px 14px 14px;display:none;}
+  .student-body.open{display:block;}
+  .case-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px;cursor:pointer;background:var(--bg);}
+  .case-item .ci-info{flex:1;min-width:0;}
+  .case-item .ci-name{font-weight:700;font-size:13.5px;color:var(--teal-900);}
+  .case-item .ci-meta{font-size:11.5px;color:var(--teal-500);margin-top:2px;}
+  .case-body{border-top:1px dashed var(--line);margin-top:8px;padding-top:8px;}
+  .total-grade{background:var(--gold-light);color:var(--banner-text);font-weight:800;font-size:13px;padding:8px 12px;border-radius:10px;margin-bottom:10px;text-align:center;}
+  .step-row{padding:10px 0;border-bottom:1px dashed var(--line);}
+  .step-row:last-child{border-bottom:none;}
+  .step-top{display:flex;align-items:center;gap:10px;}
+  .step-num{width:22px;height:22px;border-radius:50%;background:var(--teal-100);color:var(--teal-700);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Space Mono',monospace;}
+  .step-num.done{background:var(--gold);color:#3A2C08;}
+  .step-main{flex:1;min-width:0;}
+  .step-name{font-weight:600;font-size:13.5px;color:var(--ink);}
+  .step-sub{font-size:11.5px;color:var(--teal-500);margin-top:2px;}
+  .step-sub.pending{color:var(--rust);}
+  .toggle{width:44px;height:26px;border-radius:20px;background:var(--line);position:relative;cursor:pointer;flex-shrink:0;border:none;padding:0;transition:background .15s ease;}
+  .toggle.on{background:var(--teal-700);}
+  .toggle .knob{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .15s ease;box-shadow:0 1px 2px rgba(0,0,0,.25);}
+  .toggle.on .knob{transform:translateX(-18px);}
+  html[dir="ltr"] .toggle .knob{right:auto;left:3px;}
+  html[dir="ltr"] .toggle.on .knob{transform:translateX(18px);}
+  .eval-row{display:flex;gap:6px;margin-top:8px;padding-inline-start:32px;flex-wrap:wrap;}
+  .eval-row input{flex:1;min-width:90px;font-size:12.5px;padding:7px 10px;}
+  .eval-row input.grade-input{max-width:80px;flex:0 0 80px;}
+  .empty{text-align:center;padding:34px 14px;color:var(--teal-500);}
+  .empty p{font-size:13.5px;margin:0;}
+  .list-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--card);border:1px solid var(--line);border-radius:10px;margin-bottom:8px;gap:8px;}
+  .list-item .txt{font-size:13.5px;font-weight:600;flex:1;min-width:0;}
+  .list-item .txt small{display:block;font-weight:400;color:var(--teal-500);font-size:11.5px;margin-top:2px;}
+  .icon-btn{background:none;border:none;cursor:pointer;color:var(--rust);font-size:16px;padding:4px 6px;flex-shrink:0;}
+  .icon-btn.up-down{color:var(--teal-700);}
+  .sub-list{margin-inline-start:18px;margin-top:6px;}
+  .chip-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+  .chip{display:flex;align-items:center;gap:6px;background:var(--teal-100);color:var(--teal-900);padding:6px 10px;border-radius:20px;font-size:12.5px;font-weight:600;}
+  .chip button{background:none;border:none;color:var(--rust);cursor:pointer;font-size:13px;padding:0;line-height:1;}
+  .stat-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  .stat-table th{background:var(--teal-100);color:var(--teal-900);padding:8px 6px;text-align:right;font-weight:700;position:sticky;top:0;}
+  html[dir="ltr"] .stat-table th{text-align:left;}
+  .stat-table td{padding:8px 6px;border-bottom:1px solid var(--line);}
+  .bar-wrap{background:var(--line);border-radius:6px;height:8px;width:70px;overflow:hidden;}
+  .bar-fill{background:var(--gold);height:100%;}
+  .table-scroll{overflow-x:auto;}
+  .login-screen{padding-top:6vh;}
+  .role-card{display:flex;align-items:center;gap:14px;padding:16px;border:1.5px solid var(--line);border-radius:14px;margin-bottom:12px;cursor:pointer;background:var(--card);}
+  .role-card .ic{width:42px;height:42px;border-radius:11px;background:var(--teal-100);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .role-card .tx b{display:block;font-size:14.5px;color:var(--teal-900);}
+  .role-card .tx span{font-size:12px;color:var(--teal-500);}
+  .banner{background:var(--gold-light);border:1px solid var(--gold);color:var(--banner-text);font-size:12.5px;padding:10px 12px;border-radius:10px;margin-bottom:14px;line-height:1.6;}
+  .banner.err{background:var(--rust-light);border-color:var(--rust);color:var(--banner-err-text);}
+  .search-box{margin-bottom:12px;}
+  h3.section-title{font-size:12.5px;font-weight:800;color:var(--teal-500);text-transform:uppercase;letter-spacing:.4px;margin:18px 0 8px;}
+  .file-drop{border:1.5px dashed var(--teal-500);border-radius:10px;padding:14px;text-align:center;background:var(--teal-100);margin-bottom:8px;}
+  .file-drop input[type=file]{width:100%;font-size:12.5px;}
+  .sticky-warn{position:sticky;top:0;z-index:20;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+/* ================= i18n ================= */
+const I18N = {
+  ar: { dir:'rtl',
+    defaultBrandTitle:"متابعة حالات Fixed Prosthodontics", defaultBrandSubtitle:"تسجيل خطوات الحالات الإكلينيكية أول بأول",
+    loading:"جارِ التحميل...",
+    loginSupervisorTitle:"دخول مشرف", loginSupervisorDesc:"اختار اسمك وادخل كلمة المرور",
+    loginAdminTitle:"لوحة تحكم الأدمن", loginAdminDesc:"إدارة الأقسام والـ Courses والطلاب والمشرفين",
+    supervisorNameLabel:"اسم المشرف", passwordLabel:"كلمة المرور", loginBtn:"دخول", backBtn:"رجوع",
+    adminLoginHeading:"لوحة تحكم الأدمن", adminPasswordLabel:"كلمة مرور الأدمن", checkingBtn:"جارِ التحقق...",
+    wrongPassword:"كلمة المرور غير صحيحة.", wrongAdminPassword:"كلمة مرور الأدمن غير صحيحة.",
+    noSupervisorsYet:"لا يوجد مشرفين مضافين بعد.",
+    networkErrorPrefix:"تعذّر الاتصال بالسيرفر: ", networkErrorSuffix:". تأكد من الإنترنت والرابط.",
+    storageNotConfigured:"البرنامج لسه مش متوصل بقاعدة بيانات Google Sheets.",
+    storageConnFailed:"مش قادر أوصل لقاعدة البيانات دلوقتي — البيانات مش هتتحفظ.",
+    warningLabel:"تنبيه:", supervisorBadgePrefix:"مشرف: ", deptBadgePrefix:"قسم: ", courseBadgePrefix:"Course: ",
+    addStudentQuick:"+ طالب جديد", logoutBtn:"خروج", changeCourseBtn:"تغيير الـ Course",
+    searchPlaceholder:"بحث بالاسم...", noStudentsYet:"لا يوجد طلاب.", noSearchResults:"لا نتائج مطابقة.",
+    levelPrefix:"القسم: ", coursePrefix:"Course: ", groupPrefix:"مج ", subgroupPrefix:"فرعية ",
+    signedByPrefix:"وقّع: ", notDoneYet:"لم تتم بعد", noDeptAssigned:"لسه معندكش قسم متعيّن، كلم الأدمن.",
+    gradeLabel:"الدرجة", notesLabel:"ملاحظات", saveEvalBtn:"حفظ", totalGradeLabel:"إجمالي الدرجة: ",
+    pickCourseHeading:"اختار الـ Course", noCoursesInDept:"مفيش Courses في القسم ده لسه.",
+    filterGroupLabel:"تصفية بالمجموعة", filterSubgroupLabel:"تصفية بالمجموعة الفرعية", allOption:"الكل",
+    casesHeading:"الحالات", addCaseBtn:"+ حالة جديدة", noCasesYet:"لا يوجد حالات لهذا الطالب بعد.",
+    caseLabel:"حالة", promptCaseType:"نوع الحالة (اختياري):",
+    adminBadge:"لوحة الأدمن",
+    tabDepartments:"الأقسام", tabStudents:"الطلاب", tabSupervisors:"المشرفين", tabSteps:"الخطوات",
+    tabLists:"القوائم", tabStats:"الإحصائيات", tabSettings:"الإعدادات",
+    contextDeptLabel:"القسم", contextCourseLabel:"الـ Course", pickContextHint:"اختار القسم والـ Course الأول من فوق.",
+    addDepartmentHeading:"إضافة قسم جديد", departmentNameLabel:"اسم القسم", addDepartmentBtn:"إضافة القسم",
+    departmentsListHeading:"الأقسام", noDepartments:"لا يوجد أقسام بعد.",
+    confirmDeleteDepartment:"حذف هذا القسم بكل الـ Courses اللي جواه؟", promptNewDepartmentName:"اسم القسم الجديد:",
+    addCourseHeading:"إضافة Course", courseNameLabel:"اسم الـ Course", addCourseBtn:"إضافة",
+    coursesHeading:"الـ Courses", noCourses:"لا يوجد Courses.", confirmDeleteCourse:"حذف هذا الـ Course؟",
+    promptNewCourseName:"اسم الـ Course الجديد:",
+    selectDepartmentPlaceholder:"اختر القسم", selectCoursePlaceholder:"اختر الـ Course",
+    needDepartmentFirst:"لازم تضيف قسم أولاً من تبويب \"الأقسام\".",
+    addStudentHeading:"إضافة طالب جديد", studentNameLabel:"اسم الطالب", studentCodeLabel:"كود الطالب",
+    groupSelectLabel:"المجموعة", subgroupSelectLabel:"المجموعة الفرعية", caseTypeLabel:"نوع الحالة",
+    noneOption:"— بدون —", addNewOption:"➕ إضافة جديد...", addStudentBtn:"إضافة الطالب",
+    importHeading:"استيراد قائمة طلاب من Excel / CSV",
+    importDesc:'هيتم الاستيراد داخل القسم والـ Course المختارين فوق. الأعمدة: <b>الاسم</b>, الكود, المجموعة, المجموعة_الفرعية, نوع_الحالة (اختياري، بينشئ أول حالة للطالب). عمود "الاسم" إجباري بس.',
+    downloadTemplateBtn:"تحميل نموذج فارغ", importBtn:"استيراد الطلاب",
+    studentListHeading:"قائمة الطلاب", completeSuffix:"% مكتمل",
+    addSupervisorHeading:"إضافة مشرف جديد", supervisorsListHeading:"المشرفين", noSupervisors:"لا يوجد مشرفين بعد.",
+    passwordColon:"كلمة المرور: ", addSupervisorBtn:"إضافة المشرف", alertDuplicateSupervisor:"يوجد مشرف بنفس الاسم بالفعل",
+    editSupervisorPromptName:"اسم المشرف:", editSupervisorPromptPass:"كلمة المرور:",
+    addStepHeading:"إضافة خطوة جديدة لهذا الـ Course", stepNameLabel:"اسم الخطوة", addStepBtn:"إضافة الخطوة",
+    stepsOrderHeading:"ترتيب الخطوات",
+    labelForThisField:"اسم هذا الحقل", groupsHeading:"قائمة المجموعات", subgroupsHeading:"قائمة المجموعات الفرعية", caseTypesHeading:"قائمة أنواع الحالات",
+    newValuePlaceholder:"قيمة جديدة...", addBtn:"إضافة",
+    statsHeading:"إحصائية إنجاز الحالات", exportScopeLabel:"نطاق العرض والتصدير",
+    scopeAll:"الكل", scopeGroup:"مجموعة معينة", scopeSubgroup:"مجموعة فرعية معينة", exportCsvBtn:"تصدير CSV",
+    tableStudent:"الطالب", tableCase:"الحالة", tablePct:"النسبة", tableStepsCount:"الخطوات", tableGrade:"الدرجة", noDataYet:"لا بيانات بعد",
+    brandingHeading:"هوية البرنامج", appNameLabel:"اسم البرنامج", appSubtitleLabel:"الوصف الفرعي",
+    logoUrlLabel:"رابط اللوجو (اختياري)", logoUrlHint:"الصق رابط صورة مباشر. سيبها فاضية للأيقونة الافتراضية.",
+    saveBrandBtn:"حفظ", brandSaved:"تم الحفظ.",
+    appearanceHeading:"المظهر (Theme)", themeModeLabel:"وضع الألوان", themeLight:"فاتح", themeDark:"غامق", themeAuto:"تلقائي حسب الوقت",
+    accentColorLabel:"اللون الأساسي", saveThemeBtn:"حفظ المظهر",
+    changeAdminPassHeading:"تغيير كلمة مرور الأدمن", newPasswordLabel:"كلمة المرور الجديدة", savePasswordBtn:"حفظ كلمة المرور",
+    currentAdminPassPrefix:"كلمة مرور الأدمن الحالية: ", keepSafeNote:" — احتفظ بها في مكان آمن.",
+    alertEnterName:"من فضلك اكتب اسم الطالب", alertPickFile:"اختار ملف Excel أو CSV أولاً",
+    alertImportError:"حصل خطأ في قراءة الملف.", confirmDeleteStudent:"حذف هذا الطالب وكل بياناته؟",
+    confirmDeleteSupervisor:"حذف هذا المشرف؟", alertNameAndPass:"اكتب الاسم وكلمة المرور",
+    alertDuplicateStep:"هذه الخطوة موجودة بالفعل", confirmDeleteStep:"حذف هذه الخطوة؟",
+    alertEnterNewPassword:"اكتب كلمة مرور جديدة", alertPasswordChanged:"تم تغيير كلمة مرور الأدمن.",
+    saveFailedAlert:"تعذّر الحفظ: تأكد إنك مسجّل دخول بشكل صحيح.",
+    promptStudentName:"اسم الطالب:", promptNewStepName:"اسم الخطوة الجديد:",
+    promptNewListValue:"القيمة الجديدة:", alertDuplicateListValue:"هذه القيمة موجودة بالفعل", confirmDeleteListValue:"حذف هذه القيمة؟",
+    levelsHeading:"قائمة المستويات", levelSelectLabel:"المستوى", lvlValPrefix:"مستوى ",
+    courseSettingsHeading:"إعدادات الـ Course", deadlineLabel:"آخر موعد لتسجيل حالة جديدة (Deadline)",
+    saveDeadlineBtn:"حفظ الموعد", allowedCaseTypesHeading:"أنواع الحالات المتاحة لهذا الـ Course",
+    saveCaseTypesBtn:"حفظ أنواع الحالات", deadlinePassedAlert:"انتهى الموعد المحدد لتسجيل حالات جديدة لطلاب لسه مبدأوش أي حالة في هذا الـ Course.",
+    chooseCaseTypesHeading:"اختار نوع أو أكتر للحالة الجديدة", customCaseTypePlaceholder:"أو اكتب نوع مخصص (اختياري)",
+    confirmAddCasesBtn:"إضافة الحالات المختارة", cancelBtn:"إلغاء", pickAtLeastOneCaseType:"اختار نوع حالة واحد على الأقل أو اكتب نوع مخصص",
+    stepFilterLabel:"تصفية بخطوة معينة", noStepFilter:"— بدون تصفية —",
+    stepFilterSummary:"عدد الحالات اللي خلّصت هذه الخطوة: ", ofTotalCases:" من إجمالي ",
+    notStartedAnyCaseLabel:"عدد الطلاب اللي لسه ما بدأوش أي حالة: ",
+    linkPartnerBtn:"🔗 ربط شريك", partnersLabel:"الشركاء: ", noPartners:"مفيش شركاء متسجلين لهذه الحالة.",
+    savePartnersBtn:"حفظ الشركاء", pickPartnersHeading:"اختار شريك أو أكتر لهذه الحالة",
+  },
+  en: { dir:'ltr',
+    defaultBrandTitle:"Fixed Prosthodontics Case Tracker", defaultBrandSubtitle:"Track clinical case steps as they happen",
+    loading:"Loading...",
+    loginSupervisorTitle:"Supervisor Login", loginSupervisorDesc:"Choose your name and enter your password",
+    loginAdminTitle:"Admin Dashboard", loginAdminDesc:"Manage departments, courses, students and supervisors",
+    supervisorNameLabel:"Supervisor name", passwordLabel:"Password", loginBtn:"Login", backBtn:"Back",
+    adminLoginHeading:"Admin Dashboard", adminPasswordLabel:"Admin password", checkingBtn:"Checking...",
+    wrongPassword:"Incorrect password.", wrongAdminPassword:"Incorrect admin password.",
+    noSupervisorsYet:"No supervisors added yet.",
+    networkErrorPrefix:"Could not reach the server: ", networkErrorSuffix:". Check your internet connection and the link.",
+    storageNotConfigured:"This app isn't connected to a Google Sheets database yet.",
+    storageConnFailed:"Can't reach the database right now — data won't be saved.",
+    warningLabel:"Warning:", supervisorBadgePrefix:"Supervisor: ", deptBadgePrefix:"Dept: ", courseBadgePrefix:"Course: ",
+    addStudentQuick:"+ New student", logoutBtn:"Log out", changeCourseBtn:"Change course",
+    searchPlaceholder:"Search by name...", noStudentsYet:"No students yet.", noSearchResults:"No matching results.",
+    levelPrefix:"Dept: ", coursePrefix:"Course: ", groupPrefix:"Grp ", subgroupPrefix:"Sub ",
+    signedByPrefix:"Signed: ", notDoneYet:"Not done yet", noDeptAssigned:"No department assigned, contact the admin.",
+    gradeLabel:"Grade", notesLabel:"Notes", saveEvalBtn:"Save", totalGradeLabel:"Total grade: ",
+    pickCourseHeading:"Choose the course", noCoursesInDept:"No courses in this department yet.",
+    filterGroupLabel:"Filter by group", filterSubgroupLabel:"Filter by subgroup", allOption:"All",
+    casesHeading:"Cases", addCaseBtn:"+ New case", noCasesYet:"No cases for this student yet.",
+    caseLabel:"Case", promptCaseType:"Case type (optional):",
+    adminBadge:"Admin panel",
+    tabDepartments:"Departments", tabStudents:"Students", tabSupervisors:"Supervisors", tabSteps:"Steps",
+    tabLists:"Lists", tabStats:"Statistics", tabSettings:"Settings",
+    contextDeptLabel:"Department", contextCourseLabel:"Course", pickContextHint:"Select a department and course above first.",
+    addDepartmentHeading:"Add new department", departmentNameLabel:"Department name", addDepartmentBtn:"Add department",
+    departmentsListHeading:"Departments", noDepartments:"No departments yet.",
+    confirmDeleteDepartment:"Delete this department and all its courses?", promptNewDepartmentName:"New department name:",
+    addCourseHeading:"Add course", courseNameLabel:"Course name", addCourseBtn:"Add",
+    coursesHeading:"Courses", noCourses:"No courses.", confirmDeleteCourse:"Delete this course?",
+    promptNewCourseName:"New course name:",
+    selectDepartmentPlaceholder:"Select department", selectCoursePlaceholder:"Select course",
+    needDepartmentFirst:"Add a department first from the \"Departments\" tab.",
+    addStudentHeading:"Add new student", studentNameLabel:"Student name", studentCodeLabel:"Student code",
+    groupSelectLabel:"Group", subgroupSelectLabel:"Subgroup", caseTypeLabel:"Case type",
+    noneOption:"— None —", addNewOption:"➕ Add new...", addStudentBtn:"Add student",
+    importHeading:"Import student list from Excel / CSV",
+    importDesc:'Students will be imported into the department and course selected above. Columns: <b>Name</b>, Code, Group, Subgroup, CaseType (optional, creates a first case). Only "Name" is required.',
+    downloadTemplateBtn:"Download blank template", importBtn:"Import students",
+    studentListHeading:"Student list", completeSuffix:"% complete",
+    addSupervisorHeading:"Add new supervisor", supervisorsListHeading:"Supervisors", noSupervisors:"No supervisors yet.",
+    passwordColon:"Password: ", addSupervisorBtn:"Add supervisor", alertDuplicateSupervisor:"A supervisor with this name already exists",
+    editSupervisorPromptName:"Supervisor name:", editSupervisorPromptPass:"Password:",
+    addStepHeading:"Add a new step for this course", stepNameLabel:"Step name", addStepBtn:"Add step",
+    stepsOrderHeading:"Steps order",
+    labelForThisField:"Label for this field", groupsHeading:"Group list", subgroupsHeading:"Subgroup list", caseTypesHeading:"Case type list",
+    newValuePlaceholder:"New value...", addBtn:"Add",
+    statsHeading:"Case completion statistics", exportScopeLabel:"View & export scope",
+    scopeAll:"All", scopeGroup:"Specific group", scopeSubgroup:"Specific subgroup", exportCsvBtn:"Export CSV",
+    tableStudent:"Student", tableCase:"Case", tablePct:"Progress", tableStepsCount:"Steps", tableGrade:"Grade", noDataYet:"No data yet",
+    brandingHeading:"App branding", appNameLabel:"App name", appSubtitleLabel:"Subtitle",
+    logoUrlLabel:"Logo URL (optional)", logoUrlHint:"Paste a direct image link. Leave empty for the default icon.",
+    saveBrandBtn:"Save", brandSaved:"Saved.",
+    appearanceHeading:"Appearance (Theme)", themeModeLabel:"Color mode", themeLight:"Light", themeDark:"Dark", themeAuto:"Automatic (day/night)",
+    accentColorLabel:"Accent color", saveThemeBtn:"Save appearance",
+    changeAdminPassHeading:"Change admin password", newPasswordLabel:"New password", savePasswordBtn:"Save password",
+    currentAdminPassPrefix:"Current admin password: ", keepSafeNote:" — keep it somewhere safe.",
+    alertEnterName:"Please enter the student's name", alertPickFile:"Choose an Excel or CSV file first",
+    alertImportError:"There was an error reading the file.", confirmDeleteStudent:"Delete this student and all their data?",
+    confirmDeleteSupervisor:"Delete this supervisor?", alertNameAndPass:"Enter the name and password",
+    alertDuplicateStep:"This step already exists", confirmDeleteStep:"Delete this step?",
+    alertEnterNewPassword:"Enter a new password", alertPasswordChanged:"Admin password changed.",
+    saveFailedAlert:"Save failed: make sure you're logged in correctly.",
+    promptStudentName:"Student name:", promptNewStepName:"New step name:",
+    promptNewListValue:"New value:", alertDuplicateListValue:"This value already exists", confirmDeleteListValue:"Delete this value?",
+    levelsHeading:"Level list", levelSelectLabel:"Level", lvlValPrefix:"Level ",
+    courseSettingsHeading:"Course settings", deadlineLabel:"Deadline to register a new case",
+    saveDeadlineBtn:"Save deadline", allowedCaseTypesHeading:"Case types available for this course",
+    saveCaseTypesBtn:"Save case types", deadlinePassedAlert:"The deadline to register new cases for students who haven't started any case in this course has passed.",
+    chooseCaseTypesHeading:"Choose one or more types for the new case", customCaseTypePlaceholder:"Or type a custom type (optional)",
+    confirmAddCasesBtn:"Add selected cases", cancelBtn:"Cancel", pickAtLeastOneCaseType:"Choose at least one case type or enter a custom one",
+    stepFilterLabel:"Filter by a specific step", noStepFilter:"— No filter —",
+    stepFilterSummary:"Cases that completed this step: ", ofTotalCases:" out of ",
+    notStartedAnyCaseLabel:"Students who haven't started any case yet: ",
+    linkPartnerBtn:"🔗 Link partner", partnersLabel:"Partners: ", noPartners:"No partners linked to this case.",
+    savePartnersBtn:"Save partners", pickPartnersHeading:"Choose one or more partners for this case",
+  }
+};
+function t(key){ return (I18N[state.lang] && I18N[state.lang][key]) ?? (I18N.ar[key] ?? key); }
+function fieldLabel(key){
+  const custom = CONFIG && CONFIG.fieldLabels && CONFIG.fieldLabels[key];
+  if(custom) return custom;
+  if(key==='group') return t('groupSelectLabel');
+  if(key==='subgroup') return t('subgroupSelectLabel');
+  if(key==='caseType') return t('caseTypeLabel');
+  if(key==='level') return t('levelSelectLabel');
+  return '';
+}
+
+/* ---------------- Storage helpers (Google Sheets via Apps Script) ---------------- */
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxcF_MOXGB1zoO5Oe0DutoEyTU4Gl376r4U1z9VG0osixvaQt5e31Bum7i9Mz_I3fGD/exec";
+function scriptConfigured(){ return !!SCRIPT_URL && !SCRIPT_URL.includes('PASTE_YOUR'); }
+// fetch() has no built-in timeout — without this, a stalled connection leaves the UI stuck forever
+// (e.g. a disabled button stuck on "checking...") instead of showing a clear error.
+async function fetchWithTimeout(url, opts={}, ms=25000){
+  const controller = new AbortController();
+  const timer = setTimeout(()=>controller.abort(), ms);
+  try{
+    return await fetch(url, { ...opts, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+async function getData(key, fallback){
+  if(!scriptConfigured()) return fallback;
+  try{
+    const res = await fetchWithTimeout(`${SCRIPT_URL}?action=get&key=${encodeURIComponent(key)}`);
+    if(!res.ok) throw new Error('bad status ' + res.status);
+    const json = await res.json();
+    if(json && json.value !== undefined && json.value !== null) return JSON.parse(json.value);
+    return fallback;
+  }catch(e){ console.error('getData failed', key, e); state.storageOk = false; return fallback; }
+}
+async function setData(key, value){
+  if(!scriptConfigured()) return false;
+  let auth = null;
+  if(state.screen==='admin' && state.adminPass) auth = { role:'admin', password: state.adminPass };
+  else if(state.screen==='supervisor' && state.currentSupervisor) auth = { role:'supervisor', name: state.currentSupervisor, password: state.currentSupervisorPass };
+  try{
+    const res = await fetchWithTimeout(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ action:'save', key, value: JSON.stringify(value), auth }) });
+    if(!res.ok) throw new Error('bad status ' + res.status);
+    const json = await res.json();
+    if(!json.ok){ console.error('save rejected', json.error); alert(t('saveFailedAlert')); state.storageOk=false; return false; }
+    state.storageOk = true; return true;
+  }catch(e){ console.error('setData failed', key, e); state.storageOk = false; return false; }
+}
+async function fetchSupervisorNames(){
+  if(!scriptConfigured()) return [];
+  try{ const res = await fetchWithTimeout(`${SCRIPT_URL}?action=supervisor-names`); const json = await res.json(); return json.names || []; }
+  catch(e){ return []; }
+}
+async function apiLoginSupervisor(name, password){
+  if(!scriptConfigured()) return {ok:false};
+  try{
+    const res = await fetchWithTimeout(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ action:'login-supervisor', name, password }) });
+    return await res.json();
+  }catch(e){ return {ok:false, networkError:true, error: e.name==='AbortError' ? (state.lang==='ar'?'انتهت مهلة الاتصال':'Request timed out') : e.message}; }
+}
+async function apiLoginAdmin(password){
+  if(!scriptConfigured()) return {ok:false};
+  try{
+    const res = await fetchWithTimeout(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ action:'login-admin', password }) });
+    return await res.json();
+  }catch(e){ return {ok:false, networkError:true, error: e.name==='AbortError' ? (state.lang==='ar'?'انتهت مهلة الاتصال':'Request timed out') : e.message}; }
+}
+
+const DEFAULT_STEPS_NAMES = [
+  "تحضير السن (Preparation)","أخذ الطبعة النهائية (Final Impression)","تسجيل العلاقة الفكية (Bite Registration)",
+  "اختيار اللون (Shade Selection)","التاج المؤقت (Provisional)","تجربة الهيكل (Framework Try-in)",
+  "تجربة البسكويت (Bisque Try-in)","التركيب النهائي (Final Cementation)","المتابعة (Follow-up)"
+];
+const DEFAULT_GROUPS = ["A","B","C","D"];
+const DEFAULT_SUBGROUPS = ["A1","A2","B1","B2","C1","C2","D1","D2"];
+const DEFAULT_CASE_TYPES = ["تاج كامل (Full Crown)","جسر (Bridge)","قشرة خزفية (Veneer)","طقم جزئي متحرك (RPD)"];
+
+function stepId(){ return 'st_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function courseId(){ return 'c_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function deptId(){ return 'd_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function caseId(){ return 'cs_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function uid(){ return 's_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+function defaultSteps(){ return DEFAULT_STEPS_NAMES.map(n=>({id:stepId(), name:n})); }
+function defaultConfig(){
+  return {
+    departments: [],
+    groups: DEFAULT_GROUPS.slice(), subgroups: DEFAULT_SUBGROUPS.slice(), caseTypes: DEFAULT_CASE_TYPES.slice(),
+    levels: [],
+    fieldLabels: { group:"", subgroup:"", caseType:"", level:"" },
+    brandTitle:"", brandSubtitle:"", logoUrl:"",
+    theme: { mode:"light", accent:"" }
+  };
+}
+function mergeConfig(cfg){
+  const d = defaultConfig();
+  if(!cfg) return d;
+  return {
+    departments: Array.isArray(cfg.departments) ? cfg.departments.map(dep=>({
+      id: dep.id, name: dep.name,
+      courses: Array.isArray(dep.courses) ? dep.courses.map(c=>{
+        const legacySteps = Array.isArray(c.steps) ? c.steps.map(s=> typeof s==='string' ? {id:stepId(), name:s} : s) : [];
+        const caseTypes = Array.isArray(c.caseTypes) ? c.caseTypes : [];
+        let caseTypeConfigs = Array.isArray(c.caseTypeConfigs) ? c.caseTypeConfigs.map(cc=>({
+          name: cc.name,
+          steps: Array.isArray(cc.steps) ? cc.steps.map(s=> typeof s==='string' ? {id:stepId(), name:s} : s) : []
+        })) : null;
+        if(!caseTypeConfigs){
+          // migrate from the old course-wide steps: give every assigned case type a copy of the old steps as a starting point
+          caseTypeConfigs = caseTypes.map(name=>({ name, steps: legacySteps.map(s=>({id: stepId(), name: s.name})) }));
+        }
+        return { id: c.id, name: c.name, deadline: c.deadline || "", caseTypes, caseTypeConfigs };
+      }) : []
+    })) : d.departments,
+    groups: Array.isArray(cfg.groups) ? cfg.groups : d.groups,
+    subgroups: Array.isArray(cfg.subgroups) ? cfg.subgroups : d.subgroups,
+    caseTypes: Array.isArray(cfg.caseTypes) ? cfg.caseTypes : d.caseTypes,
+    levels: Array.isArray(cfg.levels) ? cfg.levels : d.levels,
+    fieldLabels: Object.assign({group:"",subgroup:"",caseType:"",level:""}, cfg.fieldLabels||{}),
+    brandTitle: cfg.brandTitle || "", brandSubtitle: cfg.brandSubtitle || "", logoUrl: cfg.logoUrl || "",
+    theme: cfg.theme || d.theme
+  };
+}
+function getDept(id){ return (CONFIG.departments||[]).find(d=>d.id===id) || null; }
+function getCourse(deptIdVal, courseIdVal){ const d = getDept(deptIdVal); if(!d) return null; return (d.courses||[]).find(c=>c.id===courseIdVal) || null; }
+function studentCourse(st){ return getCourse(st.departmentId, st.courseId); }
+function courseCaseTypes(course){ return (course && course.caseTypes) ? course.caseTypes : []; }
+function caseTypeConfig(course, caseTypeName){
+  if(!course) return null;
+  return (course.caseTypeConfigs||[]).find(c=>c.name===caseTypeName) || null;
+}
+function caseSteps(course, caseTypeName){
+  const cfg = caseTypeConfig(course, caseTypeName);
+  return cfg ? cfg.steps : [];
+}
+function studentHasStarted(st){
+  return (st.cases||[]).some(cs=>{
+    const p = PROGRESS[cs.id]||{};
+    return Object.values(p).some(rec=>rec.done);
+  });
+}
+
+
+let CONFIG = null, CREDENTIALS = null, SUP_NAMES = [], STUDENTS = [], PROGRESS = {};
+
+let state = {
+  screen:'login', currentSupervisor:null, currentSupervisorPass:null, currentDept:null,
+  supervisorCourseId:null, supervisorGroupFilter:'all', supervisorSubgroupFilter:'all',
+  adminPass:null, adminTab:'departments', adminDeptId:'', adminCourseId:'',
+  openStudent:null, openCase:null, search:'', loginMode:null, loginErr:'', loading:true, storageOk:true,
+  importMsg:'', lang:(typeof localStorage!=='undefined' && localStorage.getItem('prostho_lang')) || 'ar',
+  statsScope:'all', statsScopeValue:'', statsStepId:'', statsCaseTypeFilter:'',
+  addingCaseFor:null, linkingPartnersFor:null
+};
+
+function esc(s){ return (s+'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtDate(iso){
+  if(!iso) return '';
+  const d = new Date(iso);
+  const locale = state.lang==='ar' ? 'ar-EG' : 'en-GB';
+  return d.toLocaleDateString(locale,{day:'numeric',month:'short'}) + ' - ' + d.toLocaleTimeString(locale,{hour:'2-digit',minute:'2-digit'});
+}
+
+function casePct(st, cs){
+  const course = studentCourse(st);
+  const steps = caseSteps(course, cs.caseType);
+  if(!steps.length) return 0;
+  const p = PROGRESS[cs.id]||{};
+  const done = steps.filter(s => p[s.id] && p[s.id].done).length;
+  return Math.round((done/steps.length)*100);
+}
+function studentAggregatePct(st){
+  const cases = st.cases||[];
+  if(!cases.length) return 0;
+  const total = cases.reduce((sum,cs)=>sum+casePct(st,cs),0);
+  return Math.round(total/cases.length);
+}
+function caseTotalGrade(st, cs){
+  const p = PROGRESS[cs.id]||{};
+  let sum = 0;
+  Object.values(p).forEach(rec=>{ const n = parseFloat(rec.grade); if(!isNaN(n)) sum += n; });
+  return sum;
+}
+
+function ringSvg(pct, size=42){
+  const r = (size/2)-4, c = 2*Math.PI*r, off = c - (pct/100)*c;
+  const color = pct===100 ? 'var(--gold)' : 'var(--teal-500)';
+  return `<div class="ring"><svg width="${size}" height="${size}">
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" stroke="var(--line)" stroke-width="4" fill="none"/>
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" stroke="${color}" stroke-width="4" fill="none"
+      stroke-dasharray="${c}" stroke-dashoffset="${off}" stroke-linecap="round"/>
+  </svg><div class="pct">${pct}%</div></div>`;
+}
+function toothSvg(){
+  return `<svg width="30" height="30" viewBox="0 0 24 24" fill="none">
+    <path d="M12 2C8 2 5 4 5 8c0 3 1 4 1.5 7.5.3 2 1 6.5 2.5 6.5 1.8 0 1.5-5 3-5s1.2 5 3 5c1.5 0 2.2-4.5 2.5-6.5C18 12 19 11 19 8c0-4-3-6-7-6Z"
+      fill="var(--teal-100)" stroke="var(--teal-700)" stroke-width="1.3"/></svg>`;
+}
+function iconUser(){return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal-700)" stroke-width="1.8"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg>`;}
+function iconGear(){return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal-700)" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.6-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>`;}
+
+function applyTheme(){
+  const theme = CONFIG.theme || {mode:'light',accent:''};
+  let mode = theme.mode || 'light';
+  if(mode==='auto'){ const h = new Date().getHours(); mode = (h>=6 && h<18) ? 'light' : 'dark'; }
+  document.documentElement.setAttribute('data-theme', mode==='dark' ? 'dark' : 'light');
+  if(theme.accent) document.documentElement.style.setProperty('--teal-700', theme.accent);
+  else document.documentElement.style.removeProperty('--teal-700');
+}
+
+/* ================= Render ================= */
+function render(){
+  document.documentElement.dir = I18N[state.lang].dir;
+  document.documentElement.lang = state.lang;
+  applyTheme();
+  const root = document.getElementById('root');
+  if(state.loading){ root.innerHTML = `<div class="empty"><p>${t('loading')}</p></div>`; return; }
+  const title = CONFIG.brandTitle || t('defaultBrandTitle');
+  const subtitle = CONFIG.brandSubtitle || t('defaultBrandSubtitle');
+  root.innerHTML = `
+    <div class="brand">
+      ${CONFIG.logoUrl ? `<img src="${esc(CONFIG.logoUrl)}" alt="logo">` : toothSvg()}
+      <div class="brand-text"><h1>${esc(title)}</h1><span>${esc(subtitle)}</span></div>
+      <button class="lang-toggle" data-act="toggle-lang">${state.lang==='ar' ? 'EN' : 'AR'}</button>
+    </div>
+    ${!state.storageOk ? `<div class="banner err sticky-warn"><b>${t('warningLabel')}</b> ${scriptConfigured() ? t('storageConnFailed') : t('storageNotConfigured')}</div>` : ''}
+    ${screenHtml()}
+  `;
+  bindEvents();
+}
+function screenHtml(){
+  if(state.screen === 'login') return loginHtml();
+  if(state.screen === 'supervisor') return supervisorHtml();
+  if(state.screen === 'admin') return adminHtml();
+  return '';
+}
+
+/* ---------------- LOGIN ---------------- */
+function loginHtml(){
+  if(!state.loginMode){
+    return `
+    <div class="login-screen">
+      <div class="role-card" data-act="pick-supervisor">
+        <div class="ic">${iconUser()}</div>
+        <div class="tx"><b>${t('loginSupervisorTitle')}</b><span>${t('loginSupervisorDesc')}</span></div>
+      </div>
+      <div class="role-card" data-act="pick-admin">
+        <div class="ic">${iconGear()}</div>
+        <div class="tx"><b>${t('loginAdminTitle')}</b><span>${t('loginAdminDesc')}</span></div>
+      </div>
+    </div>`;
+  }
+  if(state.loginMode === 'supervisor'){
+    const opts = SUP_NAMES.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
+    return `
+    <div class="card">
+      <h2>${t('loginSupervisorTitle')}</h2>
+      ${SUP_NAMES.length===0 ? `<div class="banner err">${t('noSupervisorsYet')}</div>` : ''}
+      ${state.loginErr ? `<div class="banner err">${esc(state.loginErr)}</div>` : ''}
+      <div class="field"><label>${t('supervisorNameLabel')}</label><select id="sup-name">${opts}</select></div>
+      <div class="field"><label>${t('passwordLabel')}</label>
+        <div style="display:flex;gap:6px;">
+          <input type="password" id="sup-pass" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" style="flex:1;">
+          <button type="button" class="btn ghost sm" data-act="toggle-pass-visibility" data-target="sup-pass" style="width:auto;">👁</button>
+        </div>
+      </div>
+      <div class="row wrap" style="margin-top:6px;">
+        <button class="btn" data-act="do-supervisor-login" ${SUP_NAMES.length===0?'disabled':''}>${t('loginBtn')}</button>
+        <button class="btn ghost" data-act="back-login">${t('backBtn')}</button>
+      </div>
+    </div>`;
+  }
+  if(state.loginMode === 'admin'){
+    return `
+    <div class="card">
+      <h2>${t('adminLoginHeading')}</h2>
+      ${state.loginErr ? `<div class="banner err">${esc(state.loginErr)}</div>` : ''}
+      <div class="field"><label>${t('adminPasswordLabel')}</label>
+        <div style="display:flex;gap:6px;">
+          <input type="password" id="admin-pass" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" style="flex:1;">
+          <button type="button" class="btn ghost sm" data-act="toggle-pass-visibility" data-target="admin-pass" style="width:auto;">👁</button>
+        </div>
+      </div>
+      <div class="row wrap" style="margin-top:6px;">
+        <button class="btn gold" data-act="do-admin-login">${t('loginBtn')}</button>
+        <button class="btn ghost" data-act="back-login">${t('backBtn')}</button>
+      </div>
+    </div>`;
+  }
+  return '';
+}
+
+/* ---------------- SUPERVISOR ---------------- */
+function studentMetaLine(st){
+  const d = getDept(st.departmentId), c = studentCourse(st);
+  return [d?t('levelPrefix')+esc(d.name):'', c?t('coursePrefix')+esc(c.name):'', st.group?t('groupPrefix')+esc(st.group):'', st.subgroup?t('subgroupPrefix')+esc(st.subgroup):'', st.level?t('lvlValPrefix')+esc(st.level):''].filter(Boolean).join(' · ');
+}
+function stepsHtmlForCase(st, cs, readonly){
+  const course = studentCourse(st);
+  const steps = caseSteps(course, cs.caseType);
+  const p = PROGRESS[cs.id]||{};
+  if(steps.length===0) return `<div class="empty"><p>—</p></div>`;
+  const total = caseTotalGrade(st, cs);
+  return `<div class="total-grade">${t('totalGradeLabel')}${total}</div>` + steps.map((step,i)=>{
+    const rec = p[step.id];
+    const done = rec && rec.done;
+    return `
+    <div class="step-row">
+      <div class="step-top">
+        <div class="step-num ${done?'done':''}">${i+1}</div>
+        <div class="step-main">
+          <div class="step-name">${esc(step.name)}</div>
+          <div class="step-sub ${done?'':'pending'}">${done ? `${t('signedByPrefix')}${esc(rec.supervisor)} · ${fmtDate(rec.date)}` : t('notDoneYet')}</div>
+        </div>
+        ${readonly ? '' : `<button class="toggle ${done?'on':''}" data-act="toggle-step" data-sid="${st.id}" data-cid="${cs.id}" data-stepid="${step.id}"><span class="knob"></span></button>`}
+      </div>
+      ${(!readonly && done) ? `
+      <div class="eval-row">
+        <input type="number" class="grade-input" id="grade-${st.id}-${cs.id}-${step.id}" placeholder="${t('gradeLabel')}" value="${esc(rec.grade!==undefined?rec.grade:'')}">
+        <input type="text" id="notes-${st.id}-${cs.id}-${step.id}" placeholder="${t('notesLabel')}" value="${esc(rec.notes||'')}">
+        <button class="btn sm" style="width:auto;" data-act="save-eval" data-sid="${st.id}" data-cid="${cs.id}" data-stepid="${step.id}">${t('saveEvalBtn')}</button>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+function partnerNames(st, cs){
+  const ids = cs.partnerIds || [];
+  return ids.map(id=>{ const p = STUDENTS.find(s=>s.id===id); return p ? p.name : null; }).filter(Boolean);
+}
+function partnerDisplayList(cs){
+  const ids = cs.partnerIds || [];
+  return ids.map(id=>{
+    const p = STUDENTS.find(s=>s.id===id);
+    if(!p) return null;
+    let label = esc(p.name);
+    if(p.studentCode) label += ' <span style="color:var(--teal-500);">#'+esc(p.studentCode)+'</span>';
+    const meta = [p.group?t('groupPrefix')+esc(p.group):'', p.subgroup?t('subgroupPrefix')+esc(p.subgroup):''].filter(Boolean).join(' · ');
+    return meta ? `${label} (${meta})` : label;
+  }).filter(Boolean);
+}
+function addCasePanelHtml(st){
+  const course = studentCourse(st);
+  const types = courseCaseTypes(course);
+  return `
+  <div class="card" style="margin-top:8px;background:var(--bg);">
+    <h2 style="font-size:13.5px;">${t('chooseCaseTypesHeading')}</h2>
+    ${types.length===0 ? `<p style="font-size:12px;color:var(--teal-500);">—</p>` : `
+    <div class="chip-row">
+      ${types.map(ct=>`<label class="chip" style="cursor:pointer;">
+        <input type="checkbox" class="new-case-chk" value="${esc(ct)}" style="width:auto;margin:0;">
+        ${esc(ct)}
+      </label>`).join('')}
+    </div>`}
+    <div class="field"><input type="text" id="custom-case-type-${st.id}" placeholder="${t('customCaseTypePlaceholder')}"></div>
+    <div class="row wrap">
+      <button class="btn sm" style="width:auto;" data-act="confirm-add-case" data-sid="${st.id}">${t('confirmAddCasesBtn')}</button>
+      <button class="btn ghost sm" style="width:auto;" data-act="cancel-add-case">${t('cancelBtn')}</button>
+    </div>
+  </div>`;
+}
+function partnerPanelHtml(st, cs){
+  const others = STUDENTS.filter(s=> s.id!==st.id && s.departmentId===st.departmentId && s.courseId===st.courseId);
+  const selected = cs.partnerIds || [];
+  return `
+  <div class="card" style="margin-top:8px;background:var(--bg);">
+    <h2 style="font-size:13.5px;">${t('pickPartnersHeading')}</h2>
+    ${others.length===0 ? `<p style="font-size:12px;color:var(--teal-500);">—</p>` : `
+    <div class="chip-row">
+      ${others.map(o=>`<label class="chip" style="cursor:pointer;background:${selected.includes(o.id)?'var(--gold-light)':'var(--teal-100)'};">
+        <input type="checkbox" class="partner-chk" value="${o.id}" ${selected.includes(o.id)?'checked':''} style="width:auto;margin:0;">
+        ${esc(o.name)}
+      </label>`).join('')}
+    </div>`}
+    <div class="row wrap">
+      <button class="btn sm" style="width:auto;" data-act="confirm-save-partners" data-sid="${st.id}" data-cid="${cs.id}">${t('savePartnersBtn')}</button>
+      <button class="btn ghost sm" style="width:auto;" data-act="cancel-link-partners">${t('cancelBtn')}</button>
+    </div>
+  </div>`;
+}
+function casesHtml(st, readonly){
+  const cases = st.cases||[];
+  const openCase = state.openCase;
+  let html = '';
+  if(cases.length===0) html += `<div class="empty"><p>${t('noCasesYet')}</p></div>`;
+  else cases.forEach(cs=>{
+    const pct = casePct(st,cs);
+    const total = caseTotalGrade(st,cs);
+    const open = openCase===cs.id;
+    const partners = partnerDisplayList(cs);
+    const linkingThis = state.linkingPartnersFor && state.linkingPartnersFor.sid===st.id && state.linkingPartnersFor.cid===cs.id;
+    html += `
+    <div class="case-item" data-act="toggle-case" data-sid="${st.id}" data-cid="${cs.id}">
+      <div style="width:32px;flex-shrink:0;">${ringSvg(pct,32)}</div>
+      <div class="ci-info">
+        <div class="ci-name">${esc(cs.caseType || t('caseLabel'))}</div>
+        <div class="ci-meta">${t('totalGradeLabel')}${total}</div>
+        ${partners.length ? `<div class="ci-meta">${t('partnersLabel')}${partners.join('، ')}</div>` : ''}
+      </div>
+      <div class="chev">${open?'▲':'▼'}</div>
+    </div>
+    ${open ? `<div class="case-body">
+      ${stepsHtmlForCase(st, cs, readonly)}
+      ${!readonly ? `<button class="btn ghost sm" style="width:auto;margin-top:8px;" data-act="toggle-link-partners" data-sid="${st.id}" data-cid="${cs.id}">${t('linkPartnerBtn')}</button>` : ''}
+      ${linkingThis ? partnerPanelHtml(st,cs) : ''}
+    </div>` : ''}
+    `;
+  });
+  if(!readonly){
+    if(state.addingCaseFor === st.id){
+      html += addCasePanelHtml(st);
+    } else {
+      html += `<button class="btn secondary sm" style="width:auto;margin-top:6px;" data-act="toggle-add-case" data-sid="${st.id}">${t('addCaseBtn')}</button>`;
+    }
+  }
+  return html;
+}
+function studentListHtml(readonly, filterFn){
+  const q = state.search.trim().toLowerCase();
+  let list = STUDENTS.filter(s => !q || s.name.toLowerCase().includes(q));
+  if(filterFn) list = list.filter(filterFn);
+  list = list.slice().sort((a,b)=> a.name.localeCompare(b.name, state.lang==='ar'?'ar':'en'));
+  if(list.length===0) return `<div class="empty"><p>${STUDENTS.length===0 ? t('noStudentsYet') : t('noSearchResults')}</p></div>`;
+  return list.map(st=>{
+    const pct = studentAggregatePct(st);
+    const open = state.openStudent === st.id;
+    return `
+    <div class="student-card">
+      <div class="student-head" data-act="toggle-student" data-id="${st.id}">
+        ${ringSvg(pct)}
+        <div class="student-info">
+          <div class="nm">${esc(st.name)}${st.studentCode ? ' <span style="color:var(--teal-500);font-weight:500;">#'+esc(st.studentCode)+'</span>' : ''}</div>
+          <div class="meta">${studentMetaLine(st)}</div>
+        </div>
+        <div class="chev">${open ? '▲' : '▼'}</div>
+      </div>
+      <div class="student-body ${open?'open':''}">${casesHtml(st, readonly)}</div>
+    </div>`;
+  }).join('');
+}
+function supervisorHtml(){
+  const dept = getDept(state.currentDept);
+  if(!dept){
+    return `<div class="top-actions"><span class="pill">${t('supervisorBadgePrefix')}${esc(state.currentSupervisor)}</span>
+      <button class="btn rust sm" data-act="logout">${t('logoutBtn')}</button></div>
+      <div class="empty"><p>${t('noDeptAssigned')}</p></div>`;
+  }
+  if(!state.supervisorCourseId){
+    const courses = dept.courses||[];
+    return `
+    <div class="top-actions">
+      <span class="pill">${t('supervisorBadgePrefix')}${esc(state.currentSupervisor)} · ${t('deptBadgePrefix')}${esc(dept.name)}</span>
+      <button class="btn rust sm" data-act="logout">${t('logoutBtn')}</button>
+    </div>
+    <h3 class="section-title">${t('pickCourseHeading')}</h3>
+    ${courses.length===0 ? `<div class="empty"><p>${t('noCoursesInDept')}</p></div>` :
+      courses.map(c=>`<div class="course-card" data-act="pick-course" data-cid="${c.id}"><b>${esc(c.name)}</b></div>`).join('')}
+    `;
+  }
+  const course = getCourse(state.currentDept, state.supervisorCourseId);
+  return `
+    <div class="top-actions">
+      <span class="pill">${t('supervisorBadgePrefix')}${esc(state.currentSupervisor)} · ${t('courseBadgePrefix')}${esc(course?course.name:'')}</span>
+      <div class="row" style="width:auto;">
+        <button class="btn ghost sm" data-act="add-student-quick">${t('addStudentQuick')}</button>
+        <button class="btn rust sm" data-act="logout">${t('logoutBtn')}</button>
+      </div>
+    </div>
+    <button class="btn ghost sm" style="width:auto;margin-bottom:10px;" data-act="change-course">${t('changeCourseBtn')}</button>
+    <div class="row" style="margin-bottom:10px;">
+      <div class="field" style="flex:1;margin-bottom:0;"><label>${t('filterGroupLabel')}</label>
+        <select id="sup-group-filter">
+          <option value="all" ${state.supervisorGroupFilter==='all'?'selected':''}>${t('allOption')}</option>
+          ${CONFIG.groups.map(g=>`<option value="${esc(g)}" ${state.supervisorGroupFilter===g?'selected':''}>${esc(g)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field" style="flex:1;margin-bottom:0;"><label>${t('filterSubgroupLabel')}</label>
+        <select id="sup-subgroup-filter">
+          <option value="all" ${state.supervisorSubgroupFilter==='all'?'selected':''}>${t('allOption')}</option>
+          ${CONFIG.subgroups.map(g=>`<option value="${esc(g)}" ${state.supervisorSubgroupFilter===g?'selected':''}>${esc(g)}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="search-box"><input type="text" id="search-input" placeholder="${t('searchPlaceholder')}" value="${esc(state.search)}"></div>
+    ${studentListHtml(false, s=> s.departmentId===state.currentDept && s.courseId===state.supervisorCourseId
+      && (state.supervisorGroupFilter==='all' || s.group===state.supervisorGroupFilter)
+      && (state.supervisorSubgroupFilter==='all' || s.subgroup===state.supervisorSubgroupFilter))}
+  `;
+}
+
+/* ---------------- ADMIN ---------------- */
+function contextBarHtml(){
+  const deps = CONFIG.departments || [];
+  const course = getCourse(state.adminDeptId, state.adminCourseId);
+  const coursesForDept = state.adminDeptId ? (getDept(state.adminDeptId)?.courses||[]) : [];
+  return `
+  <div class="context-bar">
+    <div class="field"><label>${t('contextDeptLabel')}</label>
+      <select id="ctx-dept">
+        <option value="">${t('selectDepartmentPlaceholder')}</option>
+        ${deps.map(d=>`<option value="${d.id}" ${state.adminDeptId===d.id?'selected':''}>${esc(d.name)}</option>`).join('')}
+      </select>
+    </div>
+    <div class="field"><label>${t('contextCourseLabel')}</label>
+      <select id="ctx-course" ${!state.adminDeptId?'disabled':''}>
+        <option value="">${t('selectCoursePlaceholder')}</option>
+        ${coursesForDept.map(c=>`<option value="${c.id}" ${state.adminCourseId===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}
+      </select>
+    </div>
+  </div>`;
+}
+function adminHtml(){
+  const tabs = [['departments',t('tabDepartments')],['students',t('tabStudents')],['supervisors',t('tabSupervisors')],['steps',t('tabSteps')],['lists',t('tabLists')],['stats',t('tabStats')],['settings',t('tabSettings')]];
+  return `
+    <div class="top-actions">
+      <span class="pill">${t('adminBadge')}</span>
+      <button class="btn rust sm" data-act="logout">${t('logoutBtn')}</button>
+    </div>
+    <div class="tabbar">${tabs.map(([k,l])=>`<button class="${state.adminTab===k?'active':''}" data-act="admin-tab" data-tab="${k}">${l}</button>`).join('')}</div>
+    ${state.adminTab!=='departments' && state.adminTab!=='lists' && state.adminTab!=='settings' ? contextBarHtml() : ''}
+    ${adminTabHtml()}
+  `;
+}
+function adminTabHtml(){
+  if(state.adminTab === 'departments') return adminDepartmentsHtml();
+  if(state.adminTab === 'students') return adminStudentsHtml();
+  if(state.adminTab === 'supervisors') return adminSupervisorsHtml();
+  if(state.adminTab === 'steps') return adminStepsHtml();
+  if(state.adminTab === 'lists') return adminListsHtml();
+  if(state.adminTab === 'stats') return adminStatsHtml();
+  if(state.adminTab === 'settings') return adminSettingsHtml();
+  return '';
+}
+
+function adminDepartmentsHtml(){
+  const deps = CONFIG.departments || [];
+  return `
+    <div class="card">
+      <h2>${t('addDepartmentHeading')}</h2>
+      <div class="field"><label>${t('departmentNameLabel')}</label><input type="text" id="new-dept-name"></div>
+      <button class="btn" data-act="add-department">${t('addDepartmentBtn')}</button>
+    </div>
+    <h3 class="section-title">${t('departmentsListHeading')} (${deps.length})</h3>
+    ${deps.length===0 ? `<div class="empty"><p>${t('noDepartments')}</p></div>` :
+      deps.map(d=>`
+      <div class="list-item" style="flex-direction:column;align-items:stretch;">
+        <div class="row" style="align-items:center;">
+          <div class="txt">${esc(d.name)}<small>${(d.courses||[]).length} ${t('coursesHeading')}</small></div>
+          <div class="row" style="width:auto;gap:2px;">
+            <button class="icon-btn up-down" data-act="rename-department" data-id="${d.id}">✏️</button>
+            <button class="icon-btn" data-act="del-department" data-id="${d.id}">🗑</button>
+          </div>
+        </div>
+        <div class="sub-list">
+          ${(d.courses||[]).map(c=>`
+            <div class="list-item">
+              <div class="txt">${esc(c.name)}<small>${c.steps.length} ${t('tabSteps')}</small></div>
+              <div class="row" style="width:auto;gap:2px;">
+                <button class="icon-btn up-down" data-act="rename-course" data-did="${d.id}" data-cid="${c.id}">✏️</button>
+                <button class="icon-btn" data-act="del-course" data-did="${d.id}" data-cid="${c.id}">🗑</button>
+              </div>
+            </div>`).join('') || `<div style="font-size:12px;color:var(--teal-500);padding:4px 0;">${t('noCourses')}</div>`}
+          <div class="row" style="margin-top:6px;">
+            <input type="text" id="new-course-${d.id}" placeholder="${t('courseNameLabel')}" style="flex:1;">
+            <button class="btn sm" style="width:auto;" data-act="add-course" data-did="${d.id}">${t('addCourseBtn')}</button>
+          </div>
+        </div>
+      </div>`).join('')}
+  `;
+}
+
+function selectOptionsHtml(list, currentVal){
+  let html = `<option value="">${t('noneOption')}</option>`;
+  list.forEach(v=>{ html += `<option value="${esc(v)}" ${currentVal===v?'selected':''}>${esc(v)}</option>`; });
+  html += `<option value="__add_new__">${t('addNewOption')}</option>`;
+  return html;
+}
+function adminStudentsHtml(){
+  if(!state.adminDeptId || !state.adminCourseId) return `<div class="banner">${t('pickContextHint')}</div>`;
+  const filtered = STUDENTS.filter(s=>s.departmentId===state.adminDeptId && s.courseId===state.adminCourseId);
+  return `
+    <div class="card">
+      <h2>${t('addStudentHeading')}</h2>
+      <div class="row">
+        <div class="field" style="flex:2;"><label>${t('studentNameLabel')}</label><input type="text" id="new-st-name"></div>
+        <div class="field" style="flex:1;"><label>${t('studentCodeLabel')}</label><input type="text" id="new-st-code" placeholder="1023"></div>
+      </div>
+      <div class="row">
+        <div class="field" style="flex:1;"><label>${fieldLabel('group')}</label><select id="new-st-group">${selectOptionsHtml(CONFIG.groups)}</select></div>
+        <div class="field" style="flex:1;"><label>${fieldLabel('subgroup')}</label><select id="new-st-subgroup">${selectOptionsHtml(CONFIG.subgroups)}</select></div>
+      </div>
+      <div class="row">
+        <div class="field" style="flex:1;"><label>${fieldLabel('level')}</label><select id="new-st-level">${selectOptionsHtml(CONFIG.levels)}</select></div>
+      </div>
+      <button class="btn" data-act="add-student">${t('addStudentBtn')}</button>
+    </div>
+    <div class="card">
+      <h2>${t('importHeading')}</h2>
+      <p style="font-size:12px;color:var(--teal-500);margin:0 0 10px;line-height:1.7;">${t('importDesc')}</p>
+      <button class="btn ghost sm" data-act="download-template" style="width:auto;margin-bottom:10px;">${t('downloadTemplateBtn')}</button>
+      <div class="file-drop"><input type="file" id="import-file" accept=".xlsx,.xls,.csv"></div>
+      <button class="btn gold" data-act="import-students">${t('importBtn')}</button>
+      ${state.importMsg ? `<div class="banner" style="margin-top:10px;">${esc(state.importMsg)}</div>` : ''}
+    </div>
+    <h3 class="section-title">${t('studentListHeading')} (${filtered.length})</h3>
+    ${filtered.length===0 ? `<div class="empty"><p>${t('noStudentsYet')}</p></div>` :
+      filtered.slice().sort((a,b)=>a.name.localeCompare(b.name, state.lang==='ar'?'ar':'en')).map(st=>`
+      <div class="list-item">
+        <div class="txt">${esc(st.name)}${st.studentCode?' <span style="color:var(--teal-500);">#'+esc(st.studentCode)+'</span>':''}
+          <small>${[st.group?t('groupPrefix')+esc(st.group):'', st.subgroup?t('subgroupPrefix')+esc(st.subgroup):'', st.level?t('lvlValPrefix')+esc(st.level):'', (st.cases||[]).length+' '+t('casesHeading'), studentAggregatePct(st)+t('completeSuffix')].filter(Boolean).join(' · ')}</small>
+        </div>
+        <button class="icon-btn" data-act="del-student" data-id="${st.id}">🗑</button>
+      </div>`).join('')}
+  `;
+}
+
+function adminSupervisorsHtml(){
+  if(!state.adminDeptId) return `<div class="banner">${t('pickContextHint')}</div>`;
+  const sups = ((CREDENTIALS && CREDENTIALS.supervisors) || []).filter(s=>s.departmentId===state.adminDeptId);
+  return `
+    <div class="card">
+      <h2>${t('addSupervisorHeading')}</h2>
+      <div class="row">
+        <div class="field" style="flex:1;"><label>${t('supervisorNameLabel')}</label><input type="text" id="new-sup-name" placeholder="Dr. ..."></div>
+        <div class="field" style="flex:1;"><label>${t('passwordLabel')}</label><input type="text" id="new-sup-pass" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false"></div>
+      </div>
+      <button class="btn" data-act="add-supervisor">${t('addSupervisorBtn')}</button>
+    </div>
+    <h3 class="section-title">${t('supervisorsListHeading')} (${sups.length})</h3>
+    ${sups.length===0 ? `<div class="empty"><p>${t('noSupervisors')}</p></div>` :
+      sups.map((s)=>`
+      <div class="list-item">
+        <div class="txt">${esc(s.name)}<small>${t('passwordColon')}${esc(s.password)}</small></div>
+        <div class="row" style="width:auto;gap:2px;">
+          <button class="icon-btn up-down" data-act="edit-supervisor" data-id="${s.id}">✏️</button>
+          <button class="icon-btn" data-act="del-supervisor" data-id="${s.id}">🗑</button>
+        </div>
+      </div>`).join('')}
+  `;
+}
+
+function adminStepsHtml(){
+  if(!state.adminDeptId || !state.adminCourseId) return `<div class="banner">${t('pickContextHint')}</div>`;
+  const course = getCourse(state.adminDeptId, state.adminCourseId);
+  if(!course) return `<div class="banner">${t('pickContextHint')}</div>`;
+  const assignedTypes = course.caseTypes || [];
+  if(!state.stepsCaseType || !assignedTypes.includes(state.stepsCaseType)) state.stepsCaseType = assignedTypes[0] || '';
+  const activeConfig = state.stepsCaseType ? caseTypeConfig(course, state.stepsCaseType) : null;
+  const steps = activeConfig ? activeConfig.steps : [];
+  return `
+    <div class="card">
+      <h2>${t('courseSettingsHeading')}</h2>
+      <div class="field"><label>${t('deadlineLabel')}</label><input type="text" id="course-deadline" placeholder="YYYY-MM-DD" value="${esc(course.deadline||'')}" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" style="max-width:220px;"></div>
+      <button class="btn ghost sm" style="width:auto;margin-bottom:16px;" data-act="save-deadline">${t('saveDeadlineBtn')}</button>
+      <h3 class="section-title" style="margin-top:0;">${t('allowedCaseTypesHeading')}</h3>
+      ${(CONFIG.caseTypes||[]).length===0 ? `<p style="font-size:12px;color:var(--teal-500);">—</p>` : `
+      <div class="chip-row">
+        ${(CONFIG.caseTypes||[]).map((c)=>{
+          const checked = assignedTypes.includes(c);
+          return `<label class="chip" style="cursor:pointer;background:${checked?'var(--gold-light)':'var(--teal-100)'};">
+            <input type="checkbox" class="course-casetype-chk" value="${esc(c)}" ${checked?'checked':''} style="width:auto;margin:0;">
+            ${esc(c)}
+          </label>`;
+        }).join('')}
+      </div>`}
+      <button class="btn ghost sm" style="width:auto;" data-act="save-course-casetypes">${t('saveCaseTypesBtn')}</button>
+    </div>
+
+    ${assignedTypes.length===0 ? `<div class="banner">${state.lang==='ar' ? 'خصص نوع حالة واحد على الأقل فوق قبل ما تقدر تضيفله خطوات.' : 'Assign at least one case type above before you can add steps to it.'}</div>` : `
+    <div class="field"><label>${state.lang==='ar' ? 'اختار الحالة لتعديل خطواتها' : 'Choose a case type to edit its steps'}</label>
+      <select id="steps-casetype-select">
+        ${assignedTypes.map(name=>`<option value="${esc(name)}" ${state.stepsCaseType===name?'selected':''}>${esc(name)}</option>`).join('')}
+      </select>
+    </div>
+    <div class="card">
+      <h2>${t('addStepHeading')} — ${esc(state.stepsCaseType)}</h2>
+      <div class="field"><label>${t('stepNameLabel')}</label><input type="text" id="new-step-name"></div>
+      <button class="btn" data-act="add-step">${t('addStepBtn')}</button>
+    </div>
+    <h3 class="section-title">${t('stepsOrderHeading')} (${steps.length})</h3>
+    ${steps.map((s,i)=>`
+      <div class="list-item">
+        <div class="txt">${i+1}. ${esc(s.name)}</div>
+        <div class="row" style="width:auto;gap:2px;">
+          <button class="icon-btn up-down" data-act="rename-step" data-idx="${i}">✏️</button>
+          <button class="icon-btn up-down" data-act="move-step" data-dir="up" data-idx="${i}" ${i===0?'disabled':''}>▲</button>
+          <button class="icon-btn up-down" data-act="move-step" data-dir="down" data-idx="${i}" ${i===steps.length-1?'disabled':''}>▼</button>
+          <button class="icon-btn" data-act="del-step" data-idx="${i}">🗑</button>
+        </div>
+      </div>`).join('')}
+    `}
+  `;
+}
+
+function listSectionHtml(listKey, heading, labelKey){
+  const arr = CONFIG[listKey] || [];
+  const currentLabel = CONFIG.fieldLabels[labelKey] || '';
+  return `
+    <div class="card">
+      <h2>${heading}</h2>
+      <div class="field"><label>${t('labelForThisField')}</label>
+        <input type="text" id="label-${labelKey}" value="${esc(currentLabel)}" placeholder="${esc(t(labelKey==='group'?'groupSelectLabel':labelKey==='subgroup'?'subgroupSelectLabel':labelKey==='level'?'levelSelectLabel':'caseTypeLabel'))}">
+      </div>
+      <div class="row" style="margin-bottom:10px;">
+        <input type="text" id="new-list-${listKey}" placeholder="${t('newValuePlaceholder')}" style="flex:1;">
+        <button class="btn sm" style="width:auto;" data-act="add-list-value" data-list="${listKey}">${t('addBtn')}</button>
+      </div>
+      <div class="chip-row">
+        ${arr.length===0 ? `<span style="color:var(--teal-500);font-size:12.5px;">—</span>` :
+          arr.map((v,i)=>`<span class="chip">${esc(v)}<button data-act="del-list-value" data-list="${listKey}" data-idx="${i}">✕</button></span>`).join('')}
+      </div>
+      <button class="btn ghost sm" style="width:auto;margin-top:10px;" data-act="save-field-label" data-label="${labelKey}">${t('saveBrandBtn')}</button>
+    </div>
+  `;
+}
+function adminListsHtml(){
+  return listSectionHtml('groups', t('groupsHeading'), 'group')
+    + listSectionHtml('subgroups', t('subgroupsHeading'), 'subgroup')
+    + listSectionHtml('caseTypes', t('caseTypesHeading'), 'caseType')
+    + listSectionHtml('levels', t('levelsHeading'), 'level');
+}
+
+function statsFilteredStudents(){
+  let list = STUDENTS.filter(s=>s.departmentId===state.adminDeptId && s.courseId===state.adminCourseId);
+  if(state.statsScope==='group' && state.statsScopeValue) list = list.filter(s=>s.group===state.statsScopeValue);
+  if(state.statsScope==='subgroup' && state.statsScopeValue) list = list.filter(s=>s.subgroup===state.statsScopeValue);
+  return list;
+}
+function adminStatsHtml(){
+  if(!state.adminDeptId || !state.adminCourseId) return `<div class="banner">${t('pickContextHint')}</div>`;
+  const course = getCourse(state.adminDeptId, state.adminCourseId);
+  const assignedTypes = course ? (course.caseTypes||[]) : [];
+  const students = statsFilteredStudents();
+  let rows = [];
+  students.forEach(st=> (st.cases||[]).forEach(cs=> rows.push({st, cs})) );
+  if(state.statsCaseTypeFilter) rows = rows.filter(({cs})=>cs.caseType===state.statsCaseTypeFilter);
+  rows.sort((a,b)=> casePct(b.st,b.cs) - casePct(a.st,a.cs));
+  const notStartedCount = students.filter(s=>(s.cases||[]).length===0).length;
+  const stepsForFilter = state.statsCaseTypeFilter ? caseSteps(course, state.statsCaseTypeFilter) : [];
+  let stepSummary = '';
+  if(state.statsStepId){
+    const stepDone = rows.filter(({cs})=>{
+      const p = PROGRESS[cs.id]||{};
+      return p[state.statsStepId] && p[state.statsStepId].done;
+    }).length;
+    stepSummary = `<div class="total-grade">${t('stepFilterSummary')}${stepDone}${t('ofTotalCases')}${rows.length}</div>`;
+  }
+  return `
+    <div class="card">
+      <div class="row wrap" style="justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <h2 style="margin:0;">${t('statsHeading')}</h2>
+        <button class="btn secondary sm" data-act="export-csv">${t('exportCsvBtn')}</button>
+      </div>
+      <div class="row" style="margin-bottom:10px;">
+        <div class="field" style="flex:1;margin-bottom:0;"><label>${t('exportScopeLabel')}</label>
+          <select id="stats-scope">
+            <option value="all" ${state.statsScope==='all'?'selected':''}>${t('scopeAll')}</option>
+            <option value="group" ${state.statsScope==='group'?'selected':''}>${t('scopeGroup')}</option>
+            <option value="subgroup" ${state.statsScope==='subgroup'?'selected':''}>${t('scopeSubgroup')}</option>
+          </select>
+        </div>
+        ${state.statsScope!=='all' ? `
+        <div class="field" style="flex:1;margin-bottom:0;"><label>&nbsp;</label>
+          <select id="stats-scope-value">
+            <option value="">${t('noneOption')}</option>
+            ${(state.statsScope==='group'?CONFIG.groups:CONFIG.subgroups).map(v=>`<option value="${esc(v)}" ${state.statsScopeValue===v?'selected':''}>${esc(v)}</option>`).join('')}
+          </select>
+        </div>` : ''}
+      </div>
+      <div class="row" style="margin-bottom:14px;">
+        <div class="field" style="flex:1;margin-bottom:0;"><label>${fieldLabel('caseType')}</label>
+          <select id="stats-casetype-filter">
+            <option value="">${t('allOption')}</option>
+            ${assignedTypes.map(ctName=>`<option value="${esc(ctName)}" ${state.statsCaseTypeFilter===ctName?'selected':''}>${esc(ctName)}</option>`).join('')}
+          </select>
+        </div>
+        ${state.statsCaseTypeFilter ? `
+        <div class="field" style="flex:1;margin-bottom:0;"><label>${t('stepFilterLabel')}</label>
+          <select id="stats-step-filter">
+            <option value="">${t('noStepFilter')}</option>
+            ${stepsForFilter.map(s=>`<option value="${s.id}" ${state.statsStepId===s.id?'selected':''}>${esc(s.name)}</option>`).join('')}
+          </select>
+        </div>` : ''}
+      </div>
+      ${stepSummary}
+      <div class="banner">${t('notStartedAnyCaseLabel')}<b>${notStartedCount}</b> / ${students.length}</div>
+      <div class="table-scroll">
+        <table class="stat-table">
+          <thead><tr><th>${t('tableStudent')}</th><th>${t('tableCase')}</th><th>${t('tablePct')}</th><th>${t('tableStepsCount')}</th><th>${t('tableGrade')}</th></tr></thead>
+          <tbody>
+          ${rows.length===0 ? `<tr><td colspan="5" style="text-align:center;color:var(--teal-500);padding:16px;">${t('noDataYet')}</td></tr>` :
+            rows.map(({st,cs})=>{
+              const pct = casePct(st,cs);
+              const rowSteps = caseSteps(course, cs.caseType);
+              const p = PROGRESS[cs.id]||{};
+              const done = rowSteps.filter(s=>p[s.id]&&p[s.id].done).length;
+              return `<tr>
+                <td>${esc(st.name)}</td><td>${esc(cs.caseType||t('caseLabel'))}</td>
+                <td><div class="row" style="align-items:center;gap:6px;width:auto;"><div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;"></div></div><span>${pct}%</span></div></td>
+                <td>${done}/${rowSteps.length}</td>
+                <td>${caseTotalGrade(st,cs)}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function adminSettingsHtml(){
+  const theme = CONFIG.theme || {mode:'light',accent:''};
+  return `
+    <div class="card">
+      <h2>${t('appearanceHeading')}</h2>
+      <div class="row">
+        <div class="field" style="flex:2;"><label>${t('themeModeLabel')}</label>
+          <select id="theme-mode">
+            <option value="light" ${theme.mode==='light'?'selected':''}>${t('themeLight')}</option>
+            <option value="dark" ${theme.mode==='dark'?'selected':''}>${t('themeDark')}</option>
+            <option value="auto" ${theme.mode==='auto'?'selected':''}>${t('themeAuto')}</option>
+          </select>
+        </div>
+        <div class="field" style="flex:1;"><label>${t('accentColorLabel')}</label><input type="color" id="theme-accent" value="${esc(theme.accent || '#1F4E4A')}"></div>
+      </div>
+      <button class="btn" data-act="save-theme">${t('saveThemeBtn')}</button>
+    </div>
+    <div class="card">
+      <h2>${t('brandingHeading')}</h2>
+      <div class="field"><label>${t('appNameLabel')}</label><input type="text" id="brand-title" value="${esc(CONFIG.brandTitle)}" placeholder="${esc(t('defaultBrandTitle'))}"></div>
+      <div class="field"><label>${t('appSubtitleLabel')}</label><input type="text" id="brand-subtitle" value="${esc(CONFIG.brandSubtitle)}" placeholder="${esc(t('defaultBrandSubtitle'))}"></div>
+      <div class="field"><label>${t('logoUrlLabel')}</label><input type="text" id="brand-logo" value="${esc(CONFIG.logoUrl)}" placeholder="https://...">
+        <div style="font-size:11.5px;color:var(--teal-500);margin-top:4px;">${t('logoUrlHint')}</div>
+      </div>
+      <button class="btn" data-act="save-branding">${t('saveBrandBtn')}</button>
+    </div>
+    <div class="card">
+      <h2>${t('changeAdminPassHeading')}</h2>
+      <div class="field"><label>${t('newPasswordLabel')}</label><input type="text" id="new-admin-pass" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false"></div>
+      <button class="btn gold" data-act="change-admin-pass">${t('savePasswordBtn')}</button>
+    </div>
+    <div class="banner">${t('currentAdminPassPrefix')}<b>${esc((CREDENTIALS&&CREDENTIALS.adminPassword)||'')}</b>${t('keepSafeNote')}</div>
+  `;
+}
+
+/* ================= Events ================= */
+function bindEvents(){
+  document.querySelectorAll('[data-act]').forEach(el=> el.addEventListener('click', onAction));
+  const search = document.getElementById('search-input');
+  if(search) search.addEventListener('input', e=>{ state.search = e.target.value; render(); focusSearch(); });
+
+  const supG = document.getElementById('sup-group-filter');
+  if(supG) supG.addEventListener('change', e=>{ state.supervisorGroupFilter = e.target.value; render(); });
+  const supSg = document.getElementById('sup-subgroup-filter');
+  if(supSg) supSg.addEventListener('change', e=>{ state.supervisorSubgroupFilter = e.target.value; render(); });
+
+  const scopeSel = document.getElementById('stats-scope');
+  if(scopeSel) scopeSel.addEventListener('change', e=>{ state.statsScope = e.target.value; state.statsScopeValue=''; render(); });
+  const scopeValSel = document.getElementById('stats-scope-value');
+  if(scopeValSel) scopeValSel.addEventListener('change', e=>{ state.statsScopeValue = e.target.value; render(); });
+  const stepFilterSel = document.getElementById('stats-step-filter');
+  if(stepFilterSel) stepFilterSel.addEventListener('change', e=>{ state.statsStepId = e.target.value; render(); });
+  const statsCtSel = document.getElementById('stats-casetype-filter');
+  if(statsCtSel) statsCtSel.addEventListener('change', e=>{ state.statsCaseTypeFilter = e.target.value; state.statsStepId=''; render(); });
+
+  const ctxDept = document.getElementById('ctx-dept');
+  if(ctxDept) ctxDept.addEventListener('change', e=>{ state.adminDeptId = e.target.value; state.adminCourseId=''; render(); });
+  const ctxCourse = document.getElementById('ctx-course');
+  if(ctxCourse) ctxCourse.addEventListener('change', e=>{ state.adminCourseId = e.target.value; state.stepsCaseType=''; render(); });
+  const stepsCtSel = document.getElementById('steps-casetype-select');
+  if(stepsCtSel) stepsCtSel.addEventListener('change', e=>{ state.stepsCaseType = e.target.value; render(); });
+
+  ['new-st-group','new-st-subgroup','new-st-level'].forEach(id=>{
+    const sel = document.getElementById(id);
+    if(sel){
+      sel.addEventListener('change', async e=>{
+        if(e.target.value === '__add_new__'){
+          const val = prompt(t('promptNewListValue'));
+          if(val && val.trim()){
+            const listKey = id==='new-st-group' ? 'groups' : id==='new-st-subgroup' ? 'subgroups' : 'levels';
+            if(!CONFIG[listKey].includes(val.trim())){ CONFIG[listKey].push(val.trim()); await setData('config', CONFIG); }
+            render();
+            setTimeout(()=>{ const s2 = document.getElementById(id); if(s2) s2.value = val.trim(); }, 0);
+          } else { e.target.value = ''; }
+        }
+      });
+    }
+  });
+}
+function focusSearch(){
+  const el = document.getElementById('search-input');
+  if(el){ el.focus(); const v = el.value; el.value=''; el.value=v; }
+}
+
+async function onAction(e){
+  const el = e.currentTarget;
+  const act = el.dataset.act;
+
+  if(act==='toggle-lang'){ state.lang = state.lang==='ar'?'en':'ar'; try{localStorage.setItem('prostho_lang', state.lang);}catch(er){} render(); return; }
+  if(act==='toggle-pass-visibility'){ const inp = document.getElementById(el.dataset.target); if(inp) inp.type = inp.type==='password'?'text':'password'; return; }
+  if(act==='pick-supervisor'){ state.loginMode='supervisor'; state.loginErr=''; render(); return; }
+  if(act==='pick-admin'){ state.loginMode='admin'; state.loginErr=''; render(); return; }
+  if(act==='back-login'){ state.loginMode=null; state.loginErr=''; render(); return; }
+
+  if(act==='do-supervisor-login'){
+    const name = document.getElementById('sup-name').value;
+    const pass = document.getElementById('sup-pass').value;
+    el.disabled = true; el.textContent = t('checkingBtn');
+    const r = await apiLoginSupervisor(name, pass);
+    if(r && r.ok){
+      state.currentSupervisor = name; state.currentSupervisorPass = pass; state.currentDept = r.departmentId;
+      state.supervisorCourseId = null; state.supervisorGroupFilter='all'; state.supervisorSubgroupFilter='all';
+      state.screen='supervisor'; state.loginMode=null; state.loginErr='';
+    } else if(r && r.networkError){ state.loginErr = t('networkErrorPrefix') + (r.error||'') + t('networkErrorSuffix'); }
+    else { state.loginErr = t('wrongPassword'); }
+    render(); return;
+  }
+  if(act==='do-admin-login'){
+    const pass = document.getElementById('admin-pass').value;
+    el.disabled = true; el.textContent = t('checkingBtn');
+    const r = await apiLoginAdmin(pass);
+    if(r && r.ok){
+      state.adminPass = pass; CREDENTIALS = r.credentials || { supervisors: [], adminPassword: pass };
+      state.screen='admin'; state.loginMode=null; state.loginErr='';
+    } else if(r && r.networkError){ state.loginErr = t('networkErrorPrefix') + (r.error||'') + t('networkErrorSuffix'); }
+    else { state.loginErr = t('wrongAdminPassword'); }
+    render(); return;
+  }
+  if(act==='logout'){
+    state.screen='login'; state.currentSupervisor=null; state.currentSupervisorPass=null; state.currentDept=null;
+    state.supervisorCourseId=null; state.adminPass=null; CREDENTIALS=null; state.loginMode=null;
+    state.openStudent=null; state.openCase=null; state.search='';
+    render(); return;
+  }
+  if(act==='pick-course'){ state.supervisorCourseId = el.dataset.cid; render(); return; }
+  if(act==='change-course'){ state.supervisorCourseId = null; state.openStudent=null; state.openCase=null; render(); return; }
+
+  if(act==='toggle-student'){ state.openStudent = state.openStudent===el.dataset.id ? null : el.dataset.id; state.openCase=null; state.addingCaseFor=null; state.linkingPartnersFor=null; render(); return; }
+  if(act==='toggle-case'){ state.openCase = state.openCase===el.dataset.cid ? null : el.dataset.cid; render(); return; }
+  if(act==='toggle-add-case'){
+    state.addingCaseFor = el.dataset.sid;
+    render(); return;
+  }
+  if(act==='cancel-add-case'){
+    state.addingCaseFor = null;
+    render(); return;
+  }
+  if(act==='confirm-add-case'){
+    const sid = el.dataset.sid;
+    const st = STUDENTS.find(s=>s.id===sid); if(!st) return;
+    const course = studentCourse(st);
+    if(course && course.deadline){
+      const deadlinePassed = new Date(course.deadline + 'T23:59:59') < new Date();
+      if(deadlinePassed && !studentHasStarted(st)){
+        alert(t('deadlinePassedAlert'));
+        return;
+      }
+    }
+    const checked = [...document.querySelectorAll('.new-case-chk:checked')].map(c=>c.value);
+    const custom = (document.getElementById('custom-case-type-'+sid)||{}).value?.trim();
+    if(custom) checked.push(custom);
+    if(checked.length===0){ alert(t('pickAtLeastOneCaseType')); return; }
+    if(!st.cases) st.cases = [];
+    checked.forEach(ct=>{ st.cases.push({ id: caseId(), caseType: ct, createdAt: new Date().toISOString(), partnerIds: [] }); });
+    state.addingCaseFor = null;
+    let configChanged = false;
+    if(custom && course){
+      if(!CONFIG.caseTypes.includes(custom)){ CONFIG.caseTypes.push(custom); configChanged = true; }
+      if(!course.caseTypes.includes(custom)){ course.caseTypes.push(custom); configChanged = true; }
+      if(!course.caseTypeConfigs) course.caseTypeConfigs = [];
+      if(!course.caseTypeConfigs.some(c=>c.name===custom)){ course.caseTypeConfigs.push({name:custom, steps:[]}); configChanged = true; }
+    }
+    await setData('students', STUDENTS);
+    if(configChanged) await setData('config', CONFIG);
+    render(); return;
+  }
+  if(act==='toggle-link-partners'){
+    const sid = el.dataset.sid, cid = el.dataset.cid;
+    if(state.linkingPartnersFor && state.linkingPartnersFor.sid===sid && state.linkingPartnersFor.cid===cid) state.linkingPartnersFor = null;
+    else state.linkingPartnersFor = {sid, cid};
+    render(); return;
+  }
+  if(act==='cancel-link-partners'){
+    state.linkingPartnersFor = null;
+    render(); return;
+  }
+  if(act==='confirm-save-partners'){
+    const sid = el.dataset.sid, cid = el.dataset.cid;
+    const st = STUDENTS.find(s=>s.id===sid); if(!st) return;
+    const cs = (st.cases||[]).find(c=>c.id===cid); if(!cs) return;
+    const newPartnerIds = [...document.querySelectorAll('.partner-chk:checked')].map(c=>c.value);
+    const oldPartnerIds = cs.partnerIds || [];
+
+    // remove the mirrored case from anyone who got unchecked (their own progress stays if they had any other link)
+    oldPartnerIds.filter(pid=>!newPartnerIds.includes(pid)).forEach(pid=>{
+      const partner = STUDENTS.find(s=>s.id===pid);
+      if(partner) partner.cases = (partner.cases||[]).filter(c=>c.id!==cid);
+    });
+
+    // mirror the same case (same id, so progress is shared) into every participant's own list
+    const allIds = [sid, ...newPartnerIds];
+    allIds.forEach(pid=>{
+      const person = STUDENTS.find(s=>s.id===pid);
+      if(!person) return;
+      if(!person.cases) person.cases = [];
+      let personCase = person.cases.find(c=>c.id===cid);
+      if(!personCase){
+        personCase = { id: cid, caseType: cs.caseType, createdAt: cs.createdAt, partnerIds: [] };
+        person.cases.push(personCase);
+      }
+      personCase.partnerIds = allIds.filter(x=>x!==pid);
+    });
+
+    state.linkingPartnersFor = null;
+    await setData('students', STUDENTS);
+    render(); return;
+  }
+  if(act==='toggle-step'){
+    const cid = el.dataset.cid, stepid = el.dataset.stepid;
+    if(!PROGRESS[cid]) PROGRESS[cid] = {};
+    const cur = PROGRESS[cid][stepid];
+    if(cur && cur.done){
+      if(!confirm(cur.supervisor||'')) return;
+      delete PROGRESS[cid][stepid];
+    } else {
+      PROGRESS[cid][stepid] = { done:true, supervisor: state.currentSupervisor, date: new Date().toISOString(), grade:'', notes:'' };
+    }
+    await setData('progress', PROGRESS);
+    render(); return;
+  }
+  if(act==='save-eval'){
+    const sid = el.dataset.sid, cid = el.dataset.cid, stepid = el.dataset.stepid;
+    const grade = document.getElementById(`grade-${sid}-${cid}-${stepid}`).value;
+    const notes = document.getElementById(`notes-${sid}-${cid}-${stepid}`).value;
+    if(PROGRESS[cid] && PROGRESS[cid][stepid]){
+      PROGRESS[cid][stepid].grade = grade;
+      PROGRESS[cid][stepid].notes = notes;
+      await setData('progress', PROGRESS);
+    }
+    render(); return;
+  }
+  if(act==='add-student-quick'){
+    if(!state.currentDept || !state.supervisorCourseId) return;
+    const name = prompt(t('promptStudentName')); if(!name) return;
+    STUDENTS.push({id:uid(), studentCode:'', name:name.trim(), departmentId: state.currentDept, courseId: state.supervisorCourseId, group:'', subgroup:'', cases:[], createdAt:new Date().toISOString()});
+    await setData('students', STUDENTS);
+    render(); return;
+  }
+
+  if(act==='admin-tab'){ state.adminTab = el.dataset.tab; render(); return; }
+
+  if(act==='add-department'){
+    const name = document.getElementById('new-dept-name').value.trim();
+    if(!name) return;
+    if(!CONFIG.departments) CONFIG.departments = [];
+    CONFIG.departments.push({ id: deptId(), name, courses: [] });
+    await setData('config', CONFIG);
+    render(); return;
+  }
+  if(act==='rename-department'){
+    const d = getDept(el.dataset.id); if(!d) return;
+    const newName = prompt(t('promptNewDepartmentName'), d.name);
+    if(!newName || !newName.trim()) return;
+    d.name = newName.trim();
+    await setData('config', CONFIG);
+    render(); return;
+  }
+  if(act==='del-department'){
+    if(!confirm(t('confirmDeleteDepartment'))) return;
+    CONFIG.departments = CONFIG.departments.filter(d=>d.id!==el.dataset.id);
+    await setData('config', CONFIG);
+    render(); return;
+  }
+  if(act==='add-course'){
+    const d = getDept(el.dataset.did); if(!d) return;
+    const inp = document.getElementById('new-course-'+d.id);
+    const name = inp.value.trim();
+    if(!name) return;
+    if(!d.courses) d.courses = [];
+    d.courses.push({ id: courseId(), name, steps: defaultSteps() });
+    await setData('config', CONFIG);
+    render(); return;
+  }
+  if(act==='rename-course'){
+    const d = getDept(el.dataset.did); if(!d) return;
+    const c = (d.courses||[]).find(x=>x.id===el.dataset.cid); if(!c) return;
+    const newName = prompt(t('promptNewCourseName'), c.name);
+    if(!newName || !newName.trim()) return;
+    c.name = newName.trim();
+    await setData('config', CONFIG);
+    render(); return;
+  }
+  if(act==='del-course'){
+    const d = getDept(el.dataset.did); if(!d) return;
+    if(!confirm(t('confirmDeleteCourse'))) return;
+    d.courses = (d.courses||[]).filter(c=>c.id!==el.dataset.cid);
+    await setData('config', CONFIG);
+    render(); return;
+  }
+
+  if(act==='add-student'){
+    const name = document.getElementById('new-st-name').value.trim();
+    const studentCode = document.getElementById('new-st-code').value.trim();
+    const group = document.getElementById('new-st-group').value.trim();
+    const subgroup = document.getElementById('new-st-subgroup').value.trim();
+    const level = document.getElementById('new-st-level').value.trim();
+    if(!name){ alert(t('alertEnterName')); return; }
+    STUDENTS.push({id:uid(), studentCode, name, departmentId: state.adminDeptId, courseId: state.adminCourseId, group, subgroup, level, cases: [], createdAt:new Date().toISOString()});
+    await setData('students', STUDENTS);
+    render(); return;
+  }
+  if(act==='download-template'){
+    const csv = '\uFEFF' + 'الاسم,الكود,المجموعة,المجموعة_الفرعية,المستوى,نوع_الحالة\nأحمد محمد,1023,A,A1,سنة أولى,تاج كامل\n';
+    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'قالب_الطلاب.csv'; a.click();
+    URL.revokeObjectURL(url); return;
+  }
+  if(act==='import-students'){
+    if(!state.adminDeptId || !state.adminCourseId){ alert(t('pickContextHint')); return; }
+    const fileInput = document.getElementById('import-file');
+    const file = fileInput && fileInput.files[0];
+    if(!file){ alert(t('alertPickFile')); return; }
+    try{
+      await loadXLSX();
+      const rows = await parseSpreadsheet(file);
+      let added = 0, skipped = 0;
+      const newGroups = new Set(), newSubgroups = new Set(), newCaseTypes = new Set(), newLevels = new Set();
+      rows.forEach(row=>{
+        const name = pickField(row, ['الاسم','اسم الطالب','name','الطالب']);
+        if(!name){ skipped++; return; }
+        const group = pickField(row, ['المجموعة','مجموعة','group']) || '';
+        const subgroup = pickField(row, ['المجموعة_الفرعية','المجموعة الفرعية','subgroup','sub_group']) || '';
+        const level = pickField(row, ['المستوى','مستوى','level']) || '';
+        const caseType = pickField(row, ['نوع_الحالة','نوع الحالة','casetype','case']) || '';
+        if(group && !CONFIG.groups.includes(group)) newGroups.add(group);
+        if(subgroup && !CONFIG.subgroups.includes(subgroup)) newSubgroups.add(subgroup);
+        if(level && !CONFIG.levels.includes(level)) newLevels.add(level);
+        if(caseType && !CONFIG.caseTypes.includes(caseType)) newCaseTypes.add(caseType);
+        const cases = caseType ? [{ id: caseId(), caseType, createdAt: new Date().toISOString(), partnerIds: [] }] : [];
+        STUDENTS.push({
+          id: uid(), studentCode: pickField(row, ['الكود','كود الطالب','id','code']) || '',
+          name, departmentId: state.adminDeptId, courseId: state.adminCourseId, group, subgroup, level, cases,
+          createdAt: new Date().toISOString()
+        });
+        added++;
+      });
+      CONFIG.groups.push(...newGroups); CONFIG.subgroups.push(...newSubgroups); CONFIG.caseTypes.push(...newCaseTypes); CONFIG.levels.push(...newLevels);
+      await setData('students', STUDENTS);
+      if(newGroups.size || newSubgroups.size || newCaseTypes.size || newLevels.size) await setData('config', CONFIG);
+      state.importMsg = state.lang==='ar'
+        ? `تم استيراد ${added} طالب بنجاح${skipped ? ' (تم تجاهل '+skipped+' صف بدون اسم)' : ''}.`
+        : `Successfully imported ${added} student(s)${skipped ? ' ('+skipped+' row(s) skipped)' : ''}.`;
+      fileInput.value = '';
+    }catch(err){ state.importMsg = t('alertImportError'); console.error(err); }
+    render(); return;
+  }
+  if(act==='del-student'){
+    if(!confirm(t('confirmDeleteStudent'))) return;
+    const id = el.dataset.id;
+    const st = STUDENTS.find(s=>s.id===id);
+    if(st){
+      (st.cases||[]).forEach(cs=>{
+        const partners = cs.partnerIds||[];
+        if(partners.length===0){
+          delete PROGRESS[cs.id];
+        } else {
+          partners.forEach(pid=>{
+            const p = STUDENTS.find(s=>s.id===pid);
+            const pc = p && (p.cases||[]).find(c=>c.id===cs.id);
+            if(pc) pc.partnerIds = (pc.partnerIds||[]).filter(x=>x!==id);
+          });
+        }
+      });
+    }
+    STUDENTS = STUDENTS.filter(s=>s.id!==id);
+    await setData('students', STUDENTS);
+    await setData('progress', PROGRESS);
+    render(); return;
+  }
+
+  if(act==='add-supervisor'){
+    const name = document.getElementById('new-sup-name').value.trim();
+    const pass = document.getElementById('new-sup-pass').value.trim();
+    if(!name || !pass){ alert(t('alertNameAndPass')); return; }
+    if(!CREDENTIALS) CREDENTIALS = {supervisors:[], adminPassword: state.adminPass};
+    if(CREDENTIALS.supervisors.some(s=>s.name===name)){ alert(t('alertDuplicateSupervisor')); return; }
+    CREDENTIALS.supervisors.push({id:uid(), name, password:pass, departmentId: state.adminDeptId});
+    const ok = await setData('credentials', CREDENTIALS);
+    if(ok) SUP_NAMES = CREDENTIALS.supervisors.map(s=>s.name);
+    render(); return;
+  }
+  if(act==='edit-supervisor'){
+    const sup = CREDENTIALS.supervisors.find(s=>s.id===el.dataset.id); if(!sup) return;
+    const newName = prompt(t('editSupervisorPromptName'), sup.name);
+    if(newName===null) return;
+    const newPass = prompt(t('editSupervisorPromptPass'), sup.password);
+    if(newPass===null) return;
+    if(!newName.trim() || !newPass.trim()) return;
+    if(CREDENTIALS.supervisors.some(s=>s.id!==sup.id && s.name===newName.trim())){ alert(t('alertDuplicateSupervisor')); return; }
+    sup.name = newName.trim(); sup.password = newPass.trim();
+    const ok = await setData('credentials', CREDENTIALS);
+    if(ok) SUP_NAMES = CREDENTIALS.supervisors.map(s=>s.name);
+    render(); return;
+  }
+  if(act==='del-supervisor'){
+    if(!confirm(t('confirmDeleteSupervisor'))) return;
+    CREDENTIALS.supervisors = CREDENTIALS.supervisors.filter(s=>s.id!==el.dataset.id);
+    const ok = await setData('credentials', CREDENTIALS);
+    if(ok) SUP_NAMES = CREDENTIALS.supervisors.map(s=>s.name);
+    render(); return;
+  }
+
+  if(act==='save-deadline'){
+    const course = getCourse(state.adminDeptId, state.adminCourseId); if(!course) return;
+    course.deadline = document.getElementById('course-deadline').value.trim();
+    const ok = await setData('config', CONFIG);
+    if(ok) alert(t('brandSaved'));
+    render(); return;
+  }
+  if(act==='save-course-casetypes'){
+    const course = getCourse(state.adminDeptId, state.adminCourseId); if(!course) return;
+    const checked = [...document.querySelectorAll('.course-casetype-chk:checked')].map(el=>el.value);
+    course.caseTypes = checked;
+    if(!course.caseTypeConfigs) course.caseTypeConfigs = [];
+    checked.forEach(name=>{
+      if(!course.caseTypeConfigs.some(c=>c.name===name)) course.caseTypeConfigs.push({name, steps:[]});
+    });
+    const ok = await setData('config', CONFIG);
+    if(ok) alert(t('brandSaved'));
+    render(); return;
+  }
+  if(act==='add-step'){
+    const course = getCourse(state.adminDeptId, state.adminCourseId); if(!course) return;
+    const cfg = caseTypeConfig(course, state.stepsCaseType); if(!cfg) return;
+    const val = document.getElementById('new-step-name').value.trim();
+    if(!val) return;
+    if(cfg.steps.some(s=>s.name===val)){ alert(t('alertDuplicateStep')); return; }
+    cfg.steps.push({id: stepId(), name: val});
+    await setData('config', CONFIG);
+    render(); return;
+  }
+  if(act==='del-step'){
+    const course = getCourse(state.adminDeptId, state.adminCourseId); if(!course) return;
+    const cfg = caseTypeConfig(course, state.stepsCaseType); if(!cfg) return;
+    if(!confirm(t('confirmDeleteStep'))) return;
+    cfg.steps.splice(+el.dataset.idx,1);
+    await setData('config', CONFIG);
+    render(); return;
+  }
+  if(act==='rename-step'){
+    const course = getCourse(state.adminDeptId, state.adminCourseId); if(!course) return;
+    const cfg = caseTypeConfig(course, state.stepsCaseType); if(!cfg) return;
+    const idx = +el.dataset.idx;
+    const step = cfg.steps[idx];
+    const newName = prompt(t('promptNewStepName'), step.name);
+    if(!newName || !newName.trim()) return;
+    if(cfg.steps.some((s,i)=>i!==idx && s.name===newName.trim())){ alert(t('alertDuplicateStep')); return; }
+    step.name = newName.trim();
+    await setData('config', CONFIG);
+    render(); return;
+  }
+  if(act==='move-step'){
+    const course = getCourse(state.adminDeptId, state.adminCourseId); if(!course) return;
+    const cfg = caseTypeConfig(course, state.stepsCaseType); if(!cfg) return;
+    const idx = +el.dataset.idx, dir = el.dataset.dir;
+    const swap = dir==='up' ? idx-1 : idx+1;
+    if(swap<0 || swap>=cfg.steps.length) return;
+    [cfg.steps[idx], cfg.steps[swap]] = [cfg.steps[swap], cfg.steps[idx]];
+    await setData('config', CONFIG);
+    render(); return;
+  }
+
+  if(act==='add-list-value'){
+    const listKey = el.dataset.list;
+    const inp = document.getElementById('new-list-'+listKey);
+    const val = inp.value.trim();
+    if(!val) return;
+    if(CONFIG[listKey].includes(val)){ alert(t('alertDuplicateListValue')); return; }
+    CONFIG[listKey].push(val);
+    await setData('config', CONFIG);
+    render(); return;
+  }
+  if(act==='del-list-value'){
+    const listKey = el.dataset.list, idx = +el.dataset.idx;
+    if(!confirm(t('confirmDeleteListValue'))) return;
+    CONFIG[listKey].splice(idx,1);
+    await setData('config', CONFIG);
+    render(); return;
+  }
+  if(act==='save-field-label'){
+    const labelKey = el.dataset.label;
+    const val = document.getElementById('label-'+labelKey).value.trim();
+    if(!CONFIG.fieldLabels) CONFIG.fieldLabels = {};
+    CONFIG.fieldLabels[labelKey] = val;
+    const ok = await setData('config', CONFIG);
+    if(ok) alert(t('brandSaved'));
+    render(); return;
+  }
+
+  if(act==='save-theme'){
+    const mode = document.getElementById('theme-mode').value;
+    const accent = document.getElementById('theme-accent').value;
+    CONFIG.theme = { mode, accent };
+    const ok = await setData('config', CONFIG);
+    if(ok) alert(t('brandSaved'));
+    render(); return;
+  }
+  if(act==='save-branding'){
+    CONFIG.brandTitle = document.getElementById('brand-title').value.trim();
+    CONFIG.brandSubtitle = document.getElementById('brand-subtitle').value.trim();
+    CONFIG.logoUrl = document.getElementById('brand-logo').value.trim();
+    const ok = await setData('config', CONFIG);
+    if(ok) alert(t('brandSaved'));
+    render(); return;
+  }
+  if(act==='change-admin-pass'){
+    const val = document.getElementById('new-admin-pass').value.trim();
+    if(!val){ alert(t('alertEnterNewPassword')); return; }
+    if(!CREDENTIALS) CREDENTIALS = {supervisors:[], adminPassword: state.adminPass};
+    CREDENTIALS.adminPassword = val;
+    const ok = await setData('credentials', CREDENTIALS);
+    if(ok){ state.adminPass = val; alert(t('alertPasswordChanged')); }
+    render(); return;
+  }
+
+  if(act==='export-csv'){
+    const course = getCourse(state.adminDeptId, state.adminCourseId);
+    const students = statsFilteredStudents();
+    let exportRows = [];
+    students.forEach(st=> (st.cases||[]).forEach(cs=> exportRows.push({st,cs})) );
+    if(state.statsCaseTypeFilter) exportRows = exportRows.filter(({cs})=>cs.caseType===state.statsCaseTypeFilter);
+    // union of step names across whichever case types actually appear in the export
+    const seenNames = new Set(), stepNameColumns = [];
+    exportRows.forEach(({cs})=>{ caseSteps(course, cs.caseType).forEach(s=>{ if(!seenNames.has(s.name)){ seenNames.add(s.name); stepNameColumns.push(s.name); } }); });
+    let csv = '\uFEFF' + [t('tableStudent'), t('studentCodeLabel'), fieldLabel('group'), fieldLabel('subgroup'), fieldLabel('level'), t('tableCase'), t('partnersLabel').replace(': ',''), t('tablePct'), t('tableGrade')].map(h=>`"${h}"`).join(',') + ',';
+    csv += stepNameColumns.map(n=>`"${n.replace(/"/g,'""')}"`).join(',') + '\n';
+    exportRows.forEach(({st,cs})=>{
+      const p = PROGRESS[cs.id]||{};
+      const pct = casePct(st,cs);
+      const rowSteps = caseSteps(course, cs.caseType);
+      const cells = stepNameColumns.map(colName=>{
+        const step = rowSteps.find(s=>s.name===colName);
+        if(!step) return 'N/A';
+        const rec = p[step.id];
+        return rec && rec.done ? `"${rec.supervisor} - ${fmtDate(rec.date)}${rec.grade!==undefined&&rec.grade!==''?' - '+rec.grade:''}${rec.notes?' - '+rec.notes:''}"` : '-';
+      });
+      csv += `"${st.name}","${st.studentCode||''}","${st.group||''}","${st.subgroup||''}","${st.level||''}","${cs.caseType||''}","${partnerNames(st,cs).join('; ')}","${pct}%","${caseTotalGrade(st,cs)}",` + cells.join(',') + '\n';
+    });
+    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'prostho-stats.csv'; a.click();
+    URL.revokeObjectURL(url); return;
+  }
+}
+
+let xlsxLoadPromise = null;
+function loadXLSX(){
+  if(window.XLSX) return Promise.resolve();
+  if(xlsxLoadPromise) return xlsxLoadPromise;
+  xlsxLoadPromise = new Promise((resolve, reject)=>{
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error('failed to load xlsx library'));
+    document.head.appendChild(s);
+  });
+  return xlsxLoadPromise;
+}
+function parseSpreadsheet(file){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = e => {
+      try{
+        const data = new Uint8Array(e.target.result);
+        const wb = XLSX.read(data, {type:'array'});
+        const sheet = wb.Sheets[wb.SheetNames[0]];
+        resolve(XLSX.utils.sheet_to_json(sheet, {defval:''}));
+      }catch(err){ reject(err); }
+    };
+    reader.onerror = reject;
+    reader.readAsArrayBuffer(file);
+  });
+}
+function pickField(row, keys){
+  const normalized = {};
+  Object.keys(row).forEach(k => { normalized[k.trim().toLowerCase()] = row[k]; });
+  for(const k of keys){
+    const v = normalized[k.trim().toLowerCase()];
+    if(v !== undefined && v !== null && (''+v).trim() !== '') return (''+v).trim();
+  }
+  return '';
+}
+
+/* ---------------- Init ---------------- */
+async function init(){
+  state.storageOk = scriptConfigured();
+  const [cfg, supNames, students, progress] = await Promise.all([
+    getData('config', null),
+    fetchSupervisorNames(),
+    getData('students', []),
+    getData('progress', {})
+  ]);
+  CONFIG = mergeConfig(cfg);
+  SUP_NAMES = supNames;
+  STUDENTS = students;
+  PROGRESS = progress;
+  state.loading = false;
+  render();
+}
+init();
+</script>
+</body>
+</html>
