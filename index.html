@@ -205,6 +205,10 @@ const I18N = {
     notStartedAnyCaseLabel:"عدد الطلاب اللي لسه ما بدأوش أي حالة: ",
     linkPartnerBtn:"🔗 ربط شريك", partnersLabel:"الشركاء: ", noPartners:"مفيش شركاء متسجلين لهذه الحالة.",
     savePartnersBtn:"حفظ الشركاء", pickPartnersHeading:"اختار شريك أو أكتر لهذه الحالة",
+    deleteCaseBtn:"حذف الحالة", confirmDeleteCase:"حذف هذه الحالة؟ هيتحفظ نسخة منها في الأرشيف وتقدر ترجّعها تاني من هناك.",
+    tabArchive:"الأرشيف", archiveStudentsHeading:"الطلاب المحذوفين", archiveCasesHeading:"الحالات المحذوفة",
+    noArchivedStudents:"لا يوجد طلاب محذوفين.", noArchivedCases:"لا يوجد حالات محذوفة.",
+    restoreBtn:"↩️ استرجاع", deletedOnPrefix:"اتحذف في: ", restoreCaseOwnerMissing:"معرفتش أرجّع الحالة دي لأن الطالب الأساسي بتاعها كمان محذوف — رجّع الطالب الأول.",
   },
   en: { dir:'ltr',
     defaultBrandTitle:"Fixed Prosthodontics Case Tracker", defaultBrandSubtitle:"Track clinical case steps as they happen",
@@ -283,6 +287,10 @@ const I18N = {
     notStartedAnyCaseLabel:"Students who haven't started any case yet: ",
     linkPartnerBtn:"🔗 Link partner", partnersLabel:"Partners: ", noPartners:"No partners linked to this case.",
     savePartnersBtn:"Save partners", pickPartnersHeading:"Choose one or more partners for this case",
+    deleteCaseBtn:"Delete case", confirmDeleteCase:"Delete this case? A copy will be kept in the archive and you can restore it from there.",
+    tabArchive:"Archive", archiveStudentsHeading:"Deleted students", archiveCasesHeading:"Deleted cases",
+    noArchivedStudents:"No deleted students.", noArchivedCases:"No deleted cases.",
+    restoreBtn:"↩️ Restore", deletedOnPrefix:"Deleted on: ", restoreCaseOwnerMissing:"Can't restore this case because its original student was also deleted — restore the student first.",
   }
 };
 function t(key){ return (I18N[state.lang] && I18N[state.lang][key]) ?? (I18N.ar[key] ?? key); }
@@ -431,7 +439,9 @@ function studentHasStarted(st){
 }
 
 
-let CONFIG = null, CREDENTIALS = null, SUP_NAMES = [], STUDENTS = [], PROGRESS = {};
+let CONFIG = null, CREDENTIALS = null, SUP_NAMES = [], STUDENTS = [], PROGRESS = {}, ARCHIVE = {students:[], cases:[]};
+function normalizeArchive(a){ return { students: Array.isArray(a&&a.students)?a.students:[], cases: Array.isArray(a&&a.cases)?a.cases:[] }; }
+function actorLabel(){ return state.screen==='admin' ? (state.lang==='ar'?'الأدمن':'Admin') : (state.currentSupervisor||''); }
 
 let state = {
   screen:'login', currentSupervisor:null, currentSupervisorPass:null, currentDept:null,
@@ -686,6 +696,7 @@ function casesHtml(st, readonly){
         <div class="ci-meta">${t('totalGradeLabel')}${total}</div>
         ${partners.length ? `<div class="ci-meta">${t('partnersLabel')}${partners.join('، ')}</div>` : ''}
       </div>
+      ${!readonly ? `<button class="icon-btn" data-act="del-case" data-sid="${st.id}" data-cid="${cs.id}" title="${t('deleteCaseBtn')}">🗑</button>` : ''}
       <div class="chev">${open?'▲':'▼'}</div>
     </div>
     ${open ? `<div class="case-body">
@@ -799,14 +810,14 @@ function contextBarHtml(){
   </div>`;
 }
 function adminHtml(){
-  const tabs = [['departments',t('tabDepartments')],['students',t('tabStudents')],['supervisors',t('tabSupervisors')],['steps',t('tabSteps')],['lists',t('tabLists')],['stats',t('tabStats')],['settings',t('tabSettings')]];
+  const tabs = [['departments',t('tabDepartments')],['students',t('tabStudents')],['supervisors',t('tabSupervisors')],['steps',t('tabSteps')],['lists',t('tabLists')],['stats',t('tabStats')],['archive',t('tabArchive')],['settings',t('tabSettings')]];
   return `
     <div class="top-actions">
       <span class="pill">${t('adminBadge')}</span>
       <button class="btn rust sm" data-act="logout">${t('logoutBtn')}</button>
     </div>
     <div class="tabbar">${tabs.map(([k,l])=>`<button class="${state.adminTab===k?'active':''}" data-act="admin-tab" data-tab="${k}">${l}</button>`).join('')}</div>
-    ${state.adminTab!=='departments' && state.adminTab!=='lists' && state.adminTab!=='settings' ? contextBarHtml() : ''}
+    ${state.adminTab!=='departments' && state.adminTab!=='lists' && state.adminTab!=='settings' && state.adminTab!=='archive' ? contextBarHtml() : ''}
     ${adminTabHtml()}
   `;
 }
@@ -817,8 +828,61 @@ function adminTabHtml(){
   if(state.adminTab === 'steps') return adminStepsHtml();
   if(state.adminTab === 'lists') return adminListsHtml();
   if(state.adminTab === 'stats') return adminStatsHtml();
+  if(state.adminTab === 'archive') return adminArchiveHtml();
   if(state.adminTab === 'settings') return adminSettingsHtml();
   return '';
+}
+function adminArchiveHtml(){
+  const students = (ARCHIVE.students||[]).slice().sort((a,b)=> new Date(b.deletedAt)-new Date(a.deletedAt));
+  const cases = (ARCHIVE.cases||[]).slice().sort((a,b)=> new Date(b.deletedAt)-new Date(a.deletedAt));
+  return `
+    <h3 class="section-title">${t('archiveStudentsHeading')} (${students.length})</h3>
+    ${students.length===0 ? `<div class="empty"><p>${t('noArchivedStudents')}</p></div>` :
+      students.map(a=>{
+        const st = a.data;
+        const dept = getDept(st.departmentId);
+        const course = getCourse(st.departmentId, st.courseId);
+        const meta = [
+          dept ? (t('contextDeptLabel')+': '+esc(dept.name)) : '',
+          course ? (t('contextCourseLabel')+': '+esc(course.name)) : '',
+          st.group ? t('groupPrefix')+esc(st.group) : '',
+          st.subgroup ? t('subgroupPrefix')+esc(st.subgroup) : '',
+          (st.cases||[]).length+' '+t('casesHeading')
+        ].filter(Boolean).join(' · ');
+        return `
+        <div class="list-item" style="flex-direction:column;align-items:stretch;">
+          <div class="row" style="align-items:center;">
+            <div class="txt">${esc(st.name)}${st.studentCode?' <span style="color:var(--teal-500);">#'+esc(st.studentCode)+'</span>':''}
+              <small>${meta}</small>
+              <small>${t('deletedOnPrefix')}${fmtDate(a.deletedAt)}${a.deletedBy?' · '+esc(a.deletedBy):''}</small>
+            </div>
+            <button class="btn secondary sm" style="width:auto;" data-act="restore-student" data-id="${a.archId}">${t('restoreBtn')}</button>
+          </div>
+        </div>`;
+      }).join('')}
+    <h3 class="section-title">${t('archiveCasesHeading')} (${cases.length})</h3>
+    ${cases.length===0 ? `<div class="empty"><p>${t('noArchivedCases')}</p></div>` :
+      cases.map(a=>{
+        const cs = a.data;
+        const dept = getDept(a.departmentId);
+        const course = getCourse(a.departmentId, a.courseId);
+        const meta = [
+          dept ? (t('contextDeptLabel')+': '+esc(dept.name)) : '',
+          course ? (t('contextCourseLabel')+': '+esc(course.name)) : '',
+          (a.partnerNamesAtDeletion||[]).length ? (t('partnersLabel')+esc((a.partnerNamesAtDeletion||[]).join('، '))) : ''
+        ].filter(Boolean).join(' · ');
+        return `
+        <div class="list-item" style="flex-direction:column;align-items:stretch;">
+          <div class="row" style="align-items:center;">
+            <div class="txt">${esc(a.studentName)} — ${esc(cs.caseType||t('caseLabel'))}
+              <small>${meta}</small>
+              <small>${t('deletedOnPrefix')}${fmtDate(a.deletedAt)}${a.deletedBy?' · '+esc(a.deletedBy):''}</small>
+            </div>
+            <button class="btn secondary sm" style="width:auto;" data-act="restore-case" data-id="${a.archId}">${t('restoreBtn')}</button>
+          </div>
+        </div>`;
+      }).join('')}
+  `;
 }
 
 function adminDepartmentsHtml(){
@@ -1449,6 +1513,16 @@ async function onAction(e){
     const id = el.dataset.id;
     const st = STUDENTS.find(s=>s.id===id);
     if(st){
+      const progressSnapshot = {};
+      (st.cases||[]).forEach(cs=>{ progressSnapshot[cs.id] = JSON.parse(JSON.stringify(PROGRESS[cs.id]||{})); });
+      if(!ARCHIVE.students) ARCHIVE.students = [];
+      ARCHIVE.students.push({
+        archId: uid(),
+        data: JSON.parse(JSON.stringify(st)),
+        progressSnapshot,
+        deletedAt: new Date().toISOString(),
+        deletedBy: actorLabel()
+      });
       (st.cases||[]).forEach(cs=>{
         const partners = cs.partnerIds||[];
         if(partners.length===0){
@@ -1465,6 +1539,85 @@ async function onAction(e){
     STUDENTS = STUDENTS.filter(s=>s.id!==id);
     await setData('students', STUDENTS);
     await setData('progress', PROGRESS);
+    await setData('archive', ARCHIVE);
+    render(); return;
+  }
+  if(act==='del-case'){
+    e.stopPropagation();
+    const sid = el.dataset.sid, cid = el.dataset.cid;
+    const st = STUDENTS.find(s=>s.id===sid); if(!st) return;
+    const cs = (st.cases||[]).find(c=>c.id===cid); if(!cs) return;
+    if(!confirm(t('confirmDeleteCase'))) return;
+    const participantIds = [sid, ...(cs.partnerIds||[])];
+    if(!ARCHIVE.cases) ARCHIVE.cases = [];
+    ARCHIVE.cases.push({
+      archId: uid(),
+      studentId: sid, studentName: st.name,
+      departmentId: st.departmentId, courseId: st.courseId,
+      data: JSON.parse(JSON.stringify(cs)),
+      progressSnapshot: JSON.parse(JSON.stringify(PROGRESS[cid]||{})),
+      partnerNamesAtDeletion: partnerNames(st, cs),
+      deletedAt: new Date().toISOString(),
+      deletedBy: actorLabel()
+    });
+    participantIds.forEach(pid=>{
+      const person = STUDENTS.find(s=>s.id===pid);
+      if(person) person.cases = (person.cases||[]).filter(c=>c.id!==cid);
+    });
+    delete PROGRESS[cid];
+    if(state.openCase===cid) state.openCase = null;
+    await setData('students', STUDENTS);
+    await setData('progress', PROGRESS);
+    await setData('archive', ARCHIVE);
+    render(); return;
+  }
+  if(act==='restore-student'){
+    const archId = el.dataset.id;
+    const idx = (ARCHIVE.students||[]).findIndex(a=>a.archId===archId);
+    if(idx===-1) return;
+    const entry = ARCHIVE.students[idx];
+    const restored = JSON.parse(JSON.stringify(entry.data));
+    STUDENTS.push(restored);
+    (restored.cases||[]).forEach(cs=>{
+      if(!PROGRESS[cs.id] && entry.progressSnapshot && entry.progressSnapshot[cs.id]){
+        PROGRESS[cs.id] = JSON.parse(JSON.stringify(entry.progressSnapshot[cs.id]));
+      }
+      (cs.partnerIds||[]).forEach(pid=>{
+        const partner = STUDENTS.find(s=>s.id===pid);
+        if(!partner) return;
+        const pc = (partner.cases||[]).find(c=>c.id===cs.id);
+        if(pc && !(pc.partnerIds||[]).includes(restored.id)) pc.partnerIds = [...(pc.partnerIds||[]), restored.id];
+      });
+    });
+    ARCHIVE.students.splice(idx,1);
+    await setData('students', STUDENTS);
+    await setData('progress', PROGRESS);
+    await setData('archive', ARCHIVE);
+    render(); return;
+  }
+  if(act==='restore-case'){
+    const archId = el.dataset.id;
+    const idx = (ARCHIVE.cases||[]).findIndex(a=>a.archId===archId);
+    if(idx===-1) return;
+    const entry = ARCHIVE.cases[idx];
+    const owner = STUDENTS.find(s=>s.id===entry.studentId);
+    if(!owner){ alert(t('restoreCaseOwnerMissing')); return; }
+    const restoredCase = JSON.parse(JSON.stringify(entry.data));
+    const participantIds = [entry.studentId, ...(restoredCase.partnerIds||[])];
+    const stillExisting = participantIds.filter(pid=>STUDENTS.some(s=>s.id===pid));
+    stillExisting.forEach(pid=>{
+      const person = STUDENTS.find(s=>s.id===pid);
+      if(!person) return;
+      if(!person.cases) person.cases = [];
+      if(!person.cases.some(c=>c.id===restoredCase.id)){
+        person.cases.push(Object.assign(JSON.parse(JSON.stringify(restoredCase)), { partnerIds: stillExisting.filter(x=>x!==pid) }));
+      }
+    });
+    if(!PROGRESS[restoredCase.id]) PROGRESS[restoredCase.id] = JSON.parse(JSON.stringify(entry.progressSnapshot||{}));
+    ARCHIVE.cases.splice(idx,1);
+    await setData('students', STUDENTS);
+    await setData('progress', PROGRESS);
+    await setData('archive', ARCHIVE);
     render(); return;
   }
 
@@ -1684,16 +1837,18 @@ function pickField(row, keys){
 /* ---------------- Init ---------------- */
 async function init(){
   state.storageOk = scriptConfigured();
-  const [cfg, supNames, students, progress] = await Promise.all([
+  const [cfg, supNames, students, progress, archive] = await Promise.all([
     getData('config', null),
     fetchSupervisorNames(),
     getData('students', []),
-    getData('progress', {})
+    getData('progress', {}),
+    getData('archive', null)
   ]);
   CONFIG = mergeConfig(cfg);
   SUP_NAMES = supNames;
   STUDENTS = students;
   PROGRESS = progress;
+  ARCHIVE = normalizeArchive(archive);
   state.loading = false;
   render();
 }
