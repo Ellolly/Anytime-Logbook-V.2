@@ -136,10 +136,12 @@ const I18N = {
     supervisorNameLabel:"اسم المشرف", passwordLabel:"كلمة المرور", loginBtn:"دخول", backBtn:"رجوع",
     adminLoginHeading:"لوحة تحكم الأدمن", adminPasswordLabel:"كلمة مرور الأدمن", checkingBtn:"جارِ التحقق...",
     wrongPassword:"كلمة المرور غير صحيحة.", wrongAdminPassword:"كلمة مرور الأدمن غير صحيحة.",
+    sessionExpiredMsg:"تم تسجيل خروجك — بيانات الدخول اتغيّرت أو الحساب اتشال. سجّل دخول تاني.",
     noSupervisorsYet:"لا يوجد مشرفين مضافين بعد.",
     networkErrorPrefix:"تعذّر الاتصال بالسيرفر: ", networkErrorSuffix:". تأكد من الإنترنت والرابط.",
     storageNotConfigured:"البرنامج لسه مش متوصل بقاعدة بيانات Google Sheets.",
     storageConnFailed:"مش قادر أوصل لقاعدة البيانات دلوقتي — البيانات مش هتتحفظ.",
+    offlinePendingBanner:"مفيش نت دلوقتي — التعديلات محفوظة على جهازك وهتترفع تلقائيًا لما الاتصال يرجع. تعديلات لسه مستنية:",
     warningLabel:"تنبيه:", supervisorBadgePrefix:"مشرف: ", deptBadgePrefix:"قسم: ", courseBadgePrefix:"Course: ",
     addStudentQuick:"+ طالب جديد", logoutBtn:"خروج", changeCourseBtn:"تغيير الـ Course",
     searchPlaceholder:"بحث بالاسم...", noStudentsYet:"لا يوجد طلاب.", noSearchResults:"لا نتائج مطابقة.",
@@ -218,10 +220,12 @@ const I18N = {
     supervisorNameLabel:"Supervisor name", passwordLabel:"Password", loginBtn:"Login", backBtn:"Back",
     adminLoginHeading:"Admin Dashboard", adminPasswordLabel:"Admin password", checkingBtn:"Checking...",
     wrongPassword:"Incorrect password.", wrongAdminPassword:"Incorrect admin password.",
+    sessionExpiredMsg:"You've been signed out — the login details changed or the account was removed. Please sign in again.",
     noSupervisorsYet:"No supervisors added yet.",
     networkErrorPrefix:"Could not reach the server: ", networkErrorSuffix:". Check your internet connection and the link.",
     storageNotConfigured:"This app isn't connected to a Google Sheets database yet.",
     storageConnFailed:"Can't reach the database right now — data won't be saved.",
+    offlinePendingBanner:"No connection right now — your changes are saved on this device and will upload automatically once you're back online. Changes waiting to sync:",
     warningLabel:"Warning:", supervisorBadgePrefix:"Supervisor: ", deptBadgePrefix:"Dept: ", courseBadgePrefix:"Course: ",
     addStudentQuick:"+ New student", logoutBtn:"Log out", changeCourseBtn:"Change course",
     searchPlaceholder:"Search by name...", noStudentsYet:"No students yet.", noSearchResults:"No matching results.",
@@ -307,6 +311,78 @@ function fieldLabel(key){
 /* ---------------- Storage helpers (Google Sheets via Apps Script) ---------------- */
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxcF_MOXGB1zoO5Oe0DutoEyTU4Gl376r4U1z9VG0osixvaQt5e31Bum7i9Mz_I3fGD/exec";
 function scriptConfigured(){ return !!SCRIPT_URL && !SCRIPT_URL.includes('PASTE_YOUR'); }
+
+/* -------- Offline support: local cache (for reading while offline) + pending sync queue (for writes made while offline) -------- */
+const CACHE_STORAGE_KEY = 'alb_cache_v1';
+const PENDING_STORAGE_KEY = 'alb_pending_v1';
+let PENDING = {};
+function loadPending(){ try{ PENDING = JSON.parse(localStorage.getItem(PENDING_STORAGE_KEY) || '{}'); }catch(e){ PENDING = {}; } }
+function persistPending(){ try{ localStorage.setItem(PENDING_STORAGE_KEY, JSON.stringify(PENDING)); }catch(e){} }
+function queuePending(key, value){ PENDING[key] = value; persistPending(); }
+function clearPending(key){ if(key in PENDING){ delete PENDING[key]; persistPending(); } }
+function pendingCount(){ return Object.keys(PENDING).length; }
+function applyPending(key, freshValue){ return Object.prototype.hasOwnProperty.call(PENDING, key) ? PENDING[key] : freshValue; }
+function loadCache(){ try{ return JSON.parse(localStorage.getItem(CACHE_STORAGE_KEY) || '{}'); }catch(e){ return {}; } }
+function saveCache(partial){ try{ const cur = loadCache(); localStorage.setItem(CACHE_STORAGE_KEY, JSON.stringify(Object.assign(cur, partial))); }catch(e){} }
+
+/* -------- Offline support: persisted session, so a reload/reopen with no network skips the login screen -------- */
+const SESSION_STORAGE_KEY = 'alb_session_v1';
+function saveSession(session){ try{ localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session)); }catch(e){} }
+function loadSession(){ try{ return JSON.parse(localStorage.getItem(SESSION_STORAGE_KEY) || 'null'); }catch(e){ return null; } }
+function clearSession(){ try{ localStorage.removeItem(SESSION_STORAGE_KEY); }catch(e){} }
+async function revalidateSession(session){
+  if(!navigator.onLine) return;
+  try{
+    if(session.role==='admin'){
+      const r = await apiLoginAdmin(session.password);
+      if(r && r.networkError) return;
+      if(!r || !r.ok){ forceSessionLogout(); return; }
+      CREDENTIALS = applyPending('credentials', r.credentials || CREDENTIALS);
+    } else if(session.role==='supervisor'){
+      const r = await apiLoginSupervisor(session.name, session.password);
+      if(r && r.networkError) return;
+      if(!r || !r.ok){ forceSessionLogout(); return; }
+    }
+  }catch(e){ /* stay logged in on unexpected errors; only explicit rejection logs out */ }
+}
+function forceSessionLogout(){
+  clearSession();
+  state.screen='login'; state.currentSupervisor=null; state.currentSupervisorPass=null; state.currentDept=null;
+  state.supervisorCourseId=null; state.adminPass=null; CREDENTIALS=null; state.loginMode=null;
+  state.loginErr = t('sessionExpiredMsg');
+  render();
+}
+
+let retryTimer = null;
+function scheduleRetry(){
+  if(retryTimer) return;
+  retryTimer = setTimeout(()=>{ retryTimer = null; flushPending(); }, 15000);
+}
+async function postSave_(key, value){
+  let auth = null;
+  if(state.screen==='admin' && state.adminPass) auth = { role:'admin', password: state.adminPass };
+  else if(state.screen==='supervisor' && state.currentSupervisor) auth = { role:'supervisor', name: state.currentSupervisor, password: state.currentSupervisorPass };
+  const res = await fetchWithTimeout(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify({ action:'save', key, value: JSON.stringify(value), auth }) });
+  if(!res.ok) throw new Error('bad status ' + res.status);
+  const json = await res.json();
+  if(!json.ok){ const err = new Error(json.error || 'rejected'); err.rejected = true; throw err; }
+  return true;
+}
+async function flushPending(){
+  const keys = Object.keys(PENDING);
+  if(!keys.length) return;
+  let changed = false, stillFailing = false;
+  for(const key of keys){
+    try{ await postSave_(key, PENDING[key]); delete PENDING[key]; changed = true; }
+    catch(e){ if(e.rejected){ delete PENDING[key]; changed = true; } else stillFailing = true; }
+  }
+  if(changed) persistPending();
+  state.storageOk = !stillFailing;
+  if(changed) render();
+  if(stillFailing) scheduleRetry();
+}
+window.addEventListener('online', ()=>{ flushPending(); });
 // fetch() has no built-in timeout — without this, a stalled connection leaves the UI stuck forever
 // (e.g. a disabled button stuck on "checking...") instead of showing a clear error.
 async function fetchWithTimeout(url, opts={}, ms=25000){
@@ -324,23 +400,36 @@ async function getData(key, fallback){
     const res = await fetchWithTimeout(`${SCRIPT_URL}?action=get&key=${encodeURIComponent(key)}`);
     if(!res.ok) throw new Error('bad status ' + res.status);
     const json = await res.json();
-    if(json && json.value !== undefined && json.value !== null) return JSON.parse(json.value);
+    if(json && json.value !== undefined && json.value !== null){
+      const parsed = JSON.parse(json.value);
+      saveCache({[key]: parsed});
+      return parsed;
+    }
     return fallback;
-  }catch(e){ console.error('getData failed', key, e); state.storageOk = false; return fallback; }
+  }catch(e){
+    console.error('getData failed', key, e);
+    state.storageOk = false;
+    const cache = loadCache();
+    return Object.prototype.hasOwnProperty.call(cache, key) ? cache[key] : fallback;
+  }
 }
 async function setData(key, value){
   if(!scriptConfigured()) return false;
-  let auth = null;
-  if(state.screen==='admin' && state.adminPass) auth = { role:'admin', password: state.adminPass };
-  else if(state.screen==='supervisor' && state.currentSupervisor) auth = { role:'supervisor', name: state.currentSupervisor, password: state.currentSupervisorPass };
   try{
-    const res = await fetchWithTimeout(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify({ action:'save', key, value: JSON.stringify(value), auth }) });
-    if(!res.ok) throw new Error('bad status ' + res.status);
-    const json = await res.json();
-    if(!json.ok){ console.error('save rejected', json.error); alert(t('saveFailedAlert')); state.storageOk=false; return false; }
-    state.storageOk = true; return true;
-  }catch(e){ console.error('setData failed', key, e); state.storageOk = false; return false; }
+    await postSave_(key, value);
+    clearPending(key);
+    saveCache({[key]: value});
+    state.storageOk = true;
+    return true;
+  }catch(e){
+    if(e.rejected){ console.error('save rejected', e.message); alert(t('saveFailedAlert')); state.storageOk = true; return false; }
+    console.error('setData failed, queued for retry when back online', key, e);
+    queuePending(key, value);
+    saveCache({[key]: value});
+    state.storageOk = false;
+    scheduleRetry();
+    return false;
+  }
 }
 async function fetchSupervisorNames(){
   if(!scriptConfigured()) return [];
@@ -523,10 +612,16 @@ function render(){
       <div class="brand-text"><h1>${esc(title)}</h1><span>${esc(subtitle)}</span></div>
       <button class="lang-toggle" data-act="toggle-lang">${state.lang==='ar' ? 'EN' : 'AR'}</button>
     </div>
-    ${!state.storageOk ? `<div class="banner err sticky-warn"><b>${t('warningLabel')}</b> ${scriptConfigured() ? t('storageConnFailed') : t('storageNotConfigured')}</div>` : ''}
+    ${connectionBannerHtml()}
     ${screenHtml()}
   `;
   bindEvents();
+}
+function connectionBannerHtml(){
+  if(!scriptConfigured()) return `<div class="banner err sticky-warn"><b>${t('warningLabel')}</b> ${t('storageNotConfigured')}</div>`;
+  if(pendingCount()>0) return `<div class="banner err sticky-warn"><b>${t('warningLabel')}</b> ${t('offlinePendingBanner')} (${pendingCount()})</div>`;
+  if(!state.storageOk) return `<div class="banner err sticky-warn"><b>${t('warningLabel')}</b> ${t('storageConnFailed')}</div>`;
+  return '';
 }
 function screenHtml(){
   if(state.screen === 'login') return loginHtml();
@@ -1264,6 +1359,7 @@ async function onAction(e){
       state.currentSupervisor = name; state.currentSupervisorPass = pass; state.currentDept = r.departmentId;
       state.supervisorCourseId = null; state.supervisorGroupFilter='all'; state.supervisorSubgroupFilter='all';
       state.screen='supervisor'; state.loginMode=null; state.loginErr='';
+      saveSession({role:'supervisor', name, password:pass, departmentId:r.departmentId});
     } else if(r && r.networkError){ state.loginErr = t('networkErrorPrefix') + (r.error||'') + t('networkErrorSuffix'); }
     else { state.loginErr = t('wrongPassword'); }
     render(); return;
@@ -1273,13 +1369,16 @@ async function onAction(e){
     el.disabled = true; el.textContent = t('checkingBtn');
     const r = await apiLoginAdmin(pass);
     if(r && r.ok){
-      state.adminPass = pass; CREDENTIALS = r.credentials || { supervisors: [], adminPassword: pass };
+      state.adminPass = pass; CREDENTIALS = applyPending('credentials', r.credentials || { supervisors: [], adminPassword: pass });
       state.screen='admin'; state.loginMode=null; state.loginErr='';
+      saveSession({role:'admin', password:pass});
+      saveCache({credentials: CREDENTIALS});
     } else if(r && r.networkError){ state.loginErr = t('networkErrorPrefix') + (r.error||'') + t('networkErrorSuffix'); }
     else { state.loginErr = t('wrongAdminPassword'); }
     render(); return;
   }
   if(act==='logout'){
+    clearSession();
     state.screen='login'; state.currentSupervisor=null; state.currentSupervisorPass=null; state.currentDept=null;
     state.supervisorCourseId=null; state.adminPass=null; CREDENTIALS=null; state.loginMode=null;
     state.openStudent=null; state.openCase=null; state.search='';
@@ -1837,6 +1936,7 @@ function pickField(row, keys){
 /* ---------------- Init ---------------- */
 async function init(){
   state.storageOk = scriptConfigured();
+  loadPending();
   const [cfg, supNames, students, progress, archive] = await Promise.all([
     getData('config', null),
     fetchSupervisorNames(),
@@ -1844,13 +1944,28 @@ async function init(){
     getData('progress', {}),
     getData('archive', null)
   ]);
-  CONFIG = mergeConfig(cfg);
+  CONFIG = mergeConfig(applyPending('config', cfg));
   SUP_NAMES = supNames;
-  STUDENTS = students;
-  PROGRESS = progress;
-  ARCHIVE = normalizeArchive(archive);
+  STUDENTS = applyPending('students', students);
+  PROGRESS = applyPending('progress', progress);
+  ARCHIVE = normalizeArchive(applyPending('archive', archive));
   state.loading = false;
+
+  const session = loadSession();
+  if(session && session.role==='admin'){
+    state.adminPass = session.password;
+    CREDENTIALS = applyPending('credentials', loadCache().credentials || { supervisors: [], adminPassword: session.password });
+    state.screen = 'admin';
+  } else if(session && session.role==='supervisor'){
+    state.currentSupervisor = session.name;
+    state.currentSupervisorPass = session.password;
+    state.currentDept = session.departmentId;
+    state.screen = 'supervisor';
+  }
+
   render();
+  flushPending();
+  if(session) revalidateSession(session);
 }
 init();
 </script>
