@@ -15,8 +15,8 @@
     --line:#E4DFD2; --banner-text:#5A430F; --banner-err-text:#7A2E1B; --radius:14px;
   }
   html[data-theme="dark"]{
-    --ink:#E8E4DA; --bg:#101513; --card:#1B2320; --teal-900:#EDEAE2; --teal-500:#8CBEB7;
-    --teal-100:#213330; --gold-light:#3A2E12; --rust-light:#3A211B; --line:#2B3532;
+    --ink:#E8E4DA; --bg:#101513; --card:#1B2320; --teal-900:#EDEAE2; --teal-700:#3E8F87; --teal-500:#8CBEB7;
+    --teal-100:#213330; --gold:#D9AE55; --gold-light:#3A2E12; --rust:#E38868; --rust-light:#3A211B; --line:#2B3532;
     --banner-text:#E7CE8F; --banner-err-text:#F0B3A2;
   }
   *{box-sizing:border-box;}
@@ -98,6 +98,9 @@
   .list-item .txt small{display:block;font-weight:400;color:var(--teal-500);font-size:11.5px;margin-top:2px;}
   .icon-btn{background:none;border:none;cursor:pointer;color:var(--rust);font-size:16px;padding:4px 6px;flex-shrink:0;}
   .icon-btn.up-down{color:var(--teal-700);}
+  .ico{display:inline-block;vertical-align:middle;position:relative;top:-1px;}
+  .icon-btn{min-width:36px;min-height:36px;display:inline-flex;align-items:center;justify-content:center;}
+  .btn .ico{margin-inline-end:4px;}
   .sub-list{margin-inline-start:18px;margin-top:6px;}
   .chip-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
   .chip{display:flex;align-items:center;gap:6px;background:var(--teal-100);color:var(--teal-900);padding:6px 10px;border-radius:20px;font-size:12.5px;font-weight:600;}
@@ -121,6 +124,31 @@
   .file-drop{border:1.5px dashed var(--teal-500);border-radius:10px;padding:14px;text-align:center;background:var(--teal-100);margin-bottom:8px;}
   .file-drop input[type=file]{width:100%;font-size:12.5px;}
   .sticky-warn{position:sticky;top:0;z-index:20;}
+  .context-bar{position:sticky;top:0;z-index:15;}
+
+  /* ---- Custom modal (replaces native alert/confirm) ---- */
+  .modal-overlay{position:fixed;inset:0;background:rgba(20,24,22,.5);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;animation:modal-fade .15s ease;}
+  @keyframes modal-fade{from{opacity:0;}to{opacity:1;}}
+  .modal-card{background:var(--card);border-radius:var(--radius);padding:20px;max-width:360px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.25);animation:modal-pop .18s ease;}
+  @keyframes modal-pop{from{transform:scale(.94);opacity:0;}to{transform:scale(1);opacity:1;}}
+  .modal-msg{margin:0 0 18px;font-size:14px;color:var(--ink);line-height:1.6;white-space:pre-line;}
+  .modal-actions{display:flex;gap:8px;}
+  .modal-actions .btn{margin:0;}
+
+  /* ---- Open/close animation for student & case cards ---- */
+  .student-body{border-top:1px solid var(--line);padding:0 14px;display:grid;grid-template-rows:0fr;transition:grid-template-rows .22s ease;}
+  .student-body>div{overflow:hidden;}
+  .student-body.open{grid-template-rows:1fr;padding:10px 14px 14px;}
+  .case-body{border-top:1px dashed var(--line);margin-top:8px;padding-top:8px;animation:case-open .18s ease;}
+  @keyframes case-open{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
+
+  /* ---- Bottom nav (admin, mobile) ---- */
+  .bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;background:var(--card);border-top:1px solid var(--line);padding:4px 2px calc(4px + env(safe-area-inset-bottom));box-shadow:0 -2px 12px rgba(0,0,0,.06);}
+  .bottom-nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;background:transparent;border:none;font-family:inherit;color:var(--teal-500);font-size:9.5px;font-weight:700;padding:6px 2px;cursor:pointer;border-radius:8px;}
+  .bottom-nav button.active{color:var(--teal-700);background:var(--teal-100);}
+  body.has-bottom-nav #root{padding-bottom:74px;}
+
+  .version-tag{text-align:center;font-size:10.5px;color:var(--teal-500);opacity:.6;margin-top:18px;}
 </style>
 </head>
 <body>
@@ -137,6 +165,7 @@ const I18N = {
     adminLoginHeading:"لوحة تحكم الأدمن", adminPasswordLabel:"كلمة مرور الأدمن", checkingBtn:"جارِ التحقق...",
     wrongPassword:"كلمة المرور غير صحيحة.", wrongAdminPassword:"كلمة مرور الأدمن غير صحيحة.",
     sessionExpiredMsg:"تم تسجيل خروجك — بيانات الدخول اتغيّرت أو الحساب اتشال. سجّل دخول تاني.",
+    modalCancelBtn:"إلغاء", modalConfirmBtn:"تأكيد", modalOkBtn:"تمام", undoStepConfirmPrefix:"تراجع عن هذه الخطوة؟ اتسجلت بواسطة: ",
     noSupervisorsYet:"لا يوجد مشرفين مضافين بعد.",
     networkErrorPrefix:"تعذّر الاتصال بالسيرفر: ", networkErrorSuffix:". تأكد من الإنترنت والرابط.",
     storageNotConfigured:"البرنامج لسه مش متوصل بقاعدة بيانات Google Sheets.",
@@ -205,12 +234,12 @@ const I18N = {
     stepFilterLabel:"تصفية بخطوة معينة", noStepFilter:"— بدون تصفية —",
     stepFilterSummary:"عدد الحالات اللي خلّصت هذه الخطوة: ", ofTotalCases:" من إجمالي ",
     notStartedAnyCaseLabel:"عدد الطلاب اللي لسه ما بدأوش أي حالة: ",
-    linkPartnerBtn:"🔗 ربط شريك", partnersLabel:"الشركاء: ", noPartners:"مفيش شركاء متسجلين لهذه الحالة.",
+    linkPartnerBtn:"ربط شريك", partnersLabel:"الشركاء: ", noPartners:"مفيش شركاء متسجلين لهذه الحالة.",
     savePartnersBtn:"حفظ الشركاء", pickPartnersHeading:"اختار شريك أو أكتر لهذه الحالة",
     deleteCaseBtn:"حذف الحالة", confirmDeleteCase:"حذف هذه الحالة؟ هيتحفظ نسخة منها في الأرشيف وتقدر ترجّعها تاني من هناك.",
     tabArchive:"الأرشيف", archiveStudentsHeading:"الطلاب المحذوفين", archiveCasesHeading:"الحالات المحذوفة",
     noArchivedStudents:"لا يوجد طلاب محذوفين.", noArchivedCases:"لا يوجد حالات محذوفة.",
-    restoreBtn:"↩️ استرجاع", deletedOnPrefix:"اتحذف في: ", restoreCaseOwnerMissing:"معرفتش أرجّع الحالة دي لأن الطالب الأساسي بتاعها كمان محذوف — رجّع الطالب الأول.",
+    restoreBtn:"استرجاع", deletedOnPrefix:"اتحذف في: ", restoreCaseOwnerMissing:"معرفتش أرجّع الحالة دي لأن الطالب الأساسي بتاعها كمان محذوف — رجّع الطالب الأول.",
   },
   en: { dir:'ltr',
     defaultBrandTitle:"Anytime Logbook", defaultBrandSubtitle:"Track clinical case steps as they happen",
@@ -221,6 +250,7 @@ const I18N = {
     adminLoginHeading:"Admin Dashboard", adminPasswordLabel:"Admin password", checkingBtn:"Checking...",
     wrongPassword:"Incorrect password.", wrongAdminPassword:"Incorrect admin password.",
     sessionExpiredMsg:"You've been signed out — the login details changed or the account was removed. Please sign in again.",
+    modalCancelBtn:"Cancel", modalConfirmBtn:"Confirm", modalOkBtn:"OK", undoStepConfirmPrefix:"Undo this step? It was marked by: ",
     noSupervisorsYet:"No supervisors added yet.",
     networkErrorPrefix:"Could not reach the server: ", networkErrorSuffix:". Check your internet connection and the link.",
     storageNotConfigured:"This app isn't connected to a Google Sheets database yet.",
@@ -289,12 +319,12 @@ const I18N = {
     stepFilterLabel:"Filter by a specific step", noStepFilter:"— No filter —",
     stepFilterSummary:"Cases that completed this step: ", ofTotalCases:" out of ",
     notStartedAnyCaseLabel:"Students who haven't started any case yet: ",
-    linkPartnerBtn:"🔗 Link partner", partnersLabel:"Partners: ", noPartners:"No partners linked to this case.",
+    linkPartnerBtn:"Link partner", partnersLabel:"Partners: ", noPartners:"No partners linked to this case.",
     savePartnersBtn:"Save partners", pickPartnersHeading:"Choose one or more partners for this case",
     deleteCaseBtn:"Delete case", confirmDeleteCase:"Delete this case? A copy will be kept in the archive and you can restore it from there.",
     tabArchive:"Archive", archiveStudentsHeading:"Deleted students", archiveCasesHeading:"Deleted cases",
     noArchivedStudents:"No deleted students.", noArchivedCases:"No deleted cases.",
-    restoreBtn:"↩️ Restore", deletedOnPrefix:"Deleted on: ", restoreCaseOwnerMissing:"Can't restore this case because its original student was also deleted — restore the student first.",
+    restoreBtn:"Restore", deletedOnPrefix:"Deleted on: ", restoreCaseOwnerMissing:"Can't restore this case because its original student was also deleted — restore the student first.",
   }
 };
 function t(key){ return (I18N[state.lang] && I18N[state.lang][key]) ?? (I18N.ar[key] ?? key); }
@@ -449,7 +479,7 @@ async function setData(key, value){
     state.storageOk = true;
     return true;
   }catch(e){
-    if(e.rejected){ console.error('save rejected', e.message); alert(t('saveFailedAlert')); state.storageOk = true; return false; }
+    if(e.rejected){ console.error('save rejected', e.message); showAlert(t('saveFailedAlert')); state.storageOk = true; return false; }
     console.error('setData failed, queued for retry when back online', key, e);
     queuePending(key, value);
     saveCache({[key]: value});
@@ -570,6 +600,62 @@ let state = {
 };
 
 function esc(s){ return (s+'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+const APP_VERSION = 'v1.1.0';
+const ICON_PATHS = {
+  trash: '<polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>',
+  edit: '<path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>',
+  eye: '<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"></path><circle cx="12" cy="12" r="3"></circle>',
+  eyeOff: '<path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a19.6 19.6 0 0 1 5.06-5.94M9.9 4.24A10.9 10.9 0 0 1 12 4c7 0 11 8 11 8a19.6 19.6 0 0 1-3.22 4.32M14.12 14.12a3 3 0 1 1-4.24-4.24"></path><path d="M1 1l22 22"></path>',
+  link: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>',
+  undo: '<polyline points="9 14 4 9 9 4"></polyline><path d="M20 20v-7a4 4 0 0 0-4-4H4"></path>',
+  building: '<rect x="4" y="2" width="16" height="20" rx="1"></rect><path d="M9 22v-4h6v4"></path><path d="M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01"></path>',
+  users: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>',
+  userCheck: '<path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline>',
+  listOrdered: '<line x1="10" y1="6" x2="21" y2="6"></line><line x1="10" y1="12" x2="21" y2="12"></line><line x1="10" y1="18" x2="21" y2="18"></line><path d="M4 6h1v4"></path><path d="M4 10h2"></path><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"></path>',
+  list: '<line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line>',
+  barChart: '<line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line>',
+  archive: '<polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line>',
+  settings: '<circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>'
+};
+function icon(name, size){
+  const s = size || 16;
+  return `<svg class="ico" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON_PATHS[name]||''}</svg>`;
+}
+function showConfirm(message, opts){
+  opts = opts || {};
+  return new Promise(resolve=>{
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `
+      <div class="modal-card" role="alertdialog" aria-modal="true">
+        <p class="modal-msg">${esc(message)}</p>
+        <div class="modal-actions">
+          <button class="btn ghost modal-cancel">${esc(t('modalCancelBtn'))}</button>
+          <button class="btn ${opts.danger?'rust':''} modal-ok">${esc(t('modalConfirmBtn'))}</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    const done = (val)=>{ overlay.remove(); resolve(val); };
+    overlay.querySelector('.modal-cancel').addEventListener('click', ()=>done(false));
+    overlay.querySelector('.modal-ok').addEventListener('click', ()=>done(true));
+    overlay.addEventListener('click', e=>{ if(e.target===overlay) done(false); });
+  });
+}
+function showAlert(message){
+  return new Promise(resolve=>{
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `
+      <div class="modal-card" role="alertdialog" aria-modal="true">
+        <p class="modal-msg">${esc(message)}</p>
+        <div class="modal-actions"><button class="btn modal-ok" style="width:100%;">${esc(t('modalOkBtn'))}</button></div>
+      </div>`;
+    document.body.appendChild(overlay);
+    const done = ()=>{ overlay.remove(); resolve(); };
+    overlay.querySelector('.modal-ok').addEventListener('click', done);
+    overlay.addEventListener('click', e=>{ if(e.target===overlay) done(); });
+  });
+}
 function fmtDate(iso){
   if(!iso) return '';
   const d = new Date(iso);
@@ -629,6 +715,7 @@ function render(){
   document.documentElement.dir = I18N[state.lang].dir;
   document.documentElement.lang = state.lang;
   applyTheme();
+  document.body.classList.toggle('has-bottom-nav', state.screen==='admin');
   const root = document.getElementById('root');
   if(state.loading){ root.innerHTML = `<div class="empty"><p>${t('loading')}</p></div>`; return; }
   const title = CONFIG.brandTitle || t('defaultBrandTitle');
@@ -641,6 +728,7 @@ function render(){
     </div>
     ${connectionBannerHtml()}
     ${screenHtml()}
+    <div class="version-tag">Anytime Logbook ${APP_VERSION}</div>
   `;
   bindEvents();
 }
@@ -683,7 +771,7 @@ function loginHtml(){
       <div class="field"><label>${t('passwordLabel')}</label>
         <div style="display:flex;gap:6px;">
           <input type="password" id="sup-pass" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" style="flex:1;">
-          <button type="button" class="btn ghost sm" data-act="toggle-pass-visibility" data-target="sup-pass" style="width:auto;">👁</button>
+          <button type="button" class="btn ghost sm" data-act="toggle-pass-visibility" data-target="sup-pass" style="width:auto;">${icon('eye')}</button>
         </div>
       </div>
       <div class="row wrap" style="margin-top:6px;">
@@ -700,7 +788,7 @@ function loginHtml(){
       <div class="field"><label>${t('adminPasswordLabel')}</label>
         <div style="display:flex;gap:6px;">
           <input type="password" id="admin-pass" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" style="flex:1;">
-          <button type="button" class="btn ghost sm" data-act="toggle-pass-visibility" data-target="admin-pass" style="width:auto;">👁</button>
+          <button type="button" class="btn ghost sm" data-act="toggle-pass-visibility" data-target="admin-pass" style="width:auto;">${icon('eye')}</button>
         </div>
       </div>
       <div class="row wrap" style="margin-top:6px;">
@@ -818,12 +906,12 @@ function casesHtml(st, readonly){
         <div class="ci-meta">${t('totalGradeLabel')}${total}</div>
         ${partners.length ? `<div class="ci-meta">${t('partnersLabel')}${partners.join('، ')}</div>` : ''}
       </div>
-      ${!readonly ? `<button class="icon-btn" data-act="del-case" data-sid="${st.id}" data-cid="${cs.id}" title="${t('deleteCaseBtn')}">🗑</button>` : ''}
+      ${!readonly ? `<button class="icon-btn" data-act="del-case" data-sid="${st.id}" data-cid="${cs.id}" title="${t('deleteCaseBtn')}">${icon('trash')}</button>` : ''}
       <div class="chev">${open?'▲':'▼'}</div>
     </div>
     ${open ? `<div class="case-body">
       ${stepsHtmlForCase(st, cs, readonly)}
-      ${!readonly ? `<button class="btn ghost sm" style="width:auto;margin-top:8px;" data-act="toggle-link-partners" data-sid="${st.id}" data-cid="${cs.id}">${t('linkPartnerBtn')}</button>` : ''}
+      ${!readonly ? `<button class="btn ghost sm" style="width:auto;margin-top:8px;" data-act="toggle-link-partners" data-sid="${st.id}" data-cid="${cs.id}">${icon('link')} ${t('linkPartnerBtn')}</button>` : ''}
       ${linkingThis ? partnerPanelHtml(st,cs) : ''}
     </div>` : ''}
     `;
@@ -856,7 +944,7 @@ function studentListHtml(readonly, filterFn){
         </div>
         <div class="chev">${open ? '▲' : '▼'}</div>
       </div>
-      <div class="student-body ${open?'open':''}">${casesHtml(st, readonly)}</div>
+      <div class="student-body ${open?'open':''}"><div>${casesHtml(st, readonly)}</div></div>
     </div>`;
   }).join('');
 }
@@ -932,15 +1020,16 @@ function contextBarHtml(){
   </div>`;
 }
 function adminHtml(){
+  const tabIcons = {departments:'building', students:'users', supervisors:'userCheck', steps:'listOrdered', lists:'list', stats:'barChart', archive:'archive', settings:'settings'};
   const tabs = [['departments',t('tabDepartments')],['students',t('tabStudents')],['supervisors',t('tabSupervisors')],['steps',t('tabSteps')],['lists',t('tabLists')],['stats',t('tabStats')],['archive',t('tabArchive')],['settings',t('tabSettings')]];
   return `
     <div class="top-actions">
       <span class="pill">${t('adminBadge')}</span>
       <button class="btn rust sm" data-act="logout">${t('logoutBtn')}</button>
     </div>
-    <div class="tabbar">${tabs.map(([k,l])=>`<button class="${state.adminTab===k?'active':''}" data-act="admin-tab" data-tab="${k}">${l}</button>`).join('')}</div>
     ${state.adminTab!=='departments' && state.adminTab!=='lists' && state.adminTab!=='settings' && state.adminTab!=='archive' ? contextBarHtml() : ''}
     ${adminTabHtml()}
+    <div class="bottom-nav">${tabs.map(([k,l])=>`<button class="${state.adminTab===k?'active':''}" data-act="admin-tab" data-tab="${k}">${icon(tabIcons[k]||'list',18)}<span>${l}</span></button>`).join('')}</div>
   `;
 }
 function adminTabHtml(){
@@ -978,7 +1067,7 @@ function adminArchiveHtml(){
               <small>${meta}</small>
               <small>${t('deletedOnPrefix')}${fmtDate(a.deletedAt)}${a.deletedBy?' · '+esc(a.deletedBy):''}</small>
             </div>
-            <button class="btn secondary sm" style="width:auto;" data-act="restore-student" data-id="${a.archId}">${t('restoreBtn')}</button>
+            <button class="btn secondary sm" style="width:auto;" data-act="restore-student" data-id="${a.archId}">${icon('undo')} ${t('restoreBtn')}</button>
           </div>
         </div>`;
       }).join('')}
@@ -1000,7 +1089,7 @@ function adminArchiveHtml(){
               <small>${meta}</small>
               <small>${t('deletedOnPrefix')}${fmtDate(a.deletedAt)}${a.deletedBy?' · '+esc(a.deletedBy):''}</small>
             </div>
-            <button class="btn secondary sm" style="width:auto;" data-act="restore-case" data-id="${a.archId}">${t('restoreBtn')}</button>
+            <button class="btn secondary sm" style="width:auto;" data-act="restore-case" data-id="${a.archId}">${icon('undo')} ${t('restoreBtn')}</button>
           </div>
         </div>`;
       }).join('')}
@@ -1022,8 +1111,8 @@ function adminDepartmentsHtml(){
         <div class="row" style="align-items:center;">
           <div class="txt">${esc(d.name)}<small>${(d.courses||[]).length} ${t('coursesHeading')}</small></div>
           <div class="row" style="width:auto;gap:2px;">
-            <button class="icon-btn up-down" data-act="rename-department" data-id="${d.id}">✏️</button>
-            <button class="icon-btn" data-act="del-department" data-id="${d.id}">🗑</button>
+            <button class="icon-btn up-down" data-act="rename-department" data-id="${d.id}">${icon('edit')}</button>
+            <button class="icon-btn" data-act="del-department" data-id="${d.id}">${icon('trash')}</button>
           </div>
         </div>
         <div class="sub-list">
@@ -1031,8 +1120,8 @@ function adminDepartmentsHtml(){
             <div class="list-item">
               <div class="txt">${esc(c.name)}<small>${(c.steps||[]).length} ${t('tabSteps')}</small></div>
               <div class="row" style="width:auto;gap:2px;">
-                <button class="icon-btn up-down" data-act="rename-course" data-did="${d.id}" data-cid="${c.id}">✏️</button>
-                <button class="icon-btn" data-act="del-course" data-did="${d.id}" data-cid="${c.id}">🗑</button>
+                <button class="icon-btn up-down" data-act="rename-course" data-did="${d.id}" data-cid="${c.id}">${icon('edit')}</button>
+                <button class="icon-btn" data-act="del-course" data-did="${d.id}" data-cid="${c.id}">${icon('trash')}</button>
               </div>
             </div>`).join('') || `<div style="font-size:12px;color:var(--teal-500);padding:4px 0;">${t('noCourses')}</div>`}
           <div class="row" style="margin-top:6px;">
@@ -1084,7 +1173,7 @@ function adminStudentsHtml(){
         <div class="txt">${esc(st.name)}${st.studentCode?' <span style="color:var(--teal-500);">#'+esc(st.studentCode)+'</span>':''}
           <small>${[st.group?t('groupPrefix')+esc(st.group):'', st.subgroup?t('subgroupPrefix')+esc(st.subgroup):'', st.level?t('lvlValPrefix')+esc(st.level):'', (st.cases||[]).length+' '+t('casesHeading'), studentAggregatePct(st)+t('completeSuffix')].filter(Boolean).join(' · ')}</small>
         </div>
-        <button class="icon-btn" data-act="del-student" data-id="${st.id}">🗑</button>
+        <button class="icon-btn" data-act="del-student" data-id="${st.id}">${icon('trash')}</button>
       </div>`).join('')}
   `;
 }
@@ -1107,8 +1196,8 @@ function adminSupervisorsHtml(){
       <div class="list-item">
         <div class="txt">${esc(s.name)}<small>${t('passwordColon')}${esc(s.password)}</small></div>
         <div class="row" style="width:auto;gap:2px;">
-          <button class="icon-btn up-down" data-act="edit-supervisor" data-id="${s.id}">✏️</button>
-          <button class="icon-btn" data-act="del-supervisor" data-id="${s.id}">🗑</button>
+          <button class="icon-btn up-down" data-act="edit-supervisor" data-id="${s.id}">${icon('edit')}</button>
+          <button class="icon-btn" data-act="del-supervisor" data-id="${s.id}">${icon('trash')}</button>
         </div>
       </div>`).join('')}
   `;
@@ -1157,10 +1246,10 @@ function adminStepsHtml(){
       <div class="list-item">
         <div class="txt">${i+1}. ${esc(s.name)}</div>
         <div class="row" style="width:auto;gap:2px;">
-          <button class="icon-btn up-down" data-act="rename-step" data-idx="${i}">✏️</button>
+          <button class="icon-btn up-down" data-act="rename-step" data-idx="${i}">${icon('edit')}</button>
           <button class="icon-btn up-down" data-act="move-step" data-dir="up" data-idx="${i}" ${i===0?'disabled':''}>▲</button>
           <button class="icon-btn up-down" data-act="move-step" data-dir="down" data-idx="${i}" ${i===steps.length-1?'disabled':''}>▼</button>
-          <button class="icon-btn" data-act="del-step" data-idx="${i}">🗑</button>
+          <button class="icon-btn" data-act="del-step" data-idx="${i}">${icon('trash')}</button>
         </div>
       </div>`).join('')}
     `}
@@ -1372,7 +1461,7 @@ async function onAction(e){
   const act = el.dataset.act;
 
   if(act==='toggle-lang'){ state.lang = state.lang==='ar'?'en':'ar'; try{localStorage.setItem('prostho_lang', state.lang);}catch(er){} render(); return; }
-  if(act==='toggle-pass-visibility'){ const inp = document.getElementById(el.dataset.target); if(inp) inp.type = inp.type==='password'?'text':'password'; return; }
+  if(act==='toggle-pass-visibility'){ const inp = document.getElementById(el.dataset.target); if(inp){ inp.type = inp.type==='password'?'text':'password'; el.innerHTML = icon(inp.type==='password'?'eye':'eyeOff'); } return; }
   if(act==='pick-supervisor'){ state.loginMode='supervisor'; state.loginErr=''; render(); return; }
   if(act==='pick-admin'){ state.loginMode='admin'; state.loginErr=''; render(); return; }
   if(act==='back-login'){ state.loginMode=null; state.loginErr=''; render(); return; }
@@ -1431,14 +1520,14 @@ async function onAction(e){
     if(course && course.deadline){
       const deadlinePassed = new Date(course.deadline + 'T23:59:59') < new Date();
       if(deadlinePassed && !studentHasStarted(st)){
-        alert(t('deadlinePassedAlert'));
+        showAlert(t('deadlinePassedAlert'));
         return;
       }
     }
     const checked = [...document.querySelectorAll('.new-case-chk:checked')].map(c=>c.value);
     const custom = (document.getElementById('custom-case-type-'+sid)||{}).value?.trim();
     if(custom) checked.push(custom);
-    if(checked.length===0){ alert(t('pickAtLeastOneCaseType')); return; }
+    if(checked.length===0){ showAlert(t('pickAtLeastOneCaseType')); return; }
     if(!st.cases) st.cases = [];
     checked.forEach(ct=>{ st.cases.push({ id: caseId(), caseType: ct, createdAt: new Date().toISOString(), partnerIds: [] }); });
     state.addingCaseFor = null;
@@ -1499,7 +1588,7 @@ async function onAction(e){
     if(!PROGRESS[cid]) PROGRESS[cid] = {};
     const cur = PROGRESS[cid][stepid];
     if(cur && cur.done){
-      if(!confirm(cur.supervisor||'')) return;
+      if(!(await showConfirm(t('undoStepConfirmPrefix') + (cur.supervisor||'')))) return;
       delete PROGRESS[cid][stepid];
     } else {
       PROGRESS[cid][stepid] = { done:true, supervisor: state.currentSupervisor, date: new Date().toISOString(), grade:'', notes:'' };
@@ -1545,7 +1634,7 @@ async function onAction(e){
     render(); return;
   }
   if(act==='del-department'){
-    if(!confirm(t('confirmDeleteDepartment'))) return;
+    if(!(await showConfirm(t('confirmDeleteDepartment')))) return;
     CONFIG.departments = CONFIG.departments.filter(d=>d.id!==el.dataset.id);
     await setData('config', CONFIG);
     render(); return;
@@ -1571,7 +1660,7 @@ async function onAction(e){
   }
   if(act==='del-course'){
     const d = getDept(el.dataset.did); if(!d) return;
-    if(!confirm(t('confirmDeleteCourse'))) return;
+    if(!(await showConfirm(t('confirmDeleteCourse')))) return;
     d.courses = (d.courses||[]).filter(c=>c.id!==el.dataset.cid);
     await setData('config', CONFIG);
     render(); return;
@@ -1583,7 +1672,7 @@ async function onAction(e){
     const group = document.getElementById('new-st-group').value.trim();
     const subgroup = document.getElementById('new-st-subgroup').value.trim();
     const level = document.getElementById('new-st-level').value.trim();
-    if(!name){ alert(t('alertEnterName')); return; }
+    if(!name){ showAlert(t('alertEnterName')); return; }
     STUDENTS.push({id:uid(), studentCode, name, departmentId: state.adminDeptId, courseId: state.adminCourseId, group, subgroup, level, cases: [], createdAt:new Date().toISOString()});
     await setData('students', STUDENTS);
     render(); return;
@@ -1596,10 +1685,10 @@ async function onAction(e){
     URL.revokeObjectURL(url); return;
   }
   if(act==='import-students'){
-    if(!state.adminDeptId || !state.adminCourseId){ alert(t('pickContextHint')); return; }
+    if(!state.adminDeptId || !state.adminCourseId){ showAlert(t('pickContextHint')); return; }
     const fileInput = document.getElementById('import-file');
     const file = fileInput && fileInput.files[0];
-    if(!file){ alert(t('alertPickFile')); return; }
+    if(!file){ showAlert(t('alertPickFile')); return; }
     try{
       await loadXLSX();
       const rows = await parseSpreadsheet(file);
@@ -1635,7 +1724,7 @@ async function onAction(e){
     render(); return;
   }
   if(act==='del-student'){
-    if(!confirm(t('confirmDeleteStudent'))) return;
+    if(!(await showConfirm(t('confirmDeleteStudent')))) return;
     const id = el.dataset.id;
     const st = STUDENTS.find(s=>s.id===id);
     if(st){
@@ -1673,7 +1762,7 @@ async function onAction(e){
     const sid = el.dataset.sid, cid = el.dataset.cid;
     const st = STUDENTS.find(s=>s.id===sid); if(!st) return;
     const cs = (st.cases||[]).find(c=>c.id===cid); if(!cs) return;
-    if(!confirm(t('confirmDeleteCase'))) return;
+    if(!(await showConfirm(t('confirmDeleteCase')))) return;
     const participantIds = [sid, ...(cs.partnerIds||[])];
     if(!ARCHIVE.cases) ARCHIVE.cases = [];
     ARCHIVE.cases.push({
@@ -1727,7 +1816,7 @@ async function onAction(e){
     if(idx===-1) return;
     const entry = ARCHIVE.cases[idx];
     const owner = STUDENTS.find(s=>s.id===entry.studentId);
-    if(!owner){ alert(t('restoreCaseOwnerMissing')); return; }
+    if(!owner){ showAlert(t('restoreCaseOwnerMissing')); return; }
     const restoredCase = JSON.parse(JSON.stringify(entry.data));
     const participantIds = [entry.studentId, ...(restoredCase.partnerIds||[])];
     const stillExisting = participantIds.filter(pid=>STUDENTS.some(s=>s.id===pid));
@@ -1750,9 +1839,9 @@ async function onAction(e){
   if(act==='add-supervisor'){
     const name = document.getElementById('new-sup-name').value.trim();
     const pass = document.getElementById('new-sup-pass').value.trim();
-    if(!name || !pass){ alert(t('alertNameAndPass')); return; }
+    if(!name || !pass){ showAlert(t('alertNameAndPass')); return; }
     if(!CREDENTIALS) CREDENTIALS = {supervisors:[], adminPassword: state.adminPass};
-    if(CREDENTIALS.supervisors.some(s=>s.name===name)){ alert(t('alertDuplicateSupervisor')); return; }
+    if(CREDENTIALS.supervisors.some(s=>s.name===name)){ showAlert(t('alertDuplicateSupervisor')); return; }
     CREDENTIALS.supervisors.push({id:uid(), name, password:pass, departmentId: state.adminDeptId});
     const ok = await setData('credentials', CREDENTIALS);
     if(ok) SUP_NAMES = CREDENTIALS.supervisors.map(s=>s.name);
@@ -1765,14 +1854,14 @@ async function onAction(e){
     const newPass = prompt(t('editSupervisorPromptPass'), sup.password);
     if(newPass===null) return;
     if(!newName.trim() || !newPass.trim()) return;
-    if(CREDENTIALS.supervisors.some(s=>s.id!==sup.id && s.name===newName.trim())){ alert(t('alertDuplicateSupervisor')); return; }
+    if(CREDENTIALS.supervisors.some(s=>s.id!==sup.id && s.name===newName.trim())){ showAlert(t('alertDuplicateSupervisor')); return; }
     sup.name = newName.trim(); sup.password = newPass.trim();
     const ok = await setData('credentials', CREDENTIALS);
     if(ok) SUP_NAMES = CREDENTIALS.supervisors.map(s=>s.name);
     render(); return;
   }
   if(act==='del-supervisor'){
-    if(!confirm(t('confirmDeleteSupervisor'))) return;
+    if(!(await showConfirm(t('confirmDeleteSupervisor')))) return;
     CREDENTIALS.supervisors = CREDENTIALS.supervisors.filter(s=>s.id!==el.dataset.id);
     const ok = await setData('credentials', CREDENTIALS);
     if(ok) SUP_NAMES = CREDENTIALS.supervisors.map(s=>s.name);
@@ -1783,7 +1872,7 @@ async function onAction(e){
     const course = getCourse(state.adminDeptId, state.adminCourseId); if(!course) return;
     course.deadline = document.getElementById('course-deadline').value.trim();
     const ok = await setData('config', CONFIG);
-    if(ok) alert(t('brandSaved'));
+    if(ok) showAlert(t('brandSaved'));
     render(); return;
   }
   if(act==='save-course-casetypes'){
@@ -1795,7 +1884,7 @@ async function onAction(e){
       if(!course.caseTypeConfigs.some(c=>c.name===name)) course.caseTypeConfigs.push({name, steps:[]});
     });
     const ok = await setData('config', CONFIG);
-    if(ok) alert(t('brandSaved'));
+    if(ok) showAlert(t('brandSaved'));
     render(); return;
   }
   if(act==='add-step'){
@@ -1803,7 +1892,7 @@ async function onAction(e){
     const cfg = caseTypeConfig(course, state.stepsCaseType); if(!cfg) return;
     const val = document.getElementById('new-step-name').value.trim();
     if(!val) return;
-    if(cfg.steps.some(s=>s.name===val)){ alert(t('alertDuplicateStep')); return; }
+    if(cfg.steps.some(s=>s.name===val)){ showAlert(t('alertDuplicateStep')); return; }
     cfg.steps.push({id: stepId(), name: val});
     await setData('config', CONFIG);
     render(); return;
@@ -1811,7 +1900,7 @@ async function onAction(e){
   if(act==='del-step'){
     const course = getCourse(state.adminDeptId, state.adminCourseId); if(!course) return;
     const cfg = caseTypeConfig(course, state.stepsCaseType); if(!cfg) return;
-    if(!confirm(t('confirmDeleteStep'))) return;
+    if(!(await showConfirm(t('confirmDeleteStep')))) return;
     cfg.steps.splice(+el.dataset.idx,1);
     await setData('config', CONFIG);
     render(); return;
@@ -1823,7 +1912,7 @@ async function onAction(e){
     const step = cfg.steps[idx];
     const newName = prompt(t('promptNewStepName'), step.name);
     if(!newName || !newName.trim()) return;
-    if(cfg.steps.some((s,i)=>i!==idx && s.name===newName.trim())){ alert(t('alertDuplicateStep')); return; }
+    if(cfg.steps.some((s,i)=>i!==idx && s.name===newName.trim())){ showAlert(t('alertDuplicateStep')); return; }
     step.name = newName.trim();
     await setData('config', CONFIG);
     render(); return;
@@ -1844,14 +1933,14 @@ async function onAction(e){
     const inp = document.getElementById('new-list-'+listKey);
     const val = inp.value.trim();
     if(!val) return;
-    if(CONFIG[listKey].includes(val)){ alert(t('alertDuplicateListValue')); return; }
+    if(CONFIG[listKey].includes(val)){ showAlert(t('alertDuplicateListValue')); return; }
     CONFIG[listKey].push(val);
     await setData('config', CONFIG);
     render(); return;
   }
   if(act==='del-list-value'){
     const listKey = el.dataset.list, idx = +el.dataset.idx;
-    if(!confirm(t('confirmDeleteListValue'))) return;
+    if(!(await showConfirm(t('confirmDeleteListValue')))) return;
     CONFIG[listKey].splice(idx,1);
     await setData('config', CONFIG);
     render(); return;
@@ -1862,7 +1951,7 @@ async function onAction(e){
     if(!CONFIG.fieldLabels) CONFIG.fieldLabels = {};
     CONFIG.fieldLabels[labelKey] = val;
     const ok = await setData('config', CONFIG);
-    if(ok) alert(t('brandSaved'));
+    if(ok) showAlert(t('brandSaved'));
     render(); return;
   }
 
@@ -1871,7 +1960,7 @@ async function onAction(e){
     const accent = document.getElementById('theme-accent').value;
     CONFIG.theme = { mode, accent };
     const ok = await setData('config', CONFIG);
-    if(ok) alert(t('brandSaved'));
+    if(ok) showAlert(t('brandSaved'));
     render(); return;
   }
   if(act==='save-branding'){
@@ -1879,16 +1968,16 @@ async function onAction(e){
     CONFIG.brandSubtitle = document.getElementById('brand-subtitle').value.trim();
     CONFIG.logoUrl = document.getElementById('brand-logo').value.trim();
     const ok = await setData('config', CONFIG);
-    if(ok) alert(t('brandSaved'));
+    if(ok) showAlert(t('brandSaved'));
     render(); return;
   }
   if(act==='change-admin-pass'){
     const val = document.getElementById('new-admin-pass').value.trim();
-    if(!val){ alert(t('alertEnterNewPassword')); return; }
+    if(!val){ showAlert(t('alertEnterNewPassword')); return; }
     if(!CREDENTIALS) CREDENTIALS = {supervisors:[], adminPassword: state.adminPass};
     CREDENTIALS.adminPassword = val;
     const ok = await setData('credentials', CREDENTIALS);
-    if(ok){ state.adminPass = val; alert(t('alertPasswordChanged')); }
+    if(ok){ state.adminPass = val; showAlert(t('alertPasswordChanged')); }
     render(); return;
   }
 
