@@ -15,7 +15,7 @@
     --line:#DCE3E7; --banner-text:#5A430F; --banner-err-text:#7A1F1F; --radius:8px;
   }
   html[data-theme="dark"]{
-    --ink:#E7ECEE; --bg:#0B1418; --card:#141F26; --teal-900:#EAF1F4; --teal-700:#5B9EC9; --teal-500:#7FA3B8;
+    --ink:#E7ECEE; --bg:#0B1418; --card:#141F26; --teal-900:#EAF1F4; --teal-700:#5B9EC9; --teal-500:#A9C7D8;
     --teal-100:#0C161B; --btn-bg:#1C5C86; --gold:#D4A94E; --gold-light:#3A2E12; --rust:#E06666; --rust-light:#3A2020; --line:#28363D;
     --banner-text:#E7CE8F; --banner-err-text:#F0A2A2;
   }
@@ -58,7 +58,7 @@
   .course-card b{color:var(--teal-900);font-size:14.5px;}
   .student-card{border:1px solid var(--line);border-inline-start:3px solid var(--teal-700);border-radius:6px;margin-bottom:10px;overflow:hidden;background:var(--card);}
   .student-head{display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer;}
-  .ring{position:relative;width:42px;height:42px;flex-shrink:0;}
+  .ring{position:relative;flex-shrink:0;}
   .ring svg{transform:rotate(-90deg);}
   .ring .pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:800;color:var(--teal-900);font-family:'Space Mono',monospace;}
   .student-info{flex:1;min-width:0;}
@@ -149,6 +149,12 @@
   body.has-bottom-nav #root{padding-bottom:74px;}
 
   .version-tag{text-align:center;font-size:10.5px;color:var(--teal-500);opacity:.6;margin-top:18px;}
+  .mini-chart-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+  .mini-chart-row:last-child{margin-bottom:0;}
+  .mini-chart-label{width:88px;flex-shrink:0;font-size:12px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .mini-chart-track{flex:1;height:10px;background:var(--teal-100);border-radius:6px;overflow:hidden;}
+  .mini-chart-fill{height:100%;background:var(--teal-700);border-radius:6px;transition:width .3s ease;}
+  .mini-chart-val{width:38px;flex-shrink:0;font-size:11.5px;font-weight:800;color:var(--teal-700);text-align:end;font-family:'Space Mono',monospace;}
 
   /* ---- Accessibility & polish: keyboard focus, pointer-only hover, reduced motion ---- */
   button:focus-visible, .role-card:focus-visible, .course-card:focus-visible, [data-act]:focus-visible{
@@ -262,6 +268,9 @@ const I18N = {
     savePartnersBtn:"حفظ الشركاء", pickPartnersHeading:"اختار شريك أو أكتر لهذه الحالة",
     deleteCaseBtn:"حذف الحالة", confirmDeleteCase:"حذف هذه الحالة؟ هيتحفظ نسخة منها في الأرشيف وتقدر ترجّعها تاني من هناك.",
     tabArchive:"الأرشيف", archiveStudentsHeading:"الطلاب المحذوفين", archiveCasesHeading:"الحالات المحذوفة",
+    tabDashboard:"الرئيسية", dashTotalStudents:"إجمالي الطلاب", dashTotalCases:"إجمالي الحالات", dashOverallCompletion:"نسبة الإنجاز العامة",
+    dashCompletedCases:"حالات مكتملة", dashNotStarted:"طلاب لسه ما بدأوش", dashByDepartment:"نسبة الإنجاز حسب القسم",
+    dashByCaseType:"نسبة الإنجاز حسب نوع الحالة", dashRecentActivity:"آخر نشاط",
     noArchivedStudents:"لا يوجد طلاب محذوفين.", noArchivedCases:"لا يوجد حالات محذوفة.",
     restoreBtn:"استرجاع", deletedOnPrefix:"اتحذف في: ", restoreCaseOwnerMissing:"معرفتش أرجّع الحالة دي لأن الطالب الأساسي بتاعها كمان محذوف — رجّع الطالب الأول.",
   },
@@ -347,6 +356,9 @@ const I18N = {
     savePartnersBtn:"Save partners", pickPartnersHeading:"Choose one or more partners for this case",
     deleteCaseBtn:"Delete case", confirmDeleteCase:"Delete this case? A copy will be kept in the archive and you can restore it from there.",
     tabArchive:"Archive", archiveStudentsHeading:"Deleted students", archiveCasesHeading:"Deleted cases",
+    tabDashboard:"Dashboard", dashTotalStudents:"Total students", dashTotalCases:"Total cases", dashOverallCompletion:"Overall completion",
+    dashCompletedCases:"Completed cases", dashNotStarted:"Students not started", dashByDepartment:"Completion by department",
+    dashByCaseType:"Completion by case type", dashRecentActivity:"Recent activity",
     noArchivedStudents:"No deleted students.", noArchivedCases:"No deleted cases.",
     restoreBtn:"Restore", deletedOnPrefix:"Deleted on: ", restoreCaseOwnerMissing:"Can't restore this case because its original student was also deleted — restore the student first.",
   }
@@ -616,7 +628,7 @@ function actorLabel(){ return state.screen==='admin' ? (state.lang==='ar'?'ال�
 let state = {
   screen:'login', currentSupervisor:null, currentSupervisorPass:null, currentDept:null,
   supervisorCourseId:null, supervisorGroupFilter:'all', supervisorSubgroupFilter:'all',
-  adminPass:null, adminTab:'departments', adminDeptId:'', adminCourseId:'',
+  adminPass:null, adminTab:'dashboard', adminDeptId:'', adminCourseId:'',
   openStudent:null, openCase:null, search:'', loginMode:null, loginErr:'', loading:true, storageOk:true,
   importMsg:'', lang:(typeof localStorage!=='undefined' && localStorage.getItem('prostho_lang')) || 'ar',
   statsScope:'all', statsScopeValue:'', statsStepId:'', statsCaseTypeFilter:'',
@@ -639,7 +651,8 @@ const ICON_PATHS = {
   list: '<line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line>',
   barChart: '<line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line>',
   archive: '<polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line>',
-  settings: '<circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>'
+  settings: '<circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>',
+  home: '<rect x="3" y="3" width="7" height="9" rx="1"></rect><rect x="14" y="3" width="7" height="5" rx="1"></rect><rect x="14" y="12" width="7" height="9" rx="1"></rect><rect x="3" y="16" width="7" height="5" rx="1"></rect>'
 };
 function icon(name, size){
   const s = size || 16;
@@ -711,11 +724,12 @@ function caseTotalGrade(st, cs){
 function ringSvg(pct, size=42){
   const r = (size/2)-4, c = 2*Math.PI*r, off = c - (pct/100)*c;
   const color = pct===100 ? 'var(--gold)' : 'var(--teal-500)';
-  return `<div class="ring"><svg width="${size}" height="${size}">
+  const fontSize = size<40 ? 9 : 10.5;
+  return `<div class="ring" style="width:${size}px;height:${size}px;"><svg width="${size}" height="${size}" style="display:block;">
     <circle cx="${size/2}" cy="${size/2}" r="${r}" stroke="var(--line)" stroke-width="4" fill="none"/>
     <circle cx="${size/2}" cy="${size/2}" r="${r}" stroke="${color}" stroke-width="4" fill="none"
       stroke-dasharray="${c}" stroke-dashoffset="${off}" stroke-linecap="round"/>
-  </svg><div class="pct">${pct}%</div></div>`;
+  </svg><div class="pct" style="font-size:${fontSize}px;">${pct}%</div></div>`;
 }
 function toothSvg(){
   return `<svg width="30" height="30" viewBox="0 0 24 24" fill="none">
@@ -730,8 +744,13 @@ function applyTheme(){
   let mode = theme.mode || 'light';
   if(mode==='auto'){ const h = new Date().getHours(); mode = (h>=6 && h<18) ? 'light' : 'dark'; }
   document.documentElement.setAttribute('data-theme', mode==='dark' ? 'dark' : 'light');
-  if(theme.accent) document.documentElement.style.setProperty('--teal-700', theme.accent);
-  else document.documentElement.style.removeProperty('--teal-700');
+  if(theme.accent){
+    document.documentElement.style.setProperty('--teal-700', theme.accent);
+    document.documentElement.style.setProperty('--btn-bg', theme.accent);
+  } else {
+    document.documentElement.style.removeProperty('--teal-700');
+    document.documentElement.style.removeProperty('--btn-bg');
+  }
 }
 
 /* ================= Render ================= */
@@ -1044,19 +1063,20 @@ function contextBarHtml(){
   </div>`;
 }
 function adminHtml(){
-  const tabIcons = {departments:'building', students:'users', supervisors:'userCheck', steps:'listOrdered', lists:'list', stats:'barChart', archive:'archive', settings:'settings'};
-  const tabs = [['departments',t('tabDepartments')],['students',t('tabStudents')],['supervisors',t('tabSupervisors')],['steps',t('tabSteps')],['lists',t('tabLists')],['stats',t('tabStats')],['archive',t('tabArchive')],['settings',t('tabSettings')]];
+  const tabIcons = {dashboard:'home', departments:'building', students:'users', supervisors:'userCheck', steps:'listOrdered', lists:'list', stats:'barChart', archive:'archive', settings:'settings'};
+  const tabs = [['dashboard',t('tabDashboard')],['departments',t('tabDepartments')],['students',t('tabStudents')],['supervisors',t('tabSupervisors')],['steps',t('tabSteps')],['lists',t('tabLists')],['stats',t('tabStats')],['archive',t('tabArchive')],['settings',t('tabSettings')]];
   return `
     <div class="top-actions">
       <span class="pill">${t('adminBadge')}</span>
       <button class="btn rust sm" data-act="logout">${t('logoutBtn')}</button>
     </div>
-    ${state.adminTab!=='departments' && state.adminTab!=='lists' && state.adminTab!=='settings' && state.adminTab!=='archive' ? contextBarHtml() : ''}
+    ${state.adminTab!=='dashboard' && state.adminTab!=='departments' && state.adminTab!=='lists' && state.adminTab!=='settings' && state.adminTab!=='archive' ? contextBarHtml() : ''}
     ${adminTabHtml()}
     <div class="bottom-nav">${tabs.map(([k,l])=>`<button class="${state.adminTab===k?'active':''}" data-act="admin-tab" data-tab="${k}">${icon(tabIcons[k]||'list',18)}<span>${l}</span></button>`).join('')}</div>
   `;
 }
 function adminTabHtml(){
+  if(state.adminTab === 'dashboard') return adminDashboardHtml();
   if(state.adminTab === 'departments') return adminDepartmentsHtml();
   if(state.adminTab === 'students') return adminStudentsHtml();
   if(state.adminTab === 'supervisors') return adminSupervisorsHtml();
@@ -1321,6 +1341,7 @@ function adminStatsHtml(){
   const students = statsFilteredStudents();
   let rows = [];
   students.forEach(st=> (st.cases||[]).forEach(cs=> rows.push({st, cs})) );
+  const allRows = rows;
   if(state.statsCaseTypeFilter) rows = rows.filter(({cs})=>cs.caseType===state.statsCaseTypeFilter);
   rows.sort((a,b)=> casePct(b.st,b.cs) - casePct(a.st,a.cs));
   const notStartedCount = students.filter(s=>(s.cases||[]).length===0).length;
@@ -1372,6 +1393,11 @@ function adminStatsHtml(){
       </div>
       ${stepSummary}
       <div class="banner">${t('notStartedAnyCaseLabel')}<b>${notStartedCount}</b> / ${students.length}</div>
+      ${assignedTypes.length ? `<div class="card" style="margin-bottom:14px;"><h2 style="font-size:13px;">${t('dashByCaseType')}</h2>${miniBarChart(assignedTypes.map(ctName=>{
+        const typeRows = allRows.filter(r=>r.cs.caseType===ctName);
+        const pct = typeRows.length ? Math.round(typeRows.reduce((sum,{st,cs})=>sum+casePct(st,cs),0)/typeRows.length) : 0;
+        return {label:ctName, pct};
+      }))}</div>` : ''}
       <div class="table-scroll">
         <table class="stat-table">
           <thead><tr><th>${t('tableStudent')}</th><th>${t('tableCase')}</th><th>${t('tablePct')}</th><th>${t('tableStepsCount')}</th><th>${t('tableGrade')}</th></tr></thead>
@@ -1396,6 +1422,75 @@ function adminStatsHtml(){
   `;
 }
 
+function miniBarChart(items){
+  if(!items.length) return `<div class="empty"><p>${t('noDataYet')}</p></div>`;
+  return `<div class="mini-chart">${items.map(it=>`
+    <div class="mini-chart-row">
+      <span class="mini-chart-label">${esc(it.label)}</span>
+      <div class="mini-chart-track"><div class="mini-chart-fill" style="width:${it.pct}%;"></div></div>
+      <span class="mini-chart-val">${it.pct}%</span>
+    </div>`).join('')}</div>`;
+}
+function adminDashboardHtml(){
+  const allStudents = STUDENTS;
+  const allCases = [];
+  allStudents.forEach(st=> (st.cases||[]).forEach(cs=> allCases.push({st,cs})) );
+  const totalStudents = allStudents.length;
+  const totalCases = allCases.length;
+  const overallPct = totalCases ? Math.round(allCases.reduce((sum,{st,cs})=>sum+casePct(st,cs),0)/totalCases) : 0;
+  const completedCases = allCases.filter(({st,cs})=>casePct(st,cs)===100).length;
+  const notStarted = allStudents.filter(s=>(s.cases||[]).length===0).length;
+
+  const deptChart = (CONFIG.departments||[]).map(d=>{
+    const deptCases = allCases.filter(({st})=>st.departmentId===d.id);
+    const pct = deptCases.length ? Math.round(deptCases.reduce((sum,{st,cs})=>sum+casePct(st,cs),0)/deptCases.length) : 0;
+    return {label:d.name, pct};
+  });
+
+  let activity = [];
+  Object.keys(PROGRESS).forEach(cid=>{
+    Object.values(PROGRESS[cid]||{}).forEach(rec=>{
+      if(rec && rec.done && rec.date) activity.push({cid, supervisor:rec.supervisor, date:rec.date});
+    });
+  });
+  activity.sort((a,b)=> new Date(b.date)-new Date(a.date));
+  activity = activity.slice(0,5).map(a=>{
+    let owner=null, ownerCase=null;
+    for(const st of allStudents){
+      const cs = (st.cases||[]).find(c=>c.id===a.cid);
+      if(cs){ owner=st; ownerCase=cs; break; }
+    }
+    return Object.assign({}, a, { studentName: owner?owner.name:'', caseType: ownerCase?ownerCase.caseType:'' });
+  }).filter(a=>a.studentName);
+
+  const stat = (val,label,color)=>`
+    <div class="card" style="flex:1;min-width:110px;text-align:center;">
+      <div style="font-size:22px;font-weight:800;color:${color};font-family:'Space Mono',monospace;">${val}</div>
+      <div style="font-size:11px;color:var(--teal-500);margin-top:2px;">${label}</div>
+    </div>`;
+
+  return `
+    <div class="row wrap" style="gap:10px;margin-bottom:14px;">
+      ${stat(totalStudents, t('dashTotalStudents'), 'var(--teal-900)')}
+      ${stat(totalCases, t('dashTotalCases'), 'var(--teal-900)')}
+      ${stat(overallPct+'%', t('dashOverallCompletion'), 'var(--gold)')}
+      ${stat(completedCases, t('dashCompletedCases'), 'var(--teal-900)')}
+      ${stat(notStarted, t('dashNotStarted'), 'var(--rust)')}
+    </div>
+    <div class="card">
+      <h2>${t('dashByDepartment')}</h2>
+      ${miniBarChart(deptChart)}
+    </div>
+    <div class="card">
+      <h2>${t('dashRecentActivity')}</h2>
+      ${activity.length===0 ? `<div class="empty"><p>${t('noDataYet')}</p></div>` : activity.map(a=>`
+        <div class="list-item">
+          <div class="txt">${esc(a.studentName)} — ${esc(a.caseType||t('caseLabel'))}<small>${esc(a.supervisor||'')} · ${fmtDate(a.date)}</small></div>
+        </div>`).join('')}
+    </div>
+  `;
+}
+
 function adminSettingsHtml(){
   const theme = CONFIG.theme || {mode:'light',accent:''};
   return `
@@ -1409,7 +1504,7 @@ function adminSettingsHtml(){
             <option value="auto" ${theme.mode==='auto'?'selected':''}>${t('themeAuto')}</option>
           </select>
         </div>
-        <div class="field" style="flex:1;"><label>${t('accentColorLabel')}</label><input type="color" id="theme-accent" value="${esc(theme.accent || '#1F4E4A')}"></div>
+        <div class="field" style="flex:1;"><label>${t('accentColorLabel')}</label><input type="color" id="theme-accent" value="${esc(theme.accent || '#1C5C86')}"></div>
       </div>
       <button class="btn" data-act="save-theme">${t('saveThemeBtn')}</button>
     </div>
