@@ -196,6 +196,7 @@ const I18N = {
     wrongPassword:"كلمة المرور غير صحيحة.", wrongAdminPassword:"كلمة مرور الأدمن غير صحيحة.",
     sessionExpiredMsg:"تم تسجيل خروجك — بيانات الدخول اتغيّرت أو الحساب اتشال. سجّل دخول تاني.",
     modalCancelBtn:"إلغاء", modalConfirmBtn:"تأكيد", modalOkBtn:"تمام", undoStepConfirmPrefix:"تراجع عن هذه الخطوة؟ اتسجلت بواسطة: ",
+    lockScreenTitle:"الجلسة قفلت بعد فترة عدم استخدام — اكتب كلمة المرور تاني", unlockBtn:"فتح",
     noSupervisorsYet:"لا يوجد مشرفين مضافين بعد.",
     networkErrorPrefix:"تعذّر الاتصال بالسيرفر: ", networkErrorSuffix:". تأكد من الإنترنت والرابط.",
     storageNotConfigured:"البرنامج لسه مش متوصل بقاعدة بيانات Google Sheets.",
@@ -284,6 +285,7 @@ const I18N = {
     wrongPassword:"Incorrect password.", wrongAdminPassword:"Incorrect admin password.",
     sessionExpiredMsg:"You've been signed out — the login details changed or the account was removed. Please sign in again.",
     modalCancelBtn:"Cancel", modalConfirmBtn:"Confirm", modalOkBtn:"OK", undoStepConfirmPrefix:"Undo this step? It was marked by: ",
+    lockScreenTitle:"Locked after inactivity — enter your password again", unlockBtn:"Unlock",
     noSupervisorsYet:"No supervisors added yet.",
     networkErrorPrefix:"Could not reach the server: ", networkErrorSuffix:". Check your internet connection and the link.",
     storageNotConfigured:"This app isn't connected to a Google Sheets database yet.",
@@ -411,12 +413,77 @@ async function revalidateSession(session){
     }
   }catch(e){ /* stay logged in on unexpected errors; only explicit rejection logs out */ }
 }
-function forceSessionLogout(){
+function doLogout(){
   clearSession();
+  clearInactiveTimestamp();
   state.screen='login'; state.currentSupervisor=null; state.currentSupervisorPass=null; state.currentDept=null;
   state.supervisorCourseId=null; state.adminPass=null; CREDENTIALS=null; state.loginMode=null;
+  state.openStudent=null; state.openCase=null; state.search='';
+  render();
+}
+function forceSessionLogout(){
+  doLogout();
   state.loginErr = t('sessionExpiredMsg');
   render();
+}
+
+/* -------- Inactivity lock: re-ask for the password after the app has been backgrounded/closed for a while -------- */
+const LOCK_TIMEOUT_MS = 5*60*1000;
+const LOCK_SINCE_KEY = 'alb_locked_since';
+let isLocked = false;
+function markInactiveTimestamp(){ try{ localStorage.setItem(LOCK_SINCE_KEY, String(Date.now())); }catch(e){} }
+function clearInactiveTimestamp(){ try{ localStorage.removeItem(LOCK_SINCE_KEY); }catch(e){} }
+function shouldLock(){
+  try{
+    const since = localStorage.getItem(LOCK_SINCE_KEY);
+    if(!since) return false;
+    return (Date.now() - parseInt(since,10)) > LOCK_TIMEOUT_MS;
+  }catch(e){ return false; }
+}
+function showLockScreen(session){
+  if(isLocked) return;
+  isLocked = true;
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  const name = session.role==='admin' ? t('adminBadge') : (session.name||'');
+  overlay.innerHTML = `
+    <div class="modal-card" role="alertdialog" aria-modal="true">
+      <p class="modal-msg" style="font-weight:800;margin-bottom:6px;">${esc(t('lockScreenTitle'))}</p>
+      <p class="modal-msg" style="font-size:12.5px;">${esc(name)}</p>
+      <input type="password" id="lock-pass-input" placeholder="${esc(t('passwordLabel'))}" style="margin-bottom:8px;">
+      <p id="lock-error" style="color:var(--rust);font-size:12px;margin:0 0 10px;display:none;"></p>
+      <div class="modal-actions">
+        <button class="btn ghost" id="lock-logout-btn">${esc(t('logoutBtn'))}</button>
+        <button class="btn" id="lock-unlock-btn">${esc(t('unlockBtn'))}</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  const input = overlay.querySelector('#lock-pass-input');
+  const errEl = overlay.querySelector('#lock-error');
+  const tryUnlock = ()=>{
+    if(input.value && input.value === session.password){
+      overlay.remove(); isLocked=false; clearInactiveTimestamp();
+    } else {
+      errEl.textContent = t('wrongPassword'); errEl.style.display='block';
+      input.value=''; input.focus();
+    }
+  };
+  overlay.querySelector('#lock-unlock-btn').addEventListener('click', tryUnlock);
+  input.addEventListener('keydown', e=>{ if(e.key==='Enter') tryUnlock(); });
+  overlay.querySelector('#lock-logout-btn').addEventListener('click', ()=>{ overlay.remove(); isLocked=false; doLogout(); });
+  setTimeout(()=>input.focus(), 50);
+}
+function checkLockOnResume(){
+  const session = loadSession();
+  if(!session) return;
+  if(shouldLock()) showLockScreen(session);
+  else clearInactiveTimestamp();
+}
+if(typeof document !== 'undefined'){
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.visibilityState === 'hidden') markInactiveTimestamp();
+    else if(document.visibilityState === 'visible') checkLockOnResume();
+  });
 }
 
 let retryTimer = null;
@@ -1643,11 +1710,8 @@ async function onAction(e){
     render(); return;
   }
   if(act==='logout'){
-    clearSession();
-    state.screen='login'; state.currentSupervisor=null; state.currentSupervisorPass=null; state.currentDept=null;
-    state.supervisorCourseId=null; state.adminPass=null; CREDENTIALS=null; state.loginMode=null;
-    state.openStudent=null; state.openCase=null; state.search='';
-    render(); return;
+    doLogout();
+    return;
   }
   if(act==='pick-course'){ state.supervisorCourseId = el.dataset.cid; render(); return; }
   if(act==='change-course'){ state.supervisorCourseId = null; state.openStudent=null; state.openCase=null; render(); return; }
@@ -2259,6 +2323,8 @@ async function init(){
   render();
   flushPending();
   if(session) revalidateSession(session);
+  if(session && shouldLock()) showLockScreen(session);
+  else clearInactiveTimestamp();
   startPolling();
 }
 init();
