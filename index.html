@@ -204,6 +204,10 @@ const I18N = {
     loading:"جارِ التحميل...",
     loginSupervisorTitle:"دخول مشرف", loginSupervisorDesc:"اختار اسمك وادخل كلمة المرور",
     loginAdminTitle:"لوحة تحكم الأدمن", loginAdminDesc:"إدارة الأقسام والـ Courses والطلاب والمشرفين",
+    signupTitle:"طلب حساب مشرف جديد", signupDesc:"املأ بياناتك، وهيتفعل حسابك بعد ما الأدمن يوافق عليه.",
+    signupSubmitBtn:"إرسال الطلب", signupSuccessMsg:"تم إرسال طلبك بنجاح. هتقدر تسجل دخول أول ما الأدمن يوافق على حسابك.",
+    signupFailedMsg:"حصل خطأ أثناء إرسال الطلب، حاول تاني.", pendingRequestsHeading:"طلبات حسابات معلقة",
+    approveBtn:"قبول", requestedOnPrefix:"اتطلب في: ", confirmRejectSignup:"رفض هذا الطلب؟ هيتمسح نهائيًا.",
     supervisorNameLabel:"اسم المشرف", passwordLabel:"كلمة المرور", loginBtn:"دخول", backBtn:"رجوع",
     adminLoginHeading:"لوحة تحكم الأدمن", adminPasswordLabel:"كلمة مرور الأدمن", checkingBtn:"جارِ التحقق...",
     wrongPassword:"كلمة المرور غير صحيحة.", wrongAdminPassword:"كلمة مرور الأدمن غير صحيحة.",
@@ -293,6 +297,10 @@ const I18N = {
     loading:"Loading...",
     loginSupervisorTitle:"Supervisor Login", loginSupervisorDesc:"Choose your name and enter your password",
     loginAdminTitle:"Admin Dashboard", loginAdminDesc:"Manage departments, courses, students and supervisors",
+    signupTitle:"Request a supervisor account", signupDesc:"Fill in your details — your account activates once the admin approves it.",
+    signupSubmitBtn:"Submit request", signupSuccessMsg:"Your request was submitted. You'll be able to log in once the admin approves your account.",
+    signupFailedMsg:"Something went wrong submitting the request, please try again.", pendingRequestsHeading:"Pending account requests",
+    approveBtn:"Approve", requestedOnPrefix:"Requested on: ", confirmRejectSignup:"Reject this request? It will be permanently removed.",
     supervisorNameLabel:"Supervisor name", passwordLabel:"Password", loginBtn:"Login", backBtn:"Back",
     adminLoginHeading:"Admin Dashboard", adminPasswordLabel:"Admin password", checkingBtn:"Checking...",
     wrongPassword:"Incorrect password.", wrongAdminPassword:"Incorrect admin password.",
@@ -622,6 +630,14 @@ async function apiLoginAdmin(password){
     return await res.json();
   }catch(e){ return {ok:false, networkError:true, error: e.name==='AbortError' ? (state.lang==='ar'?'انتهت مهلة الاتصال':'Request timed out') : e.message}; }
 }
+async function apiRequestSupervisorSignup(name, password, departmentId){
+  if(!scriptConfigured()) return {ok:false, networkError:true};
+  try{
+    const res = await fetchWithTimeout(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ action:'request-supervisor-signup', name, password, departmentId }) });
+    return await res.json();
+  }catch(e){ return {ok:false, networkError:true, error: e.name==='AbortError' ? (state.lang==='ar'?'انتهت مهلة الاتصال':'Request timed out') : e.message}; }
+}
 
 const DEFAULT_STEPS_NAMES = [
   "تحضير السن (Preparation)","أخذ الطبعة النهائية (Final Impression)","تسجيل العلاقة الفكية (Bite Registration)",
@@ -915,6 +931,10 @@ function loginHtml(){
         <div class="ic">${iconGear()}</div>
         <div class="tx"><b>${t('loginAdminTitle')}</b><span>${t('loginAdminDesc')}</span></div>
       </div>
+      <div class="role-card" data-act="pick-signup">
+        <div class="ic">${icon('userCheck',22)}</div>
+        <div class="tx"><b>${t('signupTitle')}</b><span>${t('signupDesc')}</span></div>
+      </div>
     </div>`;
   }
   if(state.loginMode === 'supervisor'){
@@ -950,6 +970,38 @@ function loginHtml(){
       </div>
       <div class="row wrap" style="margin-top:6px;">
         <button class="btn gold" data-act="do-admin-login">${t('loginBtn')}</button>
+        <button class="btn ghost" data-act="back-login">${t('backBtn')}</button>
+      </div>
+    </div>`;
+  }
+  if(state.loginMode === 'signup'){
+    const deptOpts = (CONFIG.departments||[]).map(d=>`<option value="${esc(d.id)}">${esc(d.name)}</option>`).join('');
+    if(state.signupDone){
+      return `
+      <div class="card">
+        <h2>${t('signupTitle')}</h2>
+        <div class="banner">${t('signupSuccessMsg')}</div>
+        <div class="row wrap" style="margin-top:6px;">
+          <button class="btn ghost" data-act="back-login">${t('backBtn')}</button>
+        </div>
+      </div>`;
+    }
+    return `
+    <div class="card">
+      <h2>${t('signupTitle')}</h2>
+      <p style="font-size:12.5px;color:var(--teal-500);margin-top:-6px;">${t('signupDesc')}</p>
+      ${(CONFIG.departments||[]).length===0 ? `<div class="banner err">${t('noDepartments')}</div>` : ''}
+      ${state.loginErr ? `<div class="banner err">${esc(state.loginErr)}</div>` : ''}
+      <div class="field"><label>${t('supervisorNameLabel')}</label><input type="text" id="signup-name" autocomplete="off"></div>
+      <div class="field"><label>${t('contextDeptLabel')}</label><select id="signup-dept">${deptOpts}</select></div>
+      <div class="field"><label>${t('passwordLabel')}</label>
+        <div style="display:flex;gap:6px;">
+          <input type="password" id="signup-pass" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" style="flex:1;">
+          <button type="button" class="btn ghost sm" data-act="toggle-pass-visibility" data-target="signup-pass" style="width:auto;">${icon('eye')}</button>
+        </div>
+      </div>
+      <div class="row wrap" style="margin-top:6px;">
+        <button class="btn" data-act="do-signup" ${(CONFIG.departments||[]).length===0?'disabled':''}>${t('signupSubmitBtn')}</button>
         <button class="btn ghost" data-act="back-login">${t('backBtn')}</button>
       </div>
     </div>`;
@@ -1337,9 +1389,25 @@ function adminStudentsHtml(){
 }
 
 function adminSupervisorsHtml(){
-  if(!state.adminDeptId) return `<div class="banner">${t('pickContextHint')}</div>`;
+  const pending = (CREDENTIALS && CREDENTIALS.pendingSupervisors) || [];
+  const pendingHtml = pending.length ? `
+    <h3 class="section-title">${t('pendingRequestsHeading')} (${pending.length})</h3>
+    ${pending.map(p=>{
+      const dept = getDept(p.departmentId);
+      return `
+      <div class="list-item">
+        <div class="txt">${esc(p.name)}<small>${dept?esc(dept.name):''} · ${t('requestedOnPrefix')}${fmtDate(p.requestedAt)}</small></div>
+        <div class="row" style="width:auto;gap:2px;">
+          <button class="btn sm" style="width:auto;" data-act="approve-signup" data-id="${p.id}">${t('approveBtn')}</button>
+          <button class="icon-btn" data-act="reject-signup" data-id="${p.id}">${icon('trash')}</button>
+        </div>
+      </div>`;
+    }).join('')}
+  ` : '';
+
+  if(!state.adminDeptId) return pendingHtml + `<div class="banner">${t('pickContextHint')}</div>`;
   const sups = ((CREDENTIALS && CREDENTIALS.supervisors) || []).filter(s=>s.departmentId===state.adminDeptId);
-  return `
+  return pendingHtml + `
     <div class="card">
       <h2>${t('addSupervisorHeading')}</h2>
       <div class="row">
@@ -1691,7 +1759,8 @@ async function onAction(e){
   if(act==='toggle-pass-visibility'){ const inp = document.getElementById(el.dataset.target); if(inp){ inp.type = inp.type==='password'?'text':'password'; el.innerHTML = icon(inp.type==='password'?'eye':'eyeOff'); } return; }
   if(act==='pick-supervisor'){ state.loginMode='supervisor'; state.loginErr=''; render(); return; }
   if(act==='pick-admin'){ state.loginMode='admin'; state.loginErr=''; render(); return; }
-  if(act==='back-login'){ state.loginMode=null; state.loginErr=''; render(); return; }
+  if(act==='pick-signup'){ state.loginMode='signup'; state.loginErr=''; state.signupDone=false; render(); return; }
+  if(act==='back-login'){ state.loginMode=null; state.loginErr=''; state.signupDone=false; render(); return; }
 
   if(act==='do-supervisor-login'){
     const name = document.getElementById('sup-name').value;
@@ -1718,6 +1787,20 @@ async function onAction(e){
       saveCache({credentials: CREDENTIALS});
     } else if(r && r.networkError){ state.loginErr = t('networkErrorPrefix') + (r.error||'') + t('networkErrorSuffix'); }
     else { state.loginErr = t('wrongAdminPassword'); }
+    render(); return;
+  }
+  if(act==='do-signup'){
+    const name = document.getElementById('signup-name').value.trim();
+    const departmentId = document.getElementById('signup-dept').value;
+    const pass = document.getElementById('signup-pass').value;
+    if(!name || !pass || !departmentId){ state.loginErr = t('alertNameAndPass'); render(); return; }
+    el.disabled = true; el.textContent = t('checkingBtn');
+    const r = await apiRequestSupervisorSignup(name, pass, departmentId);
+    if(r && r.ok){
+      state.signupDone = true; state.loginErr='';
+    } else if(r && r.networkError){ state.loginErr = t('networkErrorPrefix') + (r.error||'') + t('networkErrorSuffix'); }
+    else if(r && r.error==='name-taken'){ state.loginErr = t('alertDuplicateSupervisor'); }
+    else { state.loginErr = t('signupFailedMsg'); }
     render(); return;
   }
   if(act==='logout'){
@@ -2089,6 +2172,22 @@ async function onAction(e){
     CREDENTIALS.supervisors = CREDENTIALS.supervisors.filter(s=>s.id!==el.dataset.id);
     const ok = await setData('credentials', CREDENTIALS);
     if(ok) SUP_NAMES = CREDENTIALS.supervisors.map(s=>s.name);
+    render(); return;
+  }
+  if(act==='approve-signup'){
+    const reqId = el.dataset.id;
+    const req = (CREDENTIALS.pendingSupervisors||[]).find(p=>p.id===reqId); if(!req) return;
+    if(CREDENTIALS.supervisors.some(s=>s.name===req.name)){ showAlert(t('alertDuplicateSupervisor')); return; }
+    CREDENTIALS.supervisors.push({id:uid(), name:req.name, password:req.password, departmentId:req.departmentId});
+    CREDENTIALS.pendingSupervisors = CREDENTIALS.pendingSupervisors.filter(p=>p.id!==reqId);
+    const ok = await setData('credentials', CREDENTIALS);
+    if(ok) SUP_NAMES = CREDENTIALS.supervisors.map(s=>s.name);
+    render(); return;
+  }
+  if(act==='reject-signup'){
+    if(!(await showConfirm(t('confirmRejectSignup')))) return;
+    CREDENTIALS.pendingSupervisors = (CREDENTIALS.pendingSupervisors||[]).filter(p=>p.id!==el.dataset.id);
+    await setData('credentials', CREDENTIALS);
     render(); return;
   }
 
