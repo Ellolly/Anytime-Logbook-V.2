@@ -29,11 +29,11 @@
   .brand-text{flex:1;min-width:0;}
   .brand h1{font-size:17px;font-weight:800;margin:0;color:var(--teal-900);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .brand span{display:block;font-size:11.5px;font-weight:500;color:var(--teal-500);letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .brand.brand-lg{margin-bottom:26px;gap:14px;}
-  .brand.brand-lg img{width:60px;height:60px;border-radius:14px;}
-  .brand.brand-lg svg{width:48px;height:48px;}
-  .brand.brand-lg h1{font-size:25px;white-space:normal;overflow:visible;text-overflow:clip;}
-  .brand.brand-lg span{font-size:13.5px;white-space:normal;overflow:visible;text-overflow:clip;}
+  .brand.brand-lg{margin-bottom:30px;gap:16px;}
+  .brand.brand-lg img{width:88px;height:88px;border-radius:18px;}
+  .brand.brand-lg svg{width:72px;height:72px;}
+  .brand.brand-lg h1{font-size:29px;white-space:normal;overflow:visible;text-overflow:clip;}
+  .brand.brand-lg span{font-size:14.5px;white-space:normal;overflow:visible;text-overflow:clip;}
   .lang-toggle{flex-shrink:0;background:var(--teal-100);color:var(--teal-900);border:none;border-radius:9px;padding:7px 10px;font-family:inherit;font-weight:800;font-size:11.5px;cursor:pointer;}
   .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:12px;}
   .card h2{margin:0 0 12px;font-size:15px;font-weight:700;color:var(--teal-900);}
@@ -157,8 +157,8 @@
   #splash-overlay{position:fixed;inset:0;z-index:500;background:var(--bg);display:flex;align-items:center;justify-content:center;transition:opacity .45s ease;}
   #splash-overlay.hide{opacity:0;pointer-events:none;}
   #splash-logo-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;transition:transform .6s cubic-bezier(.5,0,.25,1);will-change:transform;}
-  #splash-logo-wrap img{width:120px;height:120px;border-radius:26px;object-fit:cover;}
-  #splash-logo-wrap svg{width:120px;height:120px;}
+  #splash-logo-wrap img{width:170px;height:170px;border-radius:32px;object-fit:cover;}
+  #splash-logo-wrap svg{width:170px;height:170px;}
   #splash-title{font-family:'Cairo',sans-serif;font-weight:800;font-size:19px;color:var(--teal-900);transition:opacity .25s ease;}
   #splash-logo-wrap.shrink{transform:translateY(-40vh) scale(.28);}
   #splash-logo-wrap.shrink #splash-title{opacity:0;}
@@ -927,13 +927,13 @@ function loginHtml(){
         <div class="ic">${iconUser()}</div>
         <div class="tx"><b>${t('loginSupervisorTitle')}</b><span>${t('loginSupervisorDesc')}</span></div>
       </div>
-      <div class="role-card" data-act="pick-admin">
-        <div class="ic">${iconGear()}</div>
-        <div class="tx"><b>${t('loginAdminTitle')}</b><span>${t('loginAdminDesc')}</span></div>
-      </div>
       <div class="role-card" data-act="pick-signup">
         <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal-700)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICON_PATHS.userCheck}</svg></div>
         <div class="tx"><b>${t('signupTitle')}</b><span>${t('signupDesc')}</span></div>
+      </div>
+      <div class="role-card" data-act="pick-admin">
+        <div class="ic">${iconGear()}</div>
+        <div class="tx"><b>${t('loginAdminTitle')}</b><span>${t('loginAdminDesc')}</span></div>
       </div>
     </div>`;
   }
@@ -2413,7 +2413,7 @@ function showSplash(){
   overlay.id = 'splash-overlay';
   overlay.innerHTML = `
     <div id="splash-logo-wrap">
-      ${logoUrl ? `<img src="${logoUrl.replace(/"/g,'&quot;')}" alt="logo">` : toothSvg(120)}
+      ${logoUrl ? `<img src="${logoUrl.replace(/"/g,'&quot;')}" alt="logo">` : toothSvg(170)}
       <div id="splash-title">${(title+'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}</div>
     </div>`;
   document.body.appendChild(overlay);
