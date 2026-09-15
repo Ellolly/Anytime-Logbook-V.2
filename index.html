@@ -415,7 +415,6 @@ async function revalidateSession(session){
 }
 function doLogout(){
   clearSession();
-  clearInactiveTimestamp();
   state.screen='login'; state.currentSupervisor=null; state.currentSupervisorPass=null; state.currentDept=null;
   state.supervisorCourseId=null; state.adminPass=null; CREDENTIALS=null; state.loginMode=null;
   state.openStudent=null; state.openCase=null; state.search='';
@@ -427,17 +426,16 @@ function forceSessionLogout(){
   render();
 }
 
-/* -------- Inactivity lock: re-ask for the password after the app has been backgrounded/closed for a while -------- */
-const LOCK_TIMEOUT_MS = 5*60*1000;
-const LOCK_SINCE_KEY = 'alb_locked_since';
+/* -------- Inactivity lock: re-ask for the password after real idle time, not just backgrounding -------- */
+const LOCK_TIMEOUT_MS = 30*60*1000;
+const LAST_ACTIVITY_KEY = 'alb_last_activity';
 let isLocked = false;
-function markInactiveTimestamp(){ try{ localStorage.setItem(LOCK_SINCE_KEY, String(Date.now())); }catch(e){} }
-function clearInactiveTimestamp(){ try{ localStorage.removeItem(LOCK_SINCE_KEY); }catch(e){} }
+function touchActivity(){ if(isLocked) return; try{ localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now())); }catch(e){} }
 function shouldLock(){
   try{
-    const since = localStorage.getItem(LOCK_SINCE_KEY);
-    if(!since) return false;
-    return (Date.now() - parseInt(since,10)) > LOCK_TIMEOUT_MS;
+    const last = localStorage.getItem(LAST_ACTIVITY_KEY);
+    if(!last) return false;
+    return (Date.now() - parseInt(last,10)) > LOCK_TIMEOUT_MS;
   }catch(e){ return false; }
 }
 function showLockScreen(session){
@@ -462,7 +460,7 @@ function showLockScreen(session){
   const errEl = overlay.querySelector('#lock-error');
   const tryUnlock = ()=>{
     if(input.value && input.value === session.password){
-      overlay.remove(); isLocked=false; clearInactiveTimestamp();
+      overlay.remove(); isLocked=false; touchActivity();
     } else {
       errEl.textContent = t('wrongPassword'); errEl.style.display='block';
       input.value=''; input.focus();
@@ -473,17 +471,16 @@ function showLockScreen(session){
   overlay.querySelector('#lock-logout-btn').addEventListener('click', ()=>{ overlay.remove(); isLocked=false; doLogout(); });
   setTimeout(()=>input.focus(), 50);
 }
-function checkLockOnResume(){
+function checkLockNow(){
+  if(isLocked) return;
   const session = loadSession();
   if(!session) return;
   if(shouldLock()) showLockScreen(session);
-  else clearInactiveTimestamp();
 }
 if(typeof document !== 'undefined'){
-  document.addEventListener('visibilitychange', ()=>{
-    if(document.visibilityState === 'hidden') markInactiveTimestamp();
-    else if(document.visibilityState === 'visible') checkLockOnResume();
-  });
+  ['click','keydown','touchstart'].forEach(evt=> document.addEventListener(evt, touchActivity, {passive:true}));
+  document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState === 'visible') checkLockNow(); });
+  setInterval(()=>{ if(document.visibilityState==='visible') checkLockNow(); }, 30000);
 }
 
 let retryTimer = null;
@@ -2324,7 +2321,7 @@ async function init(){
   flushPending();
   if(session) revalidateSession(session);
   if(session && shouldLock()) showLockScreen(session);
-  else clearInactiveTimestamp();
+  else touchActivity();
   startPolling();
 }
 init();
