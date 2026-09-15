@@ -15,8 +15,8 @@
     --line:#DCE3E7; --banner-text:#5A430F; --banner-err-text:#7A1F1F; --radius:8px;
   }
   html[data-theme="dark"]{
-    --ink:#E7ECEE; --bg:#0B1418; --card:#141F26; --teal-900:#EAF1F4; --teal-700:#5B9EC9; --teal-500:#A9C7D8;
-    --teal-100:#0C161B; --btn-bg:#1C5C86; --gold:#D4A94E; --gold-light:#3A2E12; --rust:#E06666; --rust-light:#3A2020; --line:#28363D;
+    --ink:#E7ECEE; --bg:#0B1418; --card:#182530; --teal-900:#EAF1F4; --teal-700:#5B9EC9; --teal-500:#A9C7D8;
+    --teal-100:#0C161B; --btn-bg:#1C5C86; --gold:#D4A94E; --gold-light:#3A2E12; --rust:#E06666; --rust-light:#3A2020; --line:#33454F;
     --banner-text:#E7CE8F; --banner-err-text:#F0A2A2;
   }
   *{box-sizing:border-box;}
@@ -932,7 +932,7 @@ function loginHtml(){
         <div class="tx"><b>${t('loginAdminTitle')}</b><span>${t('loginAdminDesc')}</span></div>
       </div>
       <div class="role-card" data-act="pick-signup">
-        <div class="ic">${icon('userCheck',22)}</div>
+        <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal-700)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICON_PATHS.userCheck}</svg></div>
         <div class="tx"><b>${t('signupTitle')}</b><span>${t('signupDesc')}</span></div>
       </div>
     </div>`;
