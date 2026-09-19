@@ -212,6 +212,7 @@ const I18N = {
     adminLoginHeading:"لوحة تحكم الأدمن", adminPasswordLabel:"كلمة مرور الأدمن", checkingBtn:"جارِ التحقق...",
     wrongPassword:"كلمة المرور غير صحيحة.", wrongAdminPassword:"كلمة مرور الأدمن غير صحيحة.",
     sessionExpiredMsg:"تم تسجيل خروجك — بيانات الدخول اتغيّرت أو الحساب اتشال. سجّل دخول تاني.",
+    rateLimitedMsg:"محاولات كتير غلط. استنى شوية (حوالي 15 دقيقة) وحاول تاني.",
     modalCancelBtn:"إلغاء", modalConfirmBtn:"تأكيد", modalOkBtn:"تمام", undoStepConfirmPrefix:"تراجع عن هذه الخطوة؟ اتسجلت بواسطة: ",
     lockScreenTitle:"الجلسة قفلت بعد فترة عدم استخدام — اكتب كلمة المرور تاني", unlockBtn:"فتح",
     noSupervisorsYet:"لا يوجد مشرفين مضافين بعد.",
@@ -305,6 +306,7 @@ const I18N = {
     adminLoginHeading:"Admin Dashboard", adminPasswordLabel:"Admin password", checkingBtn:"Checking...",
     wrongPassword:"Incorrect password.", wrongAdminPassword:"Incorrect admin password.",
     sessionExpiredMsg:"You've been signed out — the login details changed or the account was removed. Please sign in again.",
+    rateLimitedMsg:"Too many failed attempts. Please wait about 15 minutes and try again.",
     modalCancelBtn:"Cancel", modalConfirmBtn:"Confirm", modalOkBtn:"OK", undoStepConfirmPrefix:"Undo this step? It was marked by: ",
     lockScreenTitle:"Locked after inactivity — enter your password again", unlockBtn:"Unlock",
     noSupervisorsYet:"No supervisors added yet.",
@@ -424,20 +426,24 @@ async function revalidateSession(session){
   try{
     if(session.role==='admin'){
       const r = await apiLoginAdmin(session.password);
+      if(r && r.rateLimited) return;
       if(r && r.networkError) return;
       if(!r || !r.ok){ forceSessionLogout(); return; }
       CREDENTIALS = applyPending('credentials', r.credentials || CREDENTIALS);
+      if(r.token){ state.sessionToken = r.token; saveSession(Object.assign({}, session, {token:r.token})); }
     } else if(session.role==='supervisor'){
       const r = await apiLoginSupervisor(session.name, session.password);
+      if(r && r.rateLimited) return;
       if(r && r.networkError) return;
       if(!r || !r.ok){ forceSessionLogout(); return; }
+      if(r.token){ state.sessionToken = r.token; saveSession(Object.assign({}, session, {token:r.token})); }
     }
   }catch(e){ /* stay logged in on unexpected errors; only explicit rejection logs out */ }
 }
 function doLogout(){
   clearSession();
   state.screen='login'; state.currentSupervisor=null; state.currentSupervisorPass=null; state.currentDept=null;
-  state.supervisorCourseId=null; state.adminPass=null; CREDENTIALS=null; state.loginMode=null;
+  state.supervisorCourseId=null; state.adminPass=null; state.sessionToken=null; CREDENTIALS=null; state.loginMode=null;
   state.openStudent=null; state.openCase=null; state.search='';
   render();
 }
@@ -548,7 +554,8 @@ async function fetchWithTimeout(url, opts={}, ms=25000){
 async function getData(key, fallback){
   if(!scriptConfigured()) return fallback;
   try{
-    const res = await fetchWithTimeout(`${SCRIPT_URL}?action=get&key=${encodeURIComponent(key)}`);
+    const tokenParam = state.sessionToken ? `&token=${encodeURIComponent(state.sessionToken)}` : '';
+    const res = await fetchWithTimeout(`${SCRIPT_URL}?action=get&key=${encodeURIComponent(key)}${tokenParam}`);
     if(!res.ok) throw new Error('bad status ' + res.status);
     const json = await res.json();
     if(json && json.value !== undefined && json.value !== null){
@@ -568,14 +575,16 @@ async function getAllData(){
   if(!scriptConfigured()) return null;
   const parseVal = (v, fb) => { if(v===undefined || v===null) return fb; try{ return JSON.parse(v); }catch(e){ return fb; } };
   try{
-    const res = await fetchWithTimeout(`${SCRIPT_URL}?action=get-all`);
+    const tokenParam = state.sessionToken ? `&token=${encodeURIComponent(state.sessionToken)}` : '';
+    const res = await fetchWithTimeout(`${SCRIPT_URL}?action=get-all${tokenParam}`);
     if(!res.ok) throw new Error('bad status ' + res.status);
     const json = await res.json();
+    const cache = loadCache();
     const result = {
       config: parseVal(json.config, null),
-      students: parseVal(json.students, []),
-      progress: parseVal(json.progress, {}),
-      archive: parseVal(json.archive, null)
+      students: json.authed ? parseVal(json.students, []) : (Object.prototype.hasOwnProperty.call(cache,'students') ? cache.students : []),
+      progress: json.authed ? parseVal(json.progress, {}) : (Object.prototype.hasOwnProperty.call(cache,'progress') ? cache.progress : {}),
+      archive: json.authed ? parseVal(json.archive, null) : (Object.prototype.hasOwnProperty.call(cache,'archive') ? cache.archive : null)
     };
     saveCache(result);
     return result;
@@ -721,7 +730,7 @@ function actorLabel(){ return state.screen==='admin' ? (state.lang==='ar'?'ال�
 let state = {
   screen:'login', currentSupervisor:null, currentSupervisorPass:null, currentDept:null,
   supervisorCourseId:null, supervisorGroupFilter:'all', supervisorSubgroupFilter:'all',
-  adminPass:null, adminTab:'dashboard', adminDeptId:'', adminCourseId:'',
+  adminPass:null, sessionToken:null, adminTab:'dashboard', adminDeptId:'', adminCourseId:'',
   openStudent:null, openCase:null, search:'', loginMode:null, loginErr:'', loading:true, storageOk:true,
   importMsg:'', lang:(typeof localStorage!=='undefined' && localStorage.getItem('prostho_lang')) || 'ar',
   statsScope:'all', statsScopeValue:'', statsStepId:'', statsCaseTypeFilter:'',
@@ -1771,8 +1780,12 @@ async function onAction(e){
       state.currentSupervisor = name; state.currentSupervisorPass = pass; state.currentDept = r.departmentId;
       state.supervisorCourseId = null; state.supervisorGroupFilter='all'; state.supervisorSubgroupFilter='all';
       state.screen='supervisor'; state.loginMode=null; state.loginErr='';
-      saveSession({role:'supervisor', name, password:pass, departmentId:r.departmentId});
-    } else if(r && r.networkError){ state.loginErr = t('networkErrorPrefix') + (r.error||'') + t('networkErrorSuffix'); }
+      state.sessionToken = r.token || null;
+      saveSession({role:'supervisor', name, password:pass, departmentId:r.departmentId, token:r.token});
+      const all = await getAllData();
+      if(all){ CONFIG = mergeConfig(all.config); STUDENTS = all.students; PROGRESS = all.progress; ARCHIVE = normalizeArchive(all.archive); }
+    } else if(r && r.rateLimited){ state.loginErr = t('rateLimitedMsg'); }
+    else if(r && r.networkError){ state.loginErr = t('networkErrorPrefix') + (r.error||'') + t('networkErrorSuffix'); }
     else { state.loginErr = t('wrongPassword'); }
     render(); return;
   }
@@ -1783,9 +1796,13 @@ async function onAction(e){
     if(r && r.ok){
       state.adminPass = pass; CREDENTIALS = applyPending('credentials', r.credentials || { supervisors: [], adminPassword: pass });
       state.screen='admin'; state.loginMode=null; state.loginErr='';
-      saveSession({role:'admin', password:pass});
+      state.sessionToken = r.token || null;
+      saveSession({role:'admin', password:pass, token:r.token});
       saveCache({credentials: CREDENTIALS});
-    } else if(r && r.networkError){ state.loginErr = t('networkErrorPrefix') + (r.error||'') + t('networkErrorSuffix'); }
+      const all = await getAllData();
+      if(all){ CONFIG = mergeConfig(all.config); STUDENTS = all.students; PROGRESS = all.progress; ARCHIVE = normalizeArchive(all.archive); }
+    } else if(r && r.rateLimited){ state.loginErr = t('rateLimitedMsg'); }
+    else if(r && r.networkError){ state.loginErr = t('networkErrorPrefix') + (r.error||'') + t('networkErrorSuffix'); }
     else { state.loginErr = t('wrongAdminPassword'); }
     render(); return;
   }
@@ -2432,6 +2449,9 @@ const splashOverlay = showSplash();
 async function init(){
   state.storageOk = scriptConfigured();
   loadPending();
+  const session = loadSession();
+  if(session) state.sessionToken = session.token || null;
+
   const [supNames, all] = await Promise.all([
     fetchSupervisorNames(),
     getAllData()
@@ -2447,7 +2467,6 @@ async function init(){
   ARCHIVE = normalizeArchive(applyPending('archive', archive));
   state.loading = false;
 
-  const session = loadSession();
   if(session && session.role==='admin'){
     state.adminPass = session.password;
     CREDENTIALS = applyPending('credentials', loadCache().credentials || { supervisors: [], adminPassword: session.password });
