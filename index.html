@@ -213,6 +213,21 @@ const I18N = {
     wrongPassword:"كلمة المرور غير صحيحة.", wrongAdminPassword:"كلمة مرور الأدمن غير صحيحة.",
     sessionExpiredMsg:"تم تسجيل خروجك — بيانات الدخول اتغيّرت أو الحساب اتشال. سجّل دخول تاني.",
     rateLimitedMsg:"محاولات كتير غلط. استنى شوية (حوالي 15 دقيقة) وحاول تاني.",
+    templateNeedsInternet:"محتاج اتصال بالنت عشان يحمّل نموذج Excel.",
+    resetSectionHeading:"إعادة التعيين (بداية فصل دراسي جديد)",
+    resetSectionDesc:"عمليات حذف جماعي نهائية. قبل كل عملية بيتاخد تلقائيًا نسخة احتياطية كاملة من الشيت (تبويب مخفي اسمه PreReset_...)، فتقدر ترجع منها لو حصل خطأ.",
+    resetStudentsBtn:"إعادة تعيين الطلاب", resetStudentsDesc:"يمسح كل الطلاب وحالاتهم وتقدمهم ودرجاتهم والأرشيف.",
+    resetSupervisorsBtn:"إعادة تعيين المشرفين", resetSupervisorsDesc:"يمسح كل حسابات المشرفين وطلبات التسجيل المعلقة. المشرفين هيحتاجوا يطلبوا حساب جديد.",
+    resetAllBtn:"إعادة تعيين كل البيانات", resetAllDesc:"يمسح الطلاب والمشرفين وكل بياناتهم مرة واحدة. وتقدر كمان تختار تمسح الأقسام والكورسات.",
+    resetTitleStudents:"إعادة تعيين الطلاب", resetTitleSupervisors:"إعادة تعيين المشرفين", resetTitleAll:"إعادة تعيين كل البيانات",
+    resetWillDelete:"هيتم حذفه نهائيًا:", resetWillKeep:"هيفضل زي ما هو:",
+    cntStudents:"الطلاب", cntCases:"الحالات", cntProgress:"كل التقدم والدرجات", cntArchive:"عناصر الأرشيف", cntSupervisors:"حسابات المشرفين", cntPending:"طلبات التسجيل المعلقة",
+    keepAdminPass:"باسورد الأدمن", keepSupervisorsData:"حسابات المشرفين", keepStudentsData:"الطلاب وحالاتهم", keepSetup:"الأقسام والكورسات والخطوات والقوايم وهوية البرنامج", keepBrandingOnly:"هوية البرنامج والمظهر فقط",
+    resetIncludeConfig:"امسح كمان الأقسام والكورسات والخطوات والقوايم",
+    resetEnterPass:"اكتب باسورد الأدمن للتأكيد", resetWrongPass:"الباسورد غلط.", resetConfirmBtn:"تأكيد الحذف",
+    resetBackupFailed:"ما قدرتش آخد نسخة احتياطية قبل الحذف (اتأكد من الاتصال بالنت)، فالعملية اتلغت ومفيش حاجة اتمسحت.",
+    resetDone:"تمت إعادة التعيين بنجاح. اتاخدت نسخة احتياطية قبل الحذف.",
+    resetPartial:"اتنفذت إعادة التعيين، لكن بعض التغييرات لسه ما اترفعتش للشيت (الاتصال ضعيف) — هتترفع تلقائي لما الاتصال يرجع.",
     modalCancelBtn:"إلغاء", modalConfirmBtn:"تأكيد", modalOkBtn:"تمام", undoStepConfirmPrefix:"تراجع عن هذه الخطوة؟ اتسجلت بواسطة: ",
     lockScreenTitle:"الجلسة قفلت بعد فترة عدم استخدام — اكتب كلمة المرور تاني", unlockBtn:"فتح",
     noSupervisorsYet:"لا يوجد مشرفين مضافين بعد.",
@@ -246,7 +261,7 @@ const I18N = {
     groupSelectLabel:"المجموعة", subgroupSelectLabel:"المجموعة الفرعية", caseTypeLabel:"نوع الحالة",
     noneOption:"— بدون —", addNewOption:"➕ إضافة جديد...", addStudentBtn:"إضافة الطالب",
     importHeading:"استيراد قائمة طلاب من Excel / CSV",
-    importDesc:'هيتم الاستيراد داخل القسم والـ Course المختارين فوق. الأعمدة: <b>الاسم</b>, الكود, المجموعة, المجموعة_الفرعية, نوع_الحالة (اختياري، بينشئ أول حالة للطالب). عمود "الاسم" إجباري بس.',
+    importDesc:'هيتم الاستيراد داخل القسم والـ Course المختارين فوق. حمّل النموذج الجاهز واملاه: كل بيان في عمود لوحده بالترتيب ده: <b>name</b> (إجباري), ID, Group, Subgroup, Level.',
     downloadTemplateBtn:"تحميل نموذج فارغ", importBtn:"استيراد الطلاب",
     studentListHeading:"قائمة الطلاب", completeSuffix:"% مكتمل",
     addSupervisorHeading:"إضافة مشرف جديد", supervisorsListHeading:"المشرفين", noSupervisors:"لا يوجد مشرفين بعد.",
@@ -307,6 +322,21 @@ const I18N = {
     wrongPassword:"Incorrect password.", wrongAdminPassword:"Incorrect admin password.",
     sessionExpiredMsg:"You've been signed out — the login details changed or the account was removed. Please sign in again.",
     rateLimitedMsg:"Too many failed attempts. Please wait about 15 minutes and try again.",
+    templateNeedsInternet:"An internet connection is needed to build the Excel template.",
+    resetSectionHeading:"Reset (start of a new semester)",
+    resetSectionDesc:"Permanent bulk deletions. Before each one, a full backup of the sheet is taken automatically (a hidden tab named PreReset_...) so you can recover if something goes wrong.",
+    resetStudentsBtn:"Reset students", resetStudentsDesc:"Deletes all students, their cases, progress, grades and the archive.",
+    resetSupervisorsBtn:"Reset supervisors", resetSupervisorsDesc:"Deletes all supervisor accounts and pending signup requests. Supervisors will need to request a new account.",
+    resetAllBtn:"Reset all data", resetAllDesc:"Deletes students and supervisors with all their data in one go. You can also choose to delete departments and courses.",
+    resetTitleStudents:"Reset students", resetTitleSupervisors:"Reset supervisors", resetTitleAll:"Reset all data",
+    resetWillDelete:"Will be permanently deleted:", resetWillKeep:"Will be kept:",
+    cntStudents:"Students", cntCases:"Cases", cntProgress:"All progress and grades", cntArchive:"Archive items", cntSupervisors:"Supervisor accounts", cntPending:"Pending signup requests",
+    keepAdminPass:"Admin password", keepSupervisorsData:"Supervisor accounts", keepStudentsData:"Students and their cases", keepSetup:"Departments, courses, steps, lists and branding", keepBrandingOnly:"Branding and appearance only",
+    resetIncludeConfig:"Also delete departments, courses, steps and lists",
+    resetEnterPass:"Enter the admin password to confirm", resetWrongPass:"Wrong password.", resetConfirmBtn:"Confirm deletion",
+    resetBackupFailed:"Couldn't take a backup before deleting (check your connection), so the operation was cancelled and nothing was deleted.",
+    resetDone:"Reset completed. A backup was taken before deleting.",
+    resetPartial:"The reset was applied, but some changes haven't reached the sheet yet (weak connection) — they'll upload automatically once you're back online.",
     modalCancelBtn:"Cancel", modalConfirmBtn:"Confirm", modalOkBtn:"OK", undoStepConfirmPrefix:"Undo this step? It was marked by: ",
     lockScreenTitle:"Locked after inactivity — enter your password again", unlockBtn:"Unlock",
     noSupervisorsYet:"No supervisors added yet.",
@@ -340,7 +370,7 @@ const I18N = {
     groupSelectLabel:"Group", subgroupSelectLabel:"Subgroup", caseTypeLabel:"Case type",
     noneOption:"— None —", addNewOption:"➕ Add new...", addStudentBtn:"Add student",
     importHeading:"Import student list from Excel / CSV",
-    importDesc:'Students will be imported into the department and course selected above. Columns: <b>Name</b>, Code, Group, Subgroup, CaseType (optional, creates a first case). Only "Name" is required.',
+    importDesc:'Students will be imported into the department and course selected above. Download the ready template and fill it in — one column per field, in this order: <b>name</b> (required), ID, Group, Subgroup, Level.',
     downloadTemplateBtn:"Download blank template", importBtn:"Import students",
     studentListHeading:"Student list", completeSuffix:"% complete",
     addSupervisorHeading:"Add new supervisor", supervisorsListHeading:"Supervisors", noSupervisors:"No supervisors yet.",
@@ -639,6 +669,14 @@ async function apiLoginAdmin(password){
     return await res.json();
   }catch(e){ return {ok:false, networkError:true, error: e.name==='AbortError' ? (state.lang==='ar'?'انتهت مهلة الاتصال':'Request timed out') : e.message}; }
 }
+async function apiBackupNow(){
+  if(!scriptConfigured()) return {ok:false};
+  try{
+    const res = await fetchWithTimeout(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ action:'backup-now', auth:{ role:'admin', password: state.adminPass } }) });
+    return await res.json();
+  }catch(e){ return {ok:false, networkError:true, error:e.message}; }
+}
 async function apiRequestSupervisorSignup(name, password, departmentId){
   if(!scriptConfigured()) return {ok:false, networkError:true};
   try{
@@ -730,7 +768,7 @@ function actorLabel(){ return state.screen==='admin' ? (state.lang==='ar'?'ال�
 let state = {
   screen:'login', currentSupervisor:null, currentSupervisorPass:null, currentDept:null,
   supervisorCourseId:null, supervisorGroupFilter:'all', supervisorSubgroupFilter:'all',
-  adminPass:null, sessionToken:null, adminTab:'dashboard', adminDeptId:'', adminCourseId:'',
+  adminPass:null, sessionToken:null, resetting:false, adminTab:'dashboard', adminDeptId:'', adminCourseId:'',
   openStudent:null, openCase:null, search:'', loginMode:null, loginErr:'', loading:true, storageOk:true,
   importMsg:'', lang:(typeof localStorage!=='undefined' && localStorage.getItem('prostho_lang')) || 'ar',
   statsScope:'all', statsScopeValue:'', statsStepId:'', statsCaseTypeFilter:'',
@@ -738,7 +776,7 @@ let state = {
 };
 
 function esc(s){ return (s+'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-const APP_VERSION = 'v1.1.0';
+const APP_VERSION = 'v1.2.0';
 const ICON_PATHS = {
   trash: '<polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>',
   edit: '<path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>',
@@ -794,6 +832,93 @@ function showAlert(message){
     overlay.querySelector('.modal-ok').addEventListener('click', done);
     overlay.addEventListener('click', e=>{ if(e.target===overlay) done(); });
   });
+}
+
+/* ---------------- Bulk reset (new semester) ---------------- */
+let dataGeneration = 0;
+function showResetDialog(kind){
+  return new Promise(resolve=>{
+    const nStudents = STUDENTS.length;
+    const nCases = STUDENTS.reduce((s,st)=>s+(st.cases||[]).length,0);
+    const nSup = ((CREDENTIALS&&CREDENTIALS.supervisors)||[]).length;
+    const nPending = ((CREDENTIALS&&CREDENTIALS.pendingSupervisors)||[]).length;
+    const nArch = (ARCHIVE.students||[]).length + (ARCHIVE.cases||[]).length;
+    const del = [], keep = [t('keepAdminPass')];
+    if(kind==='students' || kind==='all') del.push(t('cntStudents')+': '+nStudents, t('cntCases')+': '+nCases, t('cntProgress'), t('cntArchive')+': '+nArch);
+    if(kind==='supervisors' || kind==='all') del.push(t('cntSupervisors')+': '+nSup, t('cntPending')+': '+nPending);
+    if(kind==='students') keep.push(t('keepSupervisorsData'));
+    if(kind==='supervisors') keep.push(t('keepStudentsData'));
+    const titleKey = kind==='students' ? 'resetTitleStudents' : kind==='supervisors' ? 'resetTitleSupervisors' : 'resetTitleAll';
+    const li = arr => arr.map(x=>`<li>${esc(x)}</li>`).join('');
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `
+      <div class="modal-card" role="alertdialog" aria-modal="true" style="max-height:90vh;overflow:auto;">
+        <p class="modal-msg" style="font-weight:800;margin-bottom:10px;color:var(--rust);">${esc(t(titleKey))}</p>
+        <p class="modal-msg" style="font-size:12.5px;font-weight:700;margin-bottom:2px;">${esc(t('resetWillDelete'))}</p>
+        <ul style="margin:0 0 10px;padding-inline-start:18px;font-size:12.5px;line-height:1.8;">${li(del)}</ul>
+        <p class="modal-msg" style="font-size:12.5px;font-weight:700;margin-bottom:2px;">${esc(t('resetWillKeep'))}</p>
+        <ul style="margin:0 0 12px;padding-inline-start:18px;font-size:12.5px;line-height:1.8;">${li(keep)}${kind==='all' ? `<li id="reset-keep-setup">${esc(t('keepSetup'))}</li>` : (kind==='students' || kind==='supervisors' ? `<li>${esc(t('keepSetup'))}</li>` : '')}</ul>
+        ${kind==='all' ? `<label style="display:flex;gap:8px;align-items:flex-start;font-size:12.5px;font-weight:600;margin-bottom:12px;cursor:pointer;"><input type="checkbox" id="reset-include-config" style="width:auto;margin-top:3px;"><span>${esc(t('resetIncludeConfig'))}</span></label>` : ''}
+        <label style="margin-bottom:4px;">${esc(t('resetEnterPass'))}</label>
+        <input type="password" id="reset-pass" autocomplete="off" style="margin-bottom:8px;">
+        <p id="reset-err" style="color:var(--rust);font-size:12px;margin:0 0 10px;display:none;"></p>
+        <div class="modal-actions">
+          <button class="btn ghost" id="reset-cancel">${esc(t('modalCancelBtn'))}</button>
+          <button class="btn rust" id="reset-confirm">${esc(t('resetConfirmBtn'))}</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    const input = overlay.querySelector('#reset-pass');
+    const errEl = overlay.querySelector('#reset-err');
+    const cfgBox = overlay.querySelector('#reset-include-config');
+    if(cfgBox) cfgBox.addEventListener('change', ()=>{
+      const li2 = overlay.querySelector('#reset-keep-setup');
+      if(li2) li2.textContent = cfgBox.checked ? t('keepBrandingOnly') : t('keepSetup');
+    });
+    const done = val => { overlay.remove(); resolve(val); };
+    overlay.querySelector('#reset-cancel').addEventListener('click', ()=>done({ok:false}));
+    overlay.addEventListener('click', e=>{ if(e.target===overlay) done({ok:false}); });
+    const tryConfirm = ()=>{
+      if(input.value && input.value === state.adminPass) done({ok:true, includeConfig: !!(cfgBox && cfgBox.checked)});
+      else { errEl.textContent = t('resetWrongPass'); errEl.style.display='block'; input.value=''; input.focus(); }
+    };
+    overlay.querySelector('#reset-confirm').addEventListener('click', tryConfirm);
+    input.addEventListener('keydown', e=>{ if(e.key==='Enter') tryConfirm(); });
+    setTimeout(()=>input.focus(), 50);
+  });
+}
+async function performReset(kind, includeConfig){
+  state.resetting = true; dataGeneration++;
+  try{
+    const b = await apiBackupNow();
+    if(!b || !b.ok){ showAlert(t('resetBackupFailed')); return false; }
+    const results = [];
+    if(kind==='students' || kind==='all'){
+      STUDENTS = []; PROGRESS = {}; ARCHIVE = {students:[], cases:[]};
+      state.openStudent = null; state.openCase = null; state.search = '';
+      results.push(await setData('students', STUDENTS), await setData('progress', PROGRESS), await setData('archive', ARCHIVE));
+    }
+    if(kind==='supervisors' || kind==='all'){
+      if(!CREDENTIALS) CREDENTIALS = { supervisors: [], pendingSupervisors: [] };
+      CREDENTIALS.supervisors = []; CREDENTIALS.pendingSupervisors = [];
+      CREDENTIALS.adminPassword = state.adminPass;
+      SUP_NAMES = [];
+      results.push(await setData('credentials', CREDENTIALS));
+      saveCache({credentials: CREDENTIALS});
+    }
+    if(kind==='all' && includeConfig){
+      const prev = CONFIG;
+      CONFIG = Object.assign(defaultConfig(), { brandTitle: prev.brandTitle, brandSubtitle: prev.brandSubtitle, logoUrl: prev.logoUrl, theme: prev.theme, fieldLabels: prev.fieldLabels });
+      state.adminDeptId = ''; state.adminCourseId = ''; state.stepsCaseType = '';
+      results.push(await setData('config', CONFIG));
+    }
+    showAlert(results.every(Boolean) ? t('resetDone') : t('resetPartial'));
+    return true;
+  } finally {
+    dataGeneration++;
+    state.resetting = false;
+  }
 }
 function fmtDate(iso){
   if(!iso) return '';
@@ -1707,6 +1832,22 @@ function adminSettingsHtml(){
       <div class="field"><label>${t('newPasswordLabel')}</label><input type="text" id="new-admin-pass" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false"></div>
       <button class="btn gold" data-act="change-admin-pass">${t('savePasswordBtn')}</button>
     </div>
+    <div class="card" style="border-color:var(--rust);">
+      <h2 style="color:var(--rust);">${t('resetSectionHeading')}</h2>
+      <p style="font-size:12px;color:var(--teal-500);margin:0 0 14px;line-height:1.7;">${t('resetSectionDesc')}</p>
+      <div style="margin-bottom:14px;">
+        <button class="btn rust" data-act="reset-students">${icon('trash')} ${t('resetStudentsBtn')}</button>
+        <div style="font-size:11.5px;color:var(--teal-500);margin-top:4px;">${t('resetStudentsDesc')}</div>
+      </div>
+      <div style="margin-bottom:14px;">
+        <button class="btn rust" data-act="reset-supervisors">${icon('trash')} ${t('resetSupervisorsBtn')}</button>
+        <div style="font-size:11.5px;color:var(--teal-500);margin-top:4px;">${t('resetSupervisorsDesc')}</div>
+      </div>
+      <div>
+        <button class="btn rust" data-act="reset-all">${icon('trash')} ${t('resetAllBtn')}</button>
+        <div style="font-size:11.5px;color:var(--teal-500);margin-top:4px;">${t('resetAllDesc')}</div>
+      </div>
+    </div>
     <div class="banner">${t('currentAdminPassPrefix')}<b>${esc((CREDENTIALS&&CREDENTIALS.adminPassword)||'')}</b>${t('keepSafeNote')}</div>
   `;
 }
@@ -2002,11 +2143,15 @@ async function onAction(e){
     render(); return;
   }
   if(act==='download-template'){
-    const csv = '\uFEFF' + 'الاسم,الكود,المجموعة,المجموعة_الفرعية,المستوى,نوع_الحالة\nأحمد محمد,1023,A,A1,سنة أولى,تاج كامل\n';
-    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'قالب_الطلاب.csv'; a.click();
-    URL.revokeObjectURL(url); return;
+    try{
+      await loadXLSX();
+      const ws = XLSX.utils.aoa_to_sheet([['name','ID','Group','Subgroup','Level']]);
+      ws['!cols'] = [{wch:32},{wch:14},{wch:12},{wch:14},{wch:16}];
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Students');
+      XLSX.writeFile(wb, 'students_template.xlsx');
+    }catch(err){ console.error(err); showAlert(t('templateNeedsInternet')); }
+    return;
   }
   if(act==='import-students'){
     if(!state.adminDeptId || !state.adminCourseId){ showAlert(t('pickContextHint')); return; }
@@ -2311,6 +2456,13 @@ async function onAction(e){
     if(ok) showAlert(t('brandSaved'));
     render(); return;
   }
+  if(act==='reset-students' || act==='reset-supervisors' || act==='reset-all'){
+    const kind = act==='reset-students' ? 'students' : act==='reset-supervisors' ? 'supervisors' : 'all';
+    const choice = await showResetDialog(kind);
+    if(!choice.ok) return;
+    await performReset(kind, choice.includeConfig);
+    render(); return;
+  }
   if(act==='change-admin-pass'){
     const val = document.getElementById('new-admin-pass').value.trim();
     if(!val){ showAlert(t('alertEnterNewPassword')); return; }
@@ -2399,9 +2551,10 @@ function startPolling(){
 }
 async function pollForUpdates(){
   if(!scriptConfigured() || (typeof navigator!=='undefined' && navigator.onLine===false)) return;
-  if(state.screen==='login') return;
+  if(state.screen==='login' || state.resetting) return;
+  const gen = dataGeneration;
   const all = await getAllData();
-  if(!all) return;
+  if(!all || state.resetting || gen !== dataGeneration) return;
   const mergedConfig = mergeConfig(applyPending('config', all.config));
   const mergedStudents = applyPending('students', all.students);
   const mergedProgress = applyPending('progress', all.progress);
