@@ -110,6 +110,7 @@
   .chip-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
   .chip{display:flex;align-items:center;gap:6px;background:var(--teal-100);color:var(--teal-900);padding:6px 10px;border-radius:20px;font-size:12.5px;font-weight:600;}
   .chip button{background:none;border:none;color:var(--rust);cursor:pointer;font-size:13px;padding:0;line-height:1;}
+  .chip-pick:has(input:checked:not(:disabled)){background:var(--gold-light);}
   .stat-table{width:100%;border-collapse:collapse;font-size:12.5px;}
   .stat-table th{background:var(--teal-100);color:var(--teal-900);padding:8px 6px;text-align:right;font-weight:700;position:sticky;top:0;}
   html[dir="ltr"] .stat-table th{text-align:left;}
@@ -214,6 +215,14 @@ const I18N = {
     sessionExpiredMsg:"تم تسجيل خروجك — بيانات الدخول اتغيّرت أو الحساب اتشال. سجّل دخول تاني.",
     rateLimitedMsg:"محاولات كتير غلط. استنى شوية (حوالي 15 دقيقة) وحاول تاني.",
     templateNeedsInternet:"محتاج اتصال بالنت عشان يحمّل نموذج Excel.",
+    editStudentTitle:"تعديل بيانات الطالب",
+    stepLibraryHeading:"مكتبة الخطوات (كل الخطوات الممكنة)",
+    stepLibraryHint:"اكتب هنا كل الخطوات اللي ممكن تتستخدم في أي نوع حالة (خطوة في كل سطر). وبعدها من تبويب الخطوات تختار منها لكل نوع حالة بدل ما تكتبها كل مرة. حذف خطوة من هنا ما بيمسحهاش من أنواع الحالات اللي اتضافت لها قبل كده.",
+    stepLibraryPlaceholder:"خطوة في كل سطر...",
+    fromLibraryHeading:"إضافة من مكتبة الخطوات",
+    libraryEmptyHint:"المكتبة فاضية. ضيف الخطوات الأول من تبويب القوائم ← مكتبة الخطوات.",
+    libraryAddedNote:"الخطوات الباهتة متضافة بالفعل لنوع الحالة ده. علّم اللي عايز تضيفه واضغط \"إضافة المحدد\".",
+    selectAllBtn:"تحديد الكل", addSelectedStepsBtn:"إضافة المحدد", nothingSelectedAlert:"اختار خطوة واحدة على الأقل.",
     resetSectionHeading:"إعادة التعيين (بداية فصل دراسي جديد)",
     resetSectionDesc:"عمليات حذف جماعي نهائية. قبل كل عملية بيتاخد تلقائيًا نسخة احتياطية كاملة من الشيت (تبويب مخفي اسمه PreReset_...)، فتقدر ترجع منها لو حصل خطأ.",
     resetStudentsBtn:"إعادة تعيين الطلاب", resetStudentsDesc:"يمسح كل الطلاب وحالاتهم وتقدمهم ودرجاتهم والأرشيف.",
@@ -323,6 +332,14 @@ const I18N = {
     sessionExpiredMsg:"You've been signed out — the login details changed or the account was removed. Please sign in again.",
     rateLimitedMsg:"Too many failed attempts. Please wait about 15 minutes and try again.",
     templateNeedsInternet:"An internet connection is needed to build the Excel template.",
+    editStudentTitle:"Edit student",
+    stepLibraryHeading:"Steps library (all possible steps)",
+    stepLibraryHint:"List every step that could be used in any case type here (one per line). Then, in the Steps tab, pick from them for each case type instead of retyping. Deleting a step here does not remove it from case types it was already added to.",
+    stepLibraryPlaceholder:"One step per line...",
+    fromLibraryHeading:"Add from the steps library",
+    libraryEmptyHint:"The library is empty. Add steps first from Lists → Steps library.",
+    libraryAddedNote:"Dimmed steps are already in this case type. Tick the ones you want and press \"Add selected\".",
+    selectAllBtn:"Select all", addSelectedStepsBtn:"Add selected", nothingSelectedAlert:"Select at least one step.",
     resetSectionHeading:"Reset (start of a new semester)",
     resetSectionDesc:"Permanent bulk deletions. Before each one, a full backup of the sheet is taken automatically (a hidden tab named PreReset_...) so you can recover if something goes wrong.",
     resetStudentsBtn:"Reset students", resetStudentsDesc:"Deletes all students, their cases, progress, grades and the archive.",
@@ -710,16 +727,24 @@ function defaultConfig(){
   return {
     departments: [],
     groups: DEFAULT_GROUPS.slice(), subgroups: DEFAULT_SUBGROUPS.slice(), caseTypes: DEFAULT_CASE_TYPES.slice(),
-    levels: [],
+    levels: [], stepLibrary: [],
     fieldLabels: { group:"", subgroup:"", caseType:"", level:"" },
     brandTitle:"", brandSubtitle:"", logoUrl:"",
     theme: { mode:"light", accent:"" }
   };
 }
+function seedStepLibrary(departments){
+  const seen = new Set(), out = [];
+  (departments||[]).forEach(dep=> (dep.courses||[]).forEach(co=> (co.caseTypeConfigs||[]).forEach(cc=> (cc.steps||[]).forEach(s=>{
+    const name = (s && s.name ? String(s.name) : '').trim(), k = name.toLowerCase();
+    if(name && !seen.has(k)){ seen.add(k); out.push(name); }
+  }))));
+  return out;
+}
 function mergeConfig(cfg){
   const d = defaultConfig();
   if(!cfg) return d;
-  return {
+  const merged = {
     departments: Array.isArray(cfg.departments) ? cfg.departments.map(dep=>({
       id: dep.id, name: dep.name,
       courses: Array.isArray(dep.courses) ? dep.courses.map(c=>{
@@ -744,6 +769,9 @@ function mergeConfig(cfg){
     brandTitle: cfg.brandTitle || "", brandSubtitle: cfg.brandSubtitle || "", logoUrl: cfg.logoUrl || "",
     theme: cfg.theme || d.theme
   };
+  // first time after this feature ships: seed the library from the steps already typed in, so nothing has to be retyped
+  merged.stepLibrary = Array.isArray(cfg.stepLibrary) ? cfg.stepLibrary.filter(x=>typeof x==='string' && x.trim()) : seedStepLibrary(merged.departments);
+  return merged;
 }
 function getDept(id){ return (CONFIG.departments||[]).find(d=>d.id===id) || null; }
 function getCourse(deptIdVal, courseIdVal){ const d = getDept(deptIdVal); if(!d) return null; return (d.courses||[]).find(c=>c.id===courseIdVal) || null; }
@@ -780,7 +808,7 @@ let state = {
 };
 
 function esc(s){ return (s+'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-const APP_VERSION = 'v1.2.1';
+const APP_VERSION = 'v1.3.0';
 const ICON_PATHS = {
   trash: '<polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>',
   edit: '<path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>',
@@ -835,6 +863,46 @@ function showAlert(message){
     const done = ()=>{ overlay.remove(); resolve(); };
     overlay.querySelector('.modal-ok').addEventListener('click', done);
     overlay.addEventListener('click', e=>{ if(e.target===overlay) done(); });
+  });
+}
+
+/* ---------------- Edit a student's details (admin) ---------------- */
+function selectSimpleHtml(list, cur){
+  const vals = (list||[]).slice();
+  if(cur && !vals.includes(cur)) vals.push(cur);
+  return `<option value="">${esc(t('noneOption'))}</option>` + vals.map(v=>`<option value="${esc(v)}" ${v===cur?'selected':''}>${esc(v)}</option>`).join('');
+}
+function showEditStudentDialog(st){
+  return new Promise(resolve=>{
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `
+      <div class="modal-card" role="dialog" aria-modal="true" style="max-height:92vh;overflow:auto;">
+        <p class="modal-msg" style="font-weight:800;margin-bottom:12px;">${esc(t('editStudentTitle'))}</p>
+        <div class="field"><label>${esc(t('studentNameLabel'))}</label><input type="text" id="edit-st-name" value="${esc(st.name||'')}"></div>
+        <div class="field"><label>${esc(t('studentCodeLabel'))}</label><input type="text" id="edit-st-code" value="${esc(st.studentCode||'')}"></div>
+        <div class="field"><label>${esc(fieldLabel('group'))}</label><select id="edit-st-group">${selectSimpleHtml(CONFIG.groups, st.group||'')}</select></div>
+        <div class="field"><label>${esc(fieldLabel('subgroup'))}</label><select id="edit-st-subgroup">${selectSimpleHtml(CONFIG.subgroups, st.subgroup||'')}</select></div>
+        <div class="field"><label>${esc(fieldLabel('level'))}</label><select id="edit-st-level">${selectSimpleHtml(CONFIG.levels, st.level||'')}</select></div>
+        <p id="edit-st-err" style="color:var(--rust);font-size:12px;margin:0 0 10px;display:none;"></p>
+        <div class="modal-actions">
+          <button class="btn ghost" id="edit-st-cancel">${esc(t('modalCancelBtn'))}</button>
+          <button class="btn" id="edit-st-save">${esc(t('saveBrandBtn'))}</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    const $ = id => overlay.querySelector('#'+id);
+    const done = v => { overlay.remove(); resolve(v); };
+    const trySave = ()=>{
+      const name = $('edit-st-name').value.trim();
+      if(!name){ const e = $('edit-st-err'); e.textContent = t('alertEnterName'); e.style.display='block'; $('edit-st-name').focus(); return; }
+      done({ name, studentCode: $('edit-st-code').value.trim(), group: $('edit-st-group').value.trim(), subgroup: $('edit-st-subgroup').value.trim(), level: $('edit-st-level').value.trim() });
+    };
+    $('edit-st-cancel').addEventListener('click', ()=>done(null));
+    $('edit-st-save').addEventListener('click', trySave);
+    overlay.addEventListener('click', e=>{ if(e.target===overlay) done(null); });
+    overlay.querySelectorAll('input[type=text]').forEach(inp=> inp.addEventListener('keydown', e=>{ if(e.key==='Enter') trySave(); }));
+    setTimeout(()=>$('edit-st-name').focus(), 50);
   });
 }
 
@@ -1521,7 +1589,10 @@ function adminStudentsHtml(){
         <div class="txt">${esc(st.name)}${st.studentCode?' <span style="color:var(--teal-500);font-family:Space Mono,monospace;">#'+esc(st.studentCode)+'</span>':''}
           <small>${[st.group?t('groupPrefix')+esc(st.group):'', st.subgroup?t('subgroupPrefix')+esc(st.subgroup):'', st.level?t('lvlValPrefix')+esc(st.level):'', (st.cases||[]).length+' '+t('casesHeading'), studentAggregatePct(st)+t('completeSuffix')].filter(Boolean).join(' · ')}</small>
         </div>
-        <button class="icon-btn" data-act="del-student" data-id="${st.id}">${icon('trash')}</button>
+        <div class="row" style="width:auto;gap:2px;">
+          <button class="icon-btn up-down" data-act="edit-student" data-id="${st.id}" title="${esc(t('editStudentTitle'))}">${icon('edit')}</button>
+          <button class="icon-btn" data-act="del-student" data-id="${st.id}">${icon('trash')}</button>
+        </div>
       </div>`).join('')}
   `;
 }
@@ -1567,6 +1638,26 @@ function adminSupervisorsHtml(){
   `;
 }
 
+function stepLibraryPickHtml(steps){
+  const lib = CONFIG.stepLibrary || [];
+  const have = new Set((steps||[]).map(s=>String(s.name).trim().toLowerCase()));
+  return `
+    <div class="card">
+      <h2>${t('fromLibraryHeading')} — ${esc(state.stepsCaseType)}</h2>
+      ${lib.length===0 ? `<p style="font-size:12.5px;color:var(--teal-500);margin:0;">${t('libraryEmptyHint')}</p>` : `
+      <p style="font-size:11.5px;color:var(--teal-500);margin:0 0 10px;">${t('libraryAddedNote')}</p>
+      <div class="chip-row">
+        ${lib.map(name=>{
+          const added = have.has(String(name).trim().toLowerCase());
+          return `<label class="chip chip-pick" style="cursor:${added?'default':'pointer'};${added?'opacity:.5;':''}"><input type="checkbox" class="step-lib-chk" value="${esc(name)}" ${added?'checked disabled':''} style="width:auto;margin:0;">${esc(name)}</label>`;
+        }).join('')}
+      </div>
+      <div class="row wrap" style="gap:8px;">
+        <button class="btn ghost sm" style="width:auto;" data-act="library-select-all">${t('selectAllBtn')}</button>
+        <button class="btn sm" style="width:auto;" data-act="add-library-selected">${t('addSelectedStepsBtn')}</button>
+      </div>`}
+    </div>`;
+}
 function adminStepsHtml(){
   if(!state.adminDeptId || !state.adminCourseId) return `<div class="banner">${t('pickContextHint')}</div>`;
   const course = getCourse(state.adminDeptId, state.adminCourseId);
@@ -1605,6 +1696,7 @@ function adminStepsHtml(){
       <div class="field"><label>${t('stepNameLabel')}</label><input type="text" id="new-step-name"></div>
       <button class="btn" data-act="add-step">${t('addStepBtn')}</button>
     </div>
+    ${stepLibraryPickHtml(steps)}
     <h3 class="section-title">${t('stepsOrderHeading')} (${steps.length})</h3>
     ${steps.map((s,i)=>`
       <div class="list-item">
@@ -1641,10 +1733,26 @@ function listSectionHtml(listKey, heading, labelKey){
     </div>
   `;
 }
+function stepLibrarySectionHtml(){
+  const arr = CONFIG.stepLibrary || [];
+  return `
+    <div class="card">
+      <h2>${t('stepLibraryHeading')}</h2>
+      <p style="font-size:12px;color:var(--teal-500);margin:0 0 10px;line-height:1.7;">${t('stepLibraryHint')}</p>
+      <div class="field"><textarea id="new-library-steps" rows="3" placeholder="${esc(t('stepLibraryPlaceholder'))}"></textarea></div>
+      <button class="btn sm" style="width:auto;margin-bottom:12px;" data-act="add-library-steps">${t('addBtn')}</button>
+      <div class="chip-row" style="margin-bottom:0;">
+        ${arr.length===0 ? `<span style="color:var(--teal-500);font-size:12.5px;">—</span>` :
+          arr.map((v,i)=>`<span class="chip">${esc(v)}<button data-act="del-list-value" data-list="stepLibrary" data-idx="${i}">✕</button></span>`).join('')}
+      </div>
+    </div>
+  `;
+}
 function adminListsHtml(){
   return listSectionHtml('groups', t('groupsHeading'), 'group')
     + listSectionHtml('subgroups', t('subgroupsHeading'), 'subgroup')
     + listSectionHtml('caseTypes', t('caseTypesHeading'), 'caseType')
+    + stepLibrarySectionHtml()
     + listSectionHtml('levels', t('levelsHeading'), 'level');
 }
 
@@ -2135,6 +2243,14 @@ async function onAction(e){
     render(); return;
   }
 
+  if(act==='edit-student'){
+    const st = STUDENTS.find(s=>s.id===el.dataset.id); if(!st) return;
+    const v = await showEditStudentDialog(st);
+    if(!v) return;
+    Object.assign(st, v);
+    await setData('students', STUDENTS);
+    render(); return;
+  }
   if(act==='add-student'){
     const name = document.getElementById('new-st-name').value.trim();
     const studentCode = document.getElementById('new-st-code').value.trim();
@@ -2417,6 +2533,38 @@ async function onAction(e){
     render(); return;
   }
 
+  if(act==='add-library-steps'){
+    const raw = document.getElementById('new-library-steps').value;
+    const lines = raw.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+    if(!lines.length) return;
+    if(!Array.isArray(CONFIG.stepLibrary)) CONFIG.stepLibrary = [];
+    const seen = new Set(CONFIG.stepLibrary.map(s=>s.toLowerCase()));
+    let added = 0;
+    lines.forEach(l=>{ const k = l.toLowerCase(); if(seen.has(k)) return; seen.add(k); CONFIG.stepLibrary.push(l); added++; });
+    if(!added){ showAlert(t('alertDuplicateListValue')); return; }
+    await setData('config', CONFIG);
+    render(); return;
+  }
+  if(act==='library-select-all'){
+    document.querySelectorAll('.step-lib-chk:not(:disabled)').forEach(cb=>{ cb.checked = true; });
+    return;
+  }
+  if(act==='add-library-selected'){
+    const course = getCourse(state.adminDeptId, state.adminCourseId); if(!course) return;
+    const cfg = caseTypeConfig(course, state.stepsCaseType); if(!cfg) return;
+    const picked = [...document.querySelectorAll('.step-lib-chk:not(:disabled):checked')].map(x=>x.value);
+    if(!picked.length){ showAlert(t('nothingSelectedAlert')); return; }
+    const have = new Set(cfg.steps.map(s=>String(s.name).trim().toLowerCase()));
+    picked.forEach(name=>{
+      const k = String(name).trim().toLowerCase();
+      if(have.has(k)) return;
+      have.add(k);
+      let id; do{ id = stepId(); }while(cfg.steps.some(s=>s.id===id));
+      cfg.steps.push({id, name});
+    });
+    await setData('config', CONFIG);
+    render(); return;
+  }
   if(act==='add-list-value'){
     const listKey = el.dataset.list;
     const inp = document.getElementById('new-list-'+listKey);
