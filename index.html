@@ -111,6 +111,18 @@
   .chip{display:flex;align-items:center;gap:6px;background:var(--teal-100);color:var(--teal-900);padding:6px 10px;border-radius:20px;font-size:12.5px;font-weight:600;}
   .chip button{background:none;border:none;color:var(--rust);cursor:pointer;font-size:13px;padding:0;line-height:1;}
   .chip-pick:has(input:checked:not(:disabled)){background:var(--gold-light);}
+  .pick-num{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;border-radius:9px;background:var(--teal-700);color:#fff;font-size:10.5px;font-weight:800;font-family:'Space Mono',monospace;padding:0 4px;}
+  .pick-num:empty{display:none;}
+  .drag-handle{display:inline-flex;align-items:center;flex-shrink:0;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;color:var(--teal-500);padding:8px 6px;margin-inline-start:-6px;}
+  .drag-handle:hover{color:var(--teal-700);}
+  .drag-handle:active{cursor:grabbing;}
+  .sortable-item.dragging{opacity:.45;}
+  .sortable-item.drop-before{box-shadow:0 -3px 0 0 var(--teal-700);}
+  .sortable-item.drop-after{box-shadow:0 3px 0 0 var(--teal-700);}
+  body.dragging-active{user-select:none;-webkit-user-select:none;cursor:grabbing;}
+  .course-block + .course-block{border-top:1px solid var(--line);margin-top:14px;padding-top:14px;}
+  .course-block-title{margin:0;font-size:14.5px;font-weight:800;color:var(--teal-900);}
+  .unit-badge{display:inline-block;font-size:10.5px;font-weight:700;background:var(--teal-100);color:var(--teal-900);border-radius:10px;padding:1px 8px;vertical-align:middle;font-family:'Space Mono',monospace;}
   .stat-table{width:100%;border-collapse:collapse;font-size:12.5px;}
   .stat-table th{background:var(--teal-100);color:var(--teal-900);padding:8px 6px;text-align:right;font-weight:700;position:sticky;top:0;}
   html[dir="ltr"] .stat-table th{text-align:left;}
@@ -223,6 +235,18 @@ const I18N = {
     libraryEmptyHint:"المكتبة فاضية. ضيف الخطوات الأول من تبويب القوائم ← مكتبة الخطوات.",
     libraryAddedNote:"الخطوات الباهتة متضافة بالفعل لنوع الحالة ده. علّم اللي عايز تضيفه واضغط \"إضافة المحدد\".",
     selectAllBtn:"تحديد الكل", addSelectedStepsBtn:"إضافة المحدد", nothingSelectedAlert:"اختار خطوة واحدة على الأقل.",
+    stepsScopeGlobal:"الخطوات العامة (لكل الكورسات)", stepsScopeCourse:"خطوات هذا الكورس",
+    stepsGlobalNote:"الخطوات دي بتتطبق تلقائيًا على أي كورس ما عدّلش خطواته بنفسه. الكورسات اللي اتعدلت خطواتها يدويًا مش هتتأثر. عدد الكورسات اللي بتستخدمها دلوقتي:",
+    stepsInheritedNote:"الخطوات دي جاية من الخطوات العامة. لو عدّلت أي حاجة هنا هيتعمل نسخة خاصة بالكورس ده بس، ومش هتأثر على باقي الكورسات.",
+    stepsCustomNote:"الخطوات دي خاصة بالكورس ده بس، وتعديل الخطوات العامة مش هيغيّرها.",
+    revertStepsBtn:"الرجوع للخطوات العامة",
+    confirmRevertSteps:"هتتمسح الخطوات الخاصة بالكورس ده ويرجع يستخدم الخطوات العامة. أي تقدم مسجل على خطوات مش موجودة في الخطوات العامة مش هيظهر. تكمل؟",
+    noCaseTypesGlobalHint:"ضيف أنواع حالات من تبويب القوائم الأول.",
+    libraryOrderNote:"الخطوات هتتضاف بنفس ترتيب ما بتضغط عليها (الرقم اللي على كل واحدة).",
+    dragToReorder:"اسحب لإعادة الترتيب", editValueTitle:"تعديل القيمة",
+    renameCascadeHint:"لو القيمة دي مستخدمة في طلاب أو حالات، هتتحدّث عندهم تلقائيًا.",
+    unitLabel:"رقم اليونيت", unitPlaceholder:"مثلاً 12", unitBadgePrefix:"يونيت ",
+    dashNoCourses:"مفيش كورسات في القسم ده لسه.",
     resetSectionHeading:"إعادة التعيين (بداية فصل دراسي جديد)",
     resetSectionDesc:"عمليات حذف جماعي نهائية. قبل كل عملية بيتاخد تلقائيًا نسخة احتياطية كاملة من الشيت (تبويب مخفي اسمه PreReset_...)، فتقدر ترجع منها لو حصل خطأ.",
     resetStudentsBtn:"إعادة تعيين الطلاب", resetStudentsDesc:"يمسح كل الطلاب وحالاتهم وتقدمهم ودرجاتهم والأرشيف.",
@@ -340,6 +364,18 @@ const I18N = {
     libraryEmptyHint:"The library is empty. Add steps first from Lists → Steps library.",
     libraryAddedNote:"Dimmed steps are already in this case type. Tick the ones you want and press \"Add selected\".",
     selectAllBtn:"Select all", addSelectedStepsBtn:"Add selected", nothingSelectedAlert:"Select at least one step.",
+    stepsScopeGlobal:"Global steps (all courses)", stepsScopeCourse:"This course's steps",
+    stepsGlobalNote:"These steps apply automatically to every course that hasn't customised its own. Courses whose steps were edited by hand are not affected. Courses using them right now:",
+    stepsInheritedNote:"These steps come from the global steps. Editing anything here creates a copy for this course only and won't affect other courses.",
+    stepsCustomNote:"These steps belong to this course only; editing the global steps won't change them.",
+    revertStepsBtn:"Revert to global steps",
+    confirmRevertSteps:"This course's own steps will be deleted and it will use the global steps again. Progress recorded on steps that aren't in the global steps won't show. Continue?",
+    noCaseTypesGlobalHint:"Add case types from the Lists tab first.",
+    libraryOrderNote:"Steps are added in the order you click them (the number on each one).",
+    dragToReorder:"Drag to reorder", editValueTitle:"Edit value",
+    renameCascadeHint:"If this value is already used by students or cases, it is updated there automatically.",
+    unitLabel:"Unit number", unitPlaceholder:"e.g. 12", unitBadgePrefix:"Unit ",
+    dashNoCourses:"No courses in this department yet.",
     resetSectionHeading:"Reset (start of a new semester)",
     resetSectionDesc:"Permanent bulk deletions. Before each one, a full backup of the sheet is taken automatically (a hidden tab named PreReset_...) so you can recover if something goes wrong.",
     resetStudentsBtn:"Reset students", resetStudentsDesc:"Deletes all students, their cases, progress, grades and the archive.",
@@ -727,7 +763,7 @@ function defaultConfig(){
   return {
     departments: [],
     groups: DEFAULT_GROUPS.slice(), subgroups: DEFAULT_SUBGROUPS.slice(), caseTypes: DEFAULT_CASE_TYPES.slice(),
-    levels: [], stepLibrary: [],
+    levels: [], stepLibrary: [], caseTypeSteps: {},
     fieldLabels: { group:"", subgroup:"", caseType:"", level:"" },
     brandTitle:"", brandSubtitle:"", logoUrl:"",
     theme: { mode:"light", accent:"" }
@@ -741,6 +777,21 @@ function seedStepLibrary(departments){
   }))));
   return out;
 }
+function seedCaseTypeSteps(departments){
+  const out = {};
+  (departments||[]).forEach(dep=> (dep.courses||[]).forEach(co=> (co.caseTypeConfigs||[]).forEach(cc=>{
+    if(cc.name && !out[cc.name] && (cc.steps||[]).length) out[cc.name] = cc.steps.map(s=>({id:s.id, name:s.name}));
+  })));
+  return out;
+}
+function sanitizeCaseTypeSteps(obj){
+  const out = {};
+  Object.keys(obj||{}).forEach(k=>{
+    if(!Array.isArray(obj[k])) return;
+    out[k] = obj[k].filter(s=>s && typeof s.name==='string' && s.id).map(s=>({id:s.id, name:s.name}));
+  });
+  return out;
+}
 function mergeConfig(cfg){
   const d = defaultConfig();
   if(!cfg) return d;
@@ -750,13 +801,15 @@ function mergeConfig(cfg){
       courses: Array.isArray(dep.courses) ? dep.courses.map(c=>{
         const legacySteps = Array.isArray(c.steps) ? c.steps.map(s=> typeof s==='string' ? {id:stepId(), name:s} : s) : [];
         const caseTypes = Array.isArray(c.caseTypes) ? c.caseTypes : [];
-        let caseTypeConfigs = Array.isArray(c.caseTypeConfigs) ? c.caseTypeConfigs.map(cc=>({
-          name: cc.name,
-          steps: Array.isArray(cc.steps) ? cc.steps.map(s=> typeof s==='string' ? {id:stepId(), name:s} : s) : []
-        })) : null;
+        // custom=true  -> this course keeps its own copy of the steps for that case type
+        // custom=false -> the course uses the global steps of that case type (CONFIG.caseTypeSteps)
+        let caseTypeConfigs = Array.isArray(c.caseTypeConfigs) ? c.caseTypeConfigs.map(cc=>{
+          const steps = Array.isArray(cc.steps) ? cc.steps.map(s=> typeof s==='string' ? {id:stepId(), name:s} : s) : [];
+          return { name: cc.name, steps, custom: (typeof cc.custom==='boolean') ? cc.custom : steps.length>0 };
+        }) : null;
         if(!caseTypeConfigs){
           // migrate from the old course-wide steps: give every assigned case type a copy of the old steps as a starting point
-          caseTypeConfigs = caseTypes.map(name=>({ name, steps: legacySteps.map(s=>({id: stepId(), name: s.name})) }));
+          caseTypeConfigs = caseTypes.map(name=>{ const steps = legacySteps.map(s=>({id: stepId(), name: s.name})); return { name, steps, custom: steps.length>0 }; });
         }
         return { id: c.id, name: c.name, deadline: c.deadline || "", caseTypes, caseTypeConfigs };
       }) : []
@@ -771,19 +824,28 @@ function mergeConfig(cfg){
   };
   // first time after this feature ships: seed the library from the steps already typed in, so nothing has to be retyped
   merged.stepLibrary = Array.isArray(cfg.stepLibrary) ? cfg.stepLibrary.filter(x=>typeof x==='string' && x.trim()) : seedStepLibrary(merged.departments);
+  // global steps per case type; first time, seed them from the steps already typed into the courses (the courses keep their own copies)
+  merged.caseTypeSteps = (cfg.caseTypeSteps && typeof cfg.caseTypeSteps==='object' && !Array.isArray(cfg.caseTypeSteps)) ? sanitizeCaseTypeSteps(cfg.caseTypeSteps) : seedCaseTypeSteps(merged.departments);
   return merged;
 }
 function getDept(id){ return (CONFIG.departments||[]).find(d=>d.id===id) || null; }
 function getCourse(deptIdVal, courseIdVal){ const d = getDept(deptIdVal); if(!d) return null; return (d.courses||[]).find(c=>c.id===courseIdVal) || null; }
 function studentCourse(st){ return getCourse(st.departmentId, st.courseId); }
-function courseCaseTypes(course){ return (course && course.caseTypes) ? course.caseTypes : []; }
+function courseCaseTypes(course){
+  const assigned = (course && Array.isArray(course.caseTypes)) ? course.caseTypes : [];
+  const ordered = (CONFIG.caseTypes||[]).filter(n=>assigned.includes(n)); // same order as the case-type list in the Lists tab
+  assigned.forEach(n=>{ if(!ordered.includes(n)) ordered.push(n); });
+  return ordered;
+}
 function caseTypeConfig(course, caseTypeName){
   if(!course) return null;
   return (course.caseTypeConfigs||[]).find(c=>c.name===caseTypeName) || null;
 }
+function globalSteps(caseTypeName){ return (CONFIG.caseTypeSteps && CONFIG.caseTypeSteps[caseTypeName]) || []; }
 function caseSteps(course, caseTypeName){
   const cfg = caseTypeConfig(course, caseTypeName);
-  return cfg ? cfg.steps : [];
+  if(!cfg) return [];
+  return cfg.custom ? (cfg.steps||[]) : globalSteps(caseTypeName);
 }
 function studentHasStarted(st){
   return (st.cases||[]).some(cs=>{
@@ -800,7 +862,7 @@ function actorLabel(){ return state.screen==='admin' ? (state.lang==='ar'?'ال�
 let state = {
   screen:'login', currentSupervisor:null, currentSupervisorPass:null, currentDept:null,
   supervisorCourseId:null, supervisorGroupFilter:'all', supervisorSubgroupFilter:'all',
-  adminPass:null, sessionToken:null, resetting:false, lastSaveError:'', adminTab:'dashboard', adminDeptId:'', adminCourseId:'',
+  adminPass:null, sessionToken:null, resetting:false, lastSaveError:'', stepsScope:'global', libPickOrder:[], dragging:false, adminTab:'dashboard', adminDeptId:'', adminCourseId:'',
   openStudent:null, openCase:null, search:'', loginMode:null, loginErr:'', loading:true, storageOk:true,
   importMsg:'', lang:(typeof localStorage!=='undefined' && localStorage.getItem('prostho_lang')) || 'ar',
   statsScope:'all', statsScopeValue:'', statsStepId:'', statsCaseTypeFilter:'',
@@ -808,7 +870,7 @@ let state = {
 };
 
 function esc(s){ return (s+'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-const APP_VERSION = 'v1.3.0';
+const APP_VERSION = 'v1.4.0';
 const ICON_PATHS = {
   trash: '<polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>',
   edit: '<path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>',
@@ -824,6 +886,7 @@ const ICON_PATHS = {
   barChart: '<line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line>',
   archive: '<polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line>',
   settings: '<circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>',
+  grip: '<circle cx="9" cy="6" r="1.2"></circle><circle cx="15" cy="6" r="1.2"></circle><circle cx="9" cy="12" r="1.2"></circle><circle cx="15" cy="12" r="1.2"></circle><circle cx="9" cy="18" r="1.2"></circle><circle cx="15" cy="18" r="1.2"></circle>',
   home: '<rect x="3" y="3" width="7" height="9" rx="1"></rect><rect x="14" y="3" width="7" height="5" rx="1"></rect><rect x="14" y="12" width="7" height="9" rx="1"></rect><rect x="3" y="16" width="7" height="5" rx="1"></rect>'
 };
 function icon(name, size){
@@ -904,6 +967,134 @@ function showEditStudentDialog(st){
     overlay.querySelectorAll('input[type=text]').forEach(inp=> inp.addEventListener('keydown', e=>{ if(e.key==='Enter') trySave(); }));
     setTimeout(()=>$('edit-st-name').focus(), 50);
   });
+}
+
+/* ---------------- Reordering (drag & drop + arrows), small prompt dialog, list-value renaming ---------------- */
+function moveItem(arr, from, to){
+  if(!Array.isArray(arr) || from===to || from<0 || from>=arr.length) return false;
+  const [x] = arr.splice(from,1);
+  arr.splice(Math.max(0, Math.min(to, arr.length)), 0, x);
+  return true;
+}
+// rects: [{top,height}] of the rows; returns the index the dragged row would be inserted BEFORE (rects.length = at the end)
+function dropIndexFromRects(rects, y){
+  for(let i=0;i<rects.length;i++){ if(y < rects[i].top + rects[i].height/2) return i; }
+  return rects.length;
+}
+function insertionToFinalIndex(from, ins){ return ins > from ? ins-1 : ins; }
+
+async function reorderByKind(kind, from, to){
+  if(kind==='steps'){
+    if(currentStepsList().length < 2) return;
+    const tgt = stepsTarget(); if(!tgt) return;
+    if(!moveItem(tgt.steps, from, to)) return;
+  } else if(kind.indexOf('list:')===0){
+    const key = kind.slice(5);
+    if(!Array.isArray(CONFIG[key]) || !moveItem(CONFIG[key], from, to)) return;
+  } else return;
+  await setData('config', CONFIG);
+  render();
+}
+function startDrag(e, container, handle){
+  if(e.pointerType==='mouse' && e.button!==0) return;
+  const item = handle.closest('.sortable-item'); if(!item) return;
+  e.preventDefault();
+  const items = [...container.querySelectorAll(':scope > .sortable-item')];
+  const from = items.indexOf(item);
+  let ins = from, lastY = e.clientY, raf = null, active = true;
+  state.dragging = true;
+  item.classList.add('dragging'); document.body.classList.add('dragging-active');
+  const clearMarks = ()=> items.forEach(it=>it.classList.remove('drop-before','drop-after'));
+  const update = ()=>{
+    ins = dropIndexFromRects(items.map(it=>it.getBoundingClientRect()), lastY);
+    clearMarks();
+    if(ins < items.length) items[ins].classList.add('drop-before'); else items[items.length-1].classList.add('drop-after');
+  };
+  const loop = ()=>{
+    if(!active) return;
+    const h = window.innerHeight;
+    if(lastY < 70) window.scrollBy(0,-14); else if(lastY > h-70) window.scrollBy(0,14);
+    update();
+    raf = requestAnimationFrame(loop);
+  };
+  const onMove = ev=>{ lastY = ev.clientY; update(); };
+  const finish = commit=>{
+    if(commit) update();   // use the final pointer position, not the last animation frame's
+    active = false; cancelAnimationFrame(raf);
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup', onUp);
+    document.removeEventListener('pointercancel', onCancel);
+    clearMarks(); item.classList.remove('dragging'); document.body.classList.remove('dragging-active');
+    state.dragging = false;
+    if(commit){ const to = insertionToFinalIndex(from, ins); if(to !== from) reorderByKind(container.dataset.sortable, from, to); }
+  };
+  const onUp = ()=>finish(true), onCancel = ()=>finish(false);
+  document.addEventListener('pointermove', onMove);
+  document.addEventListener('pointerup', onUp);
+  document.addEventListener('pointercancel', onCancel);
+  update(); raf = requestAnimationFrame(loop);
+}
+function initSortables(){
+  document.querySelectorAll('[data-sortable]').forEach(container=>{
+    container.querySelectorAll(':scope > .sortable-item > .drag-handle').forEach(handle=>{
+      handle.addEventListener('pointerdown', e=> startDrag(e, container, handle));
+    });
+  });
+}
+function bindUnitInputs(){
+  document.querySelectorAll('input[id^="unit-"]').forEach(inp=>{
+    inp.addEventListener('keydown', e=>{
+      if(e.key==='Enter'){ const b = inp.parentElement.querySelector('[data-act="save-unit"]'); if(b) b.click(); }
+    });
+  });
+}
+function showPrompt(title, initial, hint){
+  return new Promise(resolve=>{
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `
+      <div class="modal-card" role="dialog" aria-modal="true">
+        <p class="modal-msg" style="font-weight:800;margin-bottom:10px;">${esc(title)}</p>
+        <input type="text" id="prompt-input" value="${esc(initial||'')}" style="margin-bottom:8px;">
+        ${hint ? `<p class="modal-msg" style="font-size:11.5px;color:var(--teal-500);margin-bottom:12px;">${esc(hint)}</p>` : '<div style="height:6px"></div>'}
+        <div class="modal-actions">
+          <button class="btn ghost" id="prompt-cancel">${esc(t('modalCancelBtn'))}</button>
+          <button class="btn" id="prompt-ok">${esc(t('saveBrandBtn'))}</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    const input = overlay.querySelector('#prompt-input');
+    const done = v => { overlay.remove(); resolve(v); };
+    overlay.querySelector('#prompt-cancel').addEventListener('click', ()=>done(null));
+    overlay.querySelector('#prompt-ok').addEventListener('click', ()=>done(input.value));
+    overlay.addEventListener('click', e=>{ if(e.target===overlay) done(null); });
+    input.addEventListener('keydown', e=>{ if(e.key==='Enter') done(input.value); });
+    setTimeout(()=>{ input.focus(); input.select(); }, 50);
+  });
+}
+// Renaming a list value must also rename it wherever it is already used, otherwise old records would no longer match
+function renameListValueEverywhere(key, oldV, newV){
+  const res = {students:false, archive:false};
+  const fieldMap = {groups:'group', subgroups:'subgroup', levels:'level'};
+  if(fieldMap[key]){
+    const f = fieldMap[key];
+    STUDENTS.forEach(st=>{ if(st[f]===oldV){ st[f]=newV; res.students=true; } });
+    (ARCHIVE.students||[]).forEach(a=>{ if(a.data && a.data[f]===oldV){ a.data[f]=newV; res.archive=true; } });
+  } else if(key==='caseTypes'){
+    (CONFIG.departments||[]).forEach(d=>(d.courses||[]).forEach(co=>{
+      if(Array.isArray(co.caseTypes)) co.caseTypes = [...new Set(co.caseTypes.map(n=>n===oldV?newV:n))];
+      (co.caseTypeConfigs||[]).forEach(cc=>{ if(cc.name===oldV) cc.name = newV; });
+    }));
+    if(CONFIG.caseTypeSteps && Object.prototype.hasOwnProperty.call(CONFIG.caseTypeSteps, oldV)){
+      CONFIG.caseTypeSteps[newV] = CONFIG.caseTypeSteps[oldV]; delete CONFIG.caseTypeSteps[oldV];
+    }
+    STUDENTS.forEach(st=>(st.cases||[]).forEach(cs=>{ if(cs.caseType===oldV){ cs.caseType=newV; res.students=true; } }));
+    (ARCHIVE.students||[]).forEach(a=>{ if(a.data) (a.data.cases||[]).forEach(cs=>{ if(cs.caseType===oldV){ cs.caseType=newV; res.archive=true; } }); });
+    (ARCHIVE.cases||[]).forEach(a=>{ if(a.data && a.data.caseType===oldV){ a.data.caseType=newV; res.archive=true; } });
+    if(state.stepsCaseType===oldV) state.stepsCaseType = newV;
+    if(state.statsCaseTypeFilter===oldV) state.statsCaseTypeFilter = newV;
+  }
+  return res;
 }
 
 /* ---------------- Bulk reset (new semester) ---------------- */
@@ -1317,7 +1508,7 @@ function casesHtml(st, readonly){
     <div class="case-item" data-act="toggle-case" data-sid="${st.id}" data-cid="${cs.id}">
       <div style="width:32px;flex-shrink:0;">${ringSvg(pct,32)}</div>
       <div class="ci-info">
-        <div class="ci-name">${esc(cs.caseType || t('caseLabel'))}</div>
+        <div class="ci-name">${esc(cs.caseType || t('caseLabel'))}${cs.unit ? ` <span class="unit-badge">${t('unitBadgePrefix')}${esc(cs.unit)}</span>` : ''}</div>
         <div class="ci-meta">${t('totalGradeLabel')}${total}</div>
         ${partners.length ? `<div class="ci-meta">${t('partnersLabel')}${partners.join('، ')}</div>` : ''}
       </div>
@@ -1325,6 +1516,11 @@ function casesHtml(st, readonly){
       <div class="chev">${open?'▲':'▼'}</div>
     </div>
     ${open ? `<div class="case-body">
+      ${!readonly ? `<div class="field" style="margin-bottom:10px;"><label>${t('unitLabel')}</label>
+        <div class="row" style="gap:8px;align-items:center;">
+          <input type="text" id="unit-${st.id}-${cs.id}" value="${esc(cs.unit||'')}" placeholder="${esc(t('unitPlaceholder'))}" autocomplete="off" style="max-width:150px;">
+          <button class="btn sm" style="width:auto;" data-act="save-unit" data-sid="${st.id}" data-cid="${cs.id}">${t('saveBrandBtn')}</button>
+        </div></div>` : (cs.unit ? `<div class="ci-meta" style="margin-bottom:8px;">${t('unitLabel')}: ${esc(cs.unit)}</div>` : '')}
       ${stepsHtmlForCase(st, cs, readonly)}
       ${!readonly ? `<button class="btn ghost sm" style="width:auto;margin-top:8px;" data-act="toggle-link-partners" data-sid="${st.id}" data-cid="${cs.id}">${icon('link')} ${t('linkPartnerBtn')}</button>` : ''}
       ${linkingThis ? partnerPanelHtml(st,cs) : ''}
@@ -1442,7 +1638,7 @@ function adminHtml(){
       <span class="pill">${t('adminBadge')}</span>
       <button class="btn rust sm" data-act="logout">${t('logoutBtn')}</button>
     </div>
-    ${state.adminTab!=='dashboard' && state.adminTab!=='departments' && state.adminTab!=='lists' && state.adminTab!=='settings' && state.adminTab!=='archive' ? contextBarHtml() : ''}
+    ${state.adminTab!=='dashboard' && state.adminTab!=='departments' && state.adminTab!=='lists' && state.adminTab!=='settings' && state.adminTab!=='archive' && !(state.adminTab==='steps' && state.stepsScope!=='course') ? contextBarHtml() : ''}
     ${adminTabHtml()}
     <div class="bottom-nav">${tabs.map(([k,l])=>`<button class="${state.adminTab===k?'active':''}" data-act="admin-tab" data-tab="${k}">${icon(tabIcons[k]||'list',18)}<span>${l}</span></button>`).join('')}</div>
   `;
@@ -1638,18 +1834,55 @@ function adminSupervisorsHtml(){
   `;
 }
 
+function inheritingCourseCount(typeName){
+  let n = 0;
+  (CONFIG.departments||[]).forEach(d=>(d.courses||[]).forEach(co=>{
+    if((co.caseTypes||[]).includes(typeName)){ const cc = caseTypeConfig(co, typeName); if(!cc || !cc.custom) n++; }
+  }));
+  return n;
+}
+// The steps being shown right now (never mutates anything)
+function currentStepsList(){
+  const type = state.stepsCaseType; if(!type) return [];
+  if(state.stepsScope !== 'course') return globalSteps(type);
+  const course = getCourse(state.adminDeptId, state.adminCourseId);
+  return course ? caseSteps(course, type) : [];
+}
+// The object whose .steps array gets edited. In course scope, the first edit turns the inherited
+// global steps into this course's own copy (same step ids, so recorded progress stays valid).
+function stepsTarget(){
+  const type = state.stepsCaseType; if(!type) return null;
+  if(!CONFIG.caseTypeSteps) CONFIG.caseTypeSteps = {};
+  if(state.stepsScope !== 'course'){
+    if(!Array.isArray(CONFIG.caseTypeSteps[type])) CONFIG.caseTypeSteps[type] = [];
+    return { steps: CONFIG.caseTypeSteps[type] };
+  }
+  const course = getCourse(state.adminDeptId, state.adminCourseId); if(!course) return null;
+  if(!course.caseTypeConfigs) course.caseTypeConfigs = [];
+  let cfg = caseTypeConfig(course, type);
+  if(!cfg){ cfg = {name:type, steps:[], custom:false}; course.caseTypeConfigs.push(cfg); }
+  if(!cfg.custom){
+    cfg.steps = globalSteps(type).map(s=>({id:s.id, name:s.name}));
+    cfg.custom = true;
+  }
+  return cfg;
+}
 function stepLibraryPickHtml(steps){
   const lib = CONFIG.stepLibrary || [];
-  const have = new Set((steps||[]).map(s=>String(s.name).trim().toLowerCase()));
+  const low = x => String(x).trim().toLowerCase();
+  const have = new Set((steps||[]).map(s=>low(s.name)));
+  state.libPickOrder = (state.libPickOrder||[]).filter(n=>lib.includes(n) && !have.has(low(n)));
   return `
     <div class="card">
       <h2>${t('fromLibraryHeading')} — ${esc(state.stepsCaseType)}</h2>
       ${lib.length===0 ? `<p style="font-size:12.5px;color:var(--teal-500);margin:0;">${t('libraryEmptyHint')}</p>` : `
-      <p style="font-size:11.5px;color:var(--teal-500);margin:0 0 10px;">${t('libraryAddedNote')}</p>
+      <p style="font-size:11.5px;color:var(--teal-500);margin:0 0 4px;">${t('libraryAddedNote')}</p>
+      <p style="font-size:11.5px;color:var(--teal-500);margin:0 0 10px;">${t('libraryOrderNote')}</p>
       <div class="chip-row">
         ${lib.map(name=>{
-          const added = have.has(String(name).trim().toLowerCase());
-          return `<label class="chip chip-pick" style="cursor:${added?'default':'pointer'};${added?'opacity:.5;':''}"><input type="checkbox" class="step-lib-chk" value="${esc(name)}" ${added?'checked disabled':''} style="width:auto;margin:0;">${esc(name)}</label>`;
+          const added = have.has(low(name));
+          const pos = added ? -1 : state.libPickOrder.indexOf(name);
+          return `<label class="chip chip-pick" style="cursor:${added?'default':'pointer'};${added?'opacity:.5;':''}"><input type="checkbox" class="step-lib-chk" value="${esc(name)}" ${added?'checked disabled':(pos>=0?'checked':'')} style="width:auto;margin:0;"><span class="pick-num">${pos>=0 ? pos+1 : ''}</span>${esc(name)}</label>`;
         }).join('')}
       </div>
       <div class="row wrap" style="gap:8px;">
@@ -1659,14 +1892,25 @@ function stepLibraryPickHtml(steps){
     </div>`;
 }
 function adminStepsHtml(){
-  if(!state.adminDeptId || !state.adminCourseId) return `<div class="banner">${t('pickContextHint')}</div>`;
-  const course = getCourse(state.adminDeptId, state.adminCourseId);
-  if(!course) return `<div class="banner">${t('pickContextHint')}</div>`;
-  const assignedTypes = course.caseTypes || [];
-  if(!state.stepsCaseType || !assignedTypes.includes(state.stepsCaseType)) state.stepsCaseType = assignedTypes[0] || '';
-  const activeConfig = state.stepsCaseType ? caseTypeConfig(course, state.stepsCaseType) : null;
-  const steps = activeConfig ? activeConfig.steps : [];
-  return `
+  const scope = state.stepsScope === 'course' ? 'course' : 'global';
+  const toggle = `<div class="tabbar">
+      <button class="${scope==='global'?'active':''}" data-act="set-steps-scope" data-scope="global">${t('stepsScopeGlobal')}</button>
+      <button class="${scope==='course'?'active':''}" data-act="set-steps-scope" data-scope="course">${t('stepsScopeCourse')}</button>
+    </div>`;
+  let course = null, types = [];
+  if(scope==='course'){
+    if(!state.adminDeptId || !state.adminCourseId) return toggle + `<div class="banner">${t('pickContextHint')}</div>`;
+    course = getCourse(state.adminDeptId, state.adminCourseId);
+    if(!course) return toggle + `<div class="banner">${t('pickContextHint')}</div>`;
+    types = courseCaseTypes(course);
+  } else {
+    types = CONFIG.caseTypes || [];
+  }
+  if(!state.stepsCaseType || !types.includes(state.stepsCaseType)) state.stepsCaseType = types[0] || '';
+  const steps = currentStepsList();
+  const cfg = (scope==='course' && state.stepsCaseType) ? caseTypeConfig(course, state.stepsCaseType) : null;
+
+  const courseSettings = scope==='course' ? `
     <div class="card">
       <h2>${t('courseSettingsHeading')}</h2>
       <div class="field"><label>${t('deadlineLabel')}</label><input type="text" id="course-deadline" placeholder="YYYY-MM-DD" value="${esc(course.deadline||'')}" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" style="max-width:220px;"></div>
@@ -1674,23 +1918,35 @@ function adminStepsHtml(){
       <h3 class="section-title" style="margin-top:0;">${t('allowedCaseTypesHeading')}</h3>
       ${(CONFIG.caseTypes||[]).length===0 ? `<p style="font-size:12px;color:var(--teal-500);">—</p>` : `
       <div class="chip-row">
-        ${(CONFIG.caseTypes||[]).map((c)=>{
-          const checked = assignedTypes.includes(c);
+        ${(CONFIG.caseTypes||[]).map((ct)=>{
+          const checked = types.includes(ct);
           return `<label class="chip" style="cursor:pointer;background:${checked?'var(--gold-light)':'var(--teal-100)'};">
-            <input type="checkbox" class="course-casetype-chk" value="${esc(c)}" ${checked?'checked':''} style="width:auto;margin:0;">
-            ${esc(c)}
+            <input type="checkbox" class="course-casetype-chk" value="${esc(ct)}" ${checked?'checked':''} style="width:auto;margin:0;">
+            ${esc(ct)}
           </label>`;
         }).join('')}
       </div>`}
       <button class="btn ghost sm" style="width:auto;" data-act="save-course-casetypes">${t('saveCaseTypesBtn')}</button>
-    </div>
+    </div>` : '';
 
-    ${assignedTypes.length===0 ? `<div class="banner">${state.lang==='ar' ? 'خصص نوع حالة واحد على الأقل فوق قبل ما تقدر تضيفله خطوات.' : 'Assign at least one case type above before you can add steps to it.'}</div>` : `
+  if(types.length===0){
+    return toggle + courseSettings + `<div class="banner">${scope==='course' ? (state.lang==='ar' ? 'خصص نوع حالة واحد على الأقل فوق قبل ما تقدر تضيفله خطوات.' : 'Assign at least one case type above before you can add steps to it.') : t('noCaseTypesGlobalHint')}</div>`;
+  }
+
+  let note = '';
+  if(scope==='global') note = `<div class="banner">${t('stepsGlobalNote')} <b>${inheritingCourseCount(state.stepsCaseType)}</b></div>`;
+  else if(cfg && cfg.custom) note = `<div class="banner">${t('stepsCustomNote')}<br><button class="btn ghost sm" style="width:auto;margin-top:8px;" data-act="revert-course-steps">${t('revertStepsBtn')}</button></div>`;
+  else note = `<div class="banner">${t('stepsInheritedNote')}</div>`;
+
+  return `
+    ${toggle}
+    ${courseSettings}
     <div class="field"><label>${state.lang==='ar' ? 'اختار الحالة لتعديل خطواتها' : 'Choose a case type to edit its steps'}</label>
       <select id="steps-casetype-select">
-        ${assignedTypes.map(name=>`<option value="${esc(name)}" ${state.stepsCaseType===name?'selected':''}>${esc(name)}</option>`).join('')}
+        ${types.map(name=>`<option value="${esc(name)}" ${state.stepsCaseType===name?'selected':''}>${esc(name)}</option>`).join('')}
       </select>
     </div>
+    ${note}
     <div class="card">
       <h2>${t('addStepHeading')} — ${esc(state.stepsCaseType)}</h2>
       <div class="field"><label>${t('stepNameLabel')}</label><input type="text" id="new-step-name"></div>
@@ -1698,9 +1954,11 @@ function adminStepsHtml(){
     </div>
     ${stepLibraryPickHtml(steps)}
     <h3 class="section-title">${t('stepsOrderHeading')} (${steps.length})</h3>
+    <div data-sortable="steps">
     ${steps.map((s,i)=>`
-      <div class="list-item">
-        <div class="txt">${i+1}. ${esc(s.name)}</div>
+      <div class="list-item sortable-item" data-idx="${i}">
+        <span class="drag-handle" title="${esc(t('dragToReorder'))}">${icon('grip',16)}</span>
+        <div class="txt" style="flex:1;min-width:0;">${i+1}. ${esc(s.name)}</div>
         <div class="row" style="width:auto;gap:2px;">
           <button class="icon-btn up-down" data-act="rename-step" data-idx="${i}">${icon('edit')}</button>
           <button class="icon-btn up-down" data-act="move-step" data-dir="up" data-idx="${i}" ${i===0?'disabled':''}>▲</button>
@@ -1708,10 +1966,24 @@ function adminStepsHtml(){
           <button class="icon-btn" data-act="del-step" data-idx="${i}">${icon('trash')}</button>
         </div>
       </div>`).join('')}
-    `}
+    </div>
   `;
 }
 
+function sortableListHtml(listKey, arr){
+  if(!arr.length) return `<span style="color:var(--teal-500);font-size:12.5px;">—</span>`;
+  return `<div data-sortable="list:${listKey}">${arr.map((v,i)=>`
+    <div class="list-item sortable-item" data-idx="${i}">
+      <span class="drag-handle" title="${esc(t('dragToReorder'))}">${icon('grip',16)}</span>
+      <div class="txt" style="flex:1;min-width:0;">${esc(v)}</div>
+      <div class="row" style="width:auto;gap:2px;">
+        <button class="icon-btn up-down" data-act="edit-list-value" data-list="${listKey}" data-idx="${i}">${icon('edit')}</button>
+        <button class="icon-btn up-down" data-act="move-list-value" data-dir="up" data-list="${listKey}" data-idx="${i}" ${i===0?'disabled':''}>▲</button>
+        <button class="icon-btn up-down" data-act="move-list-value" data-dir="down" data-list="${listKey}" data-idx="${i}" ${i===arr.length-1?'disabled':''}>▼</button>
+        <button class="icon-btn" data-act="del-list-value" data-list="${listKey}" data-idx="${i}">${icon('trash')}</button>
+      </div>
+    </div>`).join('')}</div>`;
+}
 function listSectionHtml(listKey, heading, labelKey){
   const arr = CONFIG[listKey] || [];
   const currentLabel = CONFIG.fieldLabels[labelKey] || '';
@@ -1725,10 +1997,7 @@ function listSectionHtml(listKey, heading, labelKey){
         <input type="text" id="new-list-${listKey}" placeholder="${t('newValuePlaceholder')}" style="flex:1;">
         <button class="btn sm" style="width:auto;" data-act="add-list-value" data-list="${listKey}">${t('addBtn')}</button>
       </div>
-      <div class="chip-row">
-        ${arr.length===0 ? `<span style="color:var(--teal-500);font-size:12.5px;">—</span>` :
-          arr.map((v,i)=>`<span class="chip">${esc(v)}<button data-act="del-list-value" data-list="${listKey}" data-idx="${i}">✕</button></span>`).join('')}
-      </div>
+      ${sortableListHtml(listKey, arr)}
       <button class="btn ghost sm" style="width:auto;margin-top:10px;" data-act="save-field-label" data-label="${labelKey}">${t('saveBrandBtn')}</button>
     </div>
   `;
@@ -1741,10 +2010,7 @@ function stepLibrarySectionHtml(){
       <p style="font-size:12px;color:var(--teal-500);margin:0 0 10px;line-height:1.7;">${t('stepLibraryHint')}</p>
       <div class="field"><textarea id="new-library-steps" rows="3" placeholder="${esc(t('stepLibraryPlaceholder'))}"></textarea></div>
       <button class="btn sm" style="width:auto;margin-bottom:12px;" data-act="add-library-steps">${t('addBtn')}</button>
-      <div class="chip-row" style="margin-bottom:0;">
-        ${arr.length===0 ? `<span style="color:var(--teal-500);font-size:12.5px;">—</span>` :
-          arr.map((v,i)=>`<span class="chip">${esc(v)}<button data-act="del-list-value" data-list="stepLibrary" data-idx="${i}">✕</button></span>`).join('')}
-      </div>
+      ${sortableListHtml('stepLibrary', arr)}
     </div>
   `;
 }
@@ -1765,7 +2031,7 @@ function statsFilteredStudents(){
 function adminStatsHtml(){
   if(!state.adminDeptId || !state.adminCourseId) return `<div class="banner">${t('pickContextHint')}</div>`;
   const course = getCourse(state.adminDeptId, state.adminCourseId);
-  const assignedTypes = course ? (course.caseTypes||[]) : [];
+  const assignedTypes = courseCaseTypes(course);
   const students = statsFilteredStudents();
   let rows = [];
   students.forEach(st=> (st.cases||[]).forEach(cs=> rows.push({st, cs})) );
@@ -1864,24 +2130,32 @@ function adminDashboardHtml(){
   const departments = CONFIG.departments||[];
 
   const deptCards = departments.map(d=>{
-    const deptStudents = allStudents.filter(s=>s.departmentId===d.id);
-    const deptCases = [];
-    deptStudents.forEach(st=> (st.cases||[]).forEach(cs=> deptCases.push({st,cs})) );
-    const pct = deptCases.length ? Math.round(deptCases.reduce((sum,{st,cs})=>sum+casePct(st,cs),0)/deptCases.length) : 0;
-    const completedCases = deptCases.filter(({st,cs})=>casePct(st,cs)===100).length;
-    const notStarted = deptStudents.filter(s=>(s.cases||[]).length===0).length;
+    const courses = d.courses || [];
+    const courseBlocks = courses.map(co=>{
+      const courseStudents = allStudents.filter(s=>s.departmentId===d.id && s.courseId===co.id);
+      const courseCases = [];
+      courseStudents.forEach(st=> (st.cases||[]).forEach(cs=> courseCases.push({st,cs})) );
+      const pct = courseCases.length ? Math.round(courseCases.reduce((sum,{st,cs})=>sum+casePct(st,cs),0)/courseCases.length) : 0;
+      const completedCases = courseCases.filter(({st,cs})=>casePct(st,cs)===100).length;
+      const notStarted = courseStudents.filter(s=>(s.cases||[]).length===0).length;
+      return `
+        <div class="course-block">
+          <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <h3 class="course-block-title">${esc(co.name)}</h3>
+            ${ringSvg(pct, 42)}
+          </div>
+          <div class="row wrap" style="gap:8px;">
+            <span class="pill">${t('dashTotalStudents')}: ${courseStudents.length}</span>
+            <span class="pill">${t('dashTotalCases')}: ${courseCases.length}</span>
+            <span class="pill">${t('dashCompletedCases')}: ${completedCases}</span>
+            <span class="pill">${t('dashNotStarted')}: ${notStarted}</span>
+          </div>
+        </div>`;
+    }).join('');
     return `
       <div class="card">
-        <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:12px;">
-          <h2 style="margin:0;">${esc(d.name)}</h2>
-          ${ringSvg(pct, 46)}
-        </div>
-        <div class="row wrap" style="gap:8px;">
-          <span class="pill">${t('dashTotalStudents')}: ${deptStudents.length}</span>
-          <span class="pill">${t('dashTotalCases')}: ${deptCases.length}</span>
-          <span class="pill">${t('dashCompletedCases')}: ${completedCases}</span>
-          <span class="pill">${t('dashNotStarted')}: ${notStarted}</span>
-        </div>
+        <h2>${esc(d.name)}</h2>
+        ${courses.length ? courseBlocks : `<p style="font-size:12.5px;color:var(--teal-500);margin:0;">${t('dashNoCourses')}</p>`}
       </div>`;
   }).join('');
 
@@ -1965,7 +2239,7 @@ function adminSettingsHtml(){
 }
 
 /* ================= Events ================= */
-function bindEvents(){
+function bindEventsCore_(){
   document.querySelectorAll('[data-act]').forEach(el=> el.addEventListener('click', onAction));
   const search = document.getElementById('search-input');
   if(search) search.addEventListener('input', e=>{ state.search = e.target.value; render(); focusSearch(); });
@@ -1987,9 +2261,9 @@ function bindEvents(){
   const ctxDept = document.getElementById('ctx-dept');
   if(ctxDept) ctxDept.addEventListener('change', e=>{ state.adminDeptId = e.target.value; state.adminCourseId=''; render(); });
   const ctxCourse = document.getElementById('ctx-course');
-  if(ctxCourse) ctxCourse.addEventListener('change', e=>{ state.adminCourseId = e.target.value; state.stepsCaseType=''; render(); });
+  if(ctxCourse) ctxCourse.addEventListener('change', e=>{ state.adminCourseId = e.target.value; state.stepsCaseType=''; state.libPickOrder=[]; render(); });
   const stepsCtSel = document.getElementById('steps-casetype-select');
-  if(stepsCtSel) stepsCtSel.addEventListener('change', e=>{ state.stepsCaseType = e.target.value; render(); });
+  if(stepsCtSel) stepsCtSel.addEventListener('change', e=>{ state.stepsCaseType = e.target.value; state.libPickOrder=[]; render(); });
 
   ['new-st-group','new-st-subgroup','new-st-level'].forEach(id=>{
     const sel = document.getElementById(id);
@@ -2007,6 +2281,28 @@ function bindEvents(){
       });
     }
   });
+}
+function refreshPickBadges(){
+  document.querySelectorAll('.step-lib-chk').forEach(cb=>{
+    const b = cb.parentElement.querySelector('.pick-num'); if(!b) return;
+    const i = (state.libPickOrder||[]).indexOf(cb.value);
+    b.textContent = (!cb.disabled && i>=0) ? (i+1) : '';
+  });
+}
+function bindLibraryPicks(){
+  document.querySelectorAll('.step-lib-chk:not(:disabled)').forEach(cb=>{
+    cb.addEventListener('change', ()=>{
+      state.libPickOrder = (state.libPickOrder||[]).filter(n=>n!==cb.value);
+      if(cb.checked) state.libPickOrder.push(cb.value);   // click order = order the steps will be added in
+      refreshPickBadges();
+    });
+  });
+}
+function bindEvents(){
+  bindEventsCore_();
+  bindLibraryPicks();
+  initSortables();
+  bindUnitInputs();
 }
 function focusSearch(){
   const el = document.getElementById('search-input');
@@ -2113,7 +2409,7 @@ async function onAction(e){
       if(!CONFIG.caseTypes.includes(custom)){ CONFIG.caseTypes.push(custom); configChanged = true; }
       if(!course.caseTypes.includes(custom)){ course.caseTypes.push(custom); configChanged = true; }
       if(!course.caseTypeConfigs) course.caseTypeConfigs = [];
-      if(!course.caseTypeConfigs.some(c=>c.name===custom)){ course.caseTypeConfigs.push({name:custom, steps:[]}); configChanged = true; }
+      if(!course.caseTypeConfigs.some(c=>c.name===custom)){ course.caseTypeConfigs.push({name:custom, steps:[], custom:false}); configChanged = true; }
     }
     await setData('students', STUDENTS);
     if(configChanged) await setData('config', CONFIG);
@@ -2222,7 +2518,7 @@ async function onAction(e){
     const name = inp.value.trim();
     if(!name) return;
     if(!d.courses) d.courses = [];
-    d.courses.push({ id: courseId(), name, steps: defaultSteps() });
+    d.courses.push({ id: courseId(), name, deadline:'', caseTypes:[], caseTypeConfigs:[] });
     await setData('config', CONFIG);
     render(); return;
   }
@@ -2243,6 +2539,14 @@ async function onAction(e){
     render(); return;
   }
 
+  if(act==='save-unit'){
+    const st = STUDENTS.find(s=>s.id===el.dataset.sid); if(!st) return;
+    const cs = (st.cases||[]).find(x=>x.id===el.dataset.cid); if(!cs) return;
+    const inp = document.getElementById('unit-'+st.id+'-'+cs.id);   // partners share the case id, so the input id includes the student
+    cs.unit = inp ? inp.value.trim() : '';          // belongs to this student's copy of the case only — partners keep their own
+    await setData('students', STUDENTS);
+    render(); return;
+  }
   if(act==='edit-student'){
     const st = STUDENTS.find(s=>s.id===el.dataset.id); if(!st) return;
     const v = await showEditStudentDialog(st);
@@ -2414,7 +2718,7 @@ async function onAction(e){
       if(!person) return;
       if(!person.cases) person.cases = [];
       if(!person.cases.some(c=>c.id===restoredCase.id)){
-        person.cases.push(Object.assign(JSON.parse(JSON.stringify(restoredCase)), { partnerIds: stillExisting.filter(x=>x!==pid) }));
+        person.cases.push(Object.assign(JSON.parse(JSON.stringify(restoredCase)), { partnerIds: stillExisting.filter(x=>x!==pid), unit: pid===entry.studentId ? (restoredCase.unit||'') : '' }));
       }
     });
     if(!PROGRESS[restoredCase.id]) PROGRESS[restoredCase.id] = JSON.parse(JSON.stringify(entry.progressSnapshot||{}));
@@ -2486,53 +2790,57 @@ async function onAction(e){
     course.caseTypes = checked;
     if(!course.caseTypeConfigs) course.caseTypeConfigs = [];
     checked.forEach(name=>{
-      if(!course.caseTypeConfigs.some(c=>c.name===name)) course.caseTypeConfigs.push({name, steps:[]});
+      if(!course.caseTypeConfigs.some(c=>c.name===name)) course.caseTypeConfigs.push({name, steps:[], custom:false});
     });
     const ok = await setData('config', CONFIG);
     if(ok) showAlert(t('brandSaved'));
     render(); return;
   }
-  if(act==='add-step'){
+  if(act==='set-steps-scope'){ state.stepsScope = el.dataset.scope==='course' ? 'course' : 'global'; state.stepsCaseType=''; state.libPickOrder=[]; render(); return; }
+  if(act==='revert-course-steps'){
     const course = getCourse(state.adminDeptId, state.adminCourseId); if(!course) return;
-    const cfg = caseTypeConfig(course, state.stepsCaseType); if(!cfg) return;
+    const cfg = caseTypeConfig(course, state.stepsCaseType); if(!cfg || !cfg.custom) return;
+    if(!(await showConfirm(t('confirmRevertSteps')))) return;
+    cfg.custom = false; cfg.steps = [];
+    await setData('config', CONFIG);
+    render(); return;
+  }
+  if(act==='add-step'){
     const val = document.getElementById('new-step-name').value.trim();
     if(!val) return;
-    if(cfg.steps.some(s=>s.name===val)){ showAlert(t('alertDuplicateStep')); return; }
-    cfg.steps.push({id: stepId(), name: val});
+    if(currentStepsList().some(s=>s.name===val)){ showAlert(t('alertDuplicateStep')); return; }
+    const tgt = stepsTarget(); if(!tgt) return;
+    tgt.steps.push({id: stepId(), name: val});
     await setData('config', CONFIG);
     render(); return;
   }
   if(act==='del-step'){
-    const course = getCourse(state.adminDeptId, state.adminCourseId); if(!course) return;
-    const cfg = caseTypeConfig(course, state.stepsCaseType); if(!cfg) return;
+    if(!state.stepsCaseType) return;
     if(!(await showConfirm(t('confirmDeleteStep')))) return;
-    cfg.steps.splice(+el.dataset.idx,1);
+    const tgt = stepsTarget(); if(!tgt) return;
+    tgt.steps.splice(+el.dataset.idx,1);
     await setData('config', CONFIG);
     render(); return;
   }
   if(act==='rename-step'){
-    const course = getCourse(state.adminDeptId, state.adminCourseId); if(!course) return;
-    const cfg = caseTypeConfig(course, state.stepsCaseType); if(!cfg) return;
     const idx = +el.dataset.idx;
-    const step = cfg.steps[idx];
-    const newName = prompt(t('promptNewStepName'), step.name);
-    if(!newName || !newName.trim()) return;
-    if(cfg.steps.some((s,i)=>i!==idx && s.name===newName.trim())){ showAlert(t('alertDuplicateStep')); return; }
-    step.name = newName.trim();
+    const cur = currentStepsList()[idx]; if(!cur) return;
+    const newName = await showPrompt(t('promptNewStepName'), cur.name);
+    if(newName===null || !newName.trim() || newName.trim()===cur.name) return;
+    if(currentStepsList().some((s,i)=>i!==idx && s.name===newName.trim())){ showAlert(t('alertDuplicateStep')); return; }
+    const tgt = stepsTarget(); if(!tgt || !tgt.steps[idx]) return;
+    tgt.steps[idx].name = newName.trim();
     await setData('config', CONFIG);
     render(); return;
   }
   if(act==='move-step'){
-    const course = getCourse(state.adminDeptId, state.adminCourseId); if(!course) return;
-    const cfg = caseTypeConfig(course, state.stepsCaseType); if(!cfg) return;
-    const idx = +el.dataset.idx, dir = el.dataset.dir;
-    const swap = dir==='up' ? idx-1 : idx+1;
-    if(swap<0 || swap>=cfg.steps.length) return;
-    [cfg.steps[idx], cfg.steps[swap]] = [cfg.steps[swap], cfg.steps[idx]];
+    const idx = +el.dataset.idx, swap = el.dataset.dir==='up' ? idx-1 : idx+1;
+    if(swap<0 || swap>=currentStepsList().length) return;
+    const tgt = stepsTarget(); if(!tgt) return;
+    [tgt.steps[idx], tgt.steps[swap]] = [tgt.steps[swap], tgt.steps[idx]];
     await setData('config', CONFIG);
     render(); return;
   }
-
   if(act==='add-library-steps'){
     const raw = document.getElementById('new-library-steps').value;
     const lines = raw.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
@@ -2546,22 +2854,49 @@ async function onAction(e){
     render(); return;
   }
   if(act==='library-select-all'){
-    document.querySelectorAll('.step-lib-chk:not(:disabled)').forEach(cb=>{ cb.checked = true; });
-    return;
+    const low = x => String(x).trim().toLowerCase();
+    const have = new Set(currentStepsList().map(s=>low(s.name)));
+    (CONFIG.stepLibrary||[]).forEach(n=>{ if(!have.has(low(n)) && !state.libPickOrder.includes(n)) state.libPickOrder.push(n); });
+    render(); return;
   }
   if(act==='add-library-selected'){
-    const course = getCourse(state.adminDeptId, state.adminCourseId); if(!course) return;
-    const cfg = caseTypeConfig(course, state.stepsCaseType); if(!cfg) return;
-    const picked = [...document.querySelectorAll('.step-lib-chk:not(:disabled):checked')].map(x=>x.value);
+    const lib = CONFIG.stepLibrary || [];
+    const picked = (state.libPickOrder||[]).filter(n=>lib.includes(n));   // exactly the order they were clicked in
     if(!picked.length){ showAlert(t('nothingSelectedAlert')); return; }
-    const have = new Set(cfg.steps.map(s=>String(s.name).trim().toLowerCase()));
+    const tgt = stepsTarget(); if(!tgt) return;
+    const have = new Set(tgt.steps.map(s=>String(s.name).trim().toLowerCase()));
     picked.forEach(name=>{
       const k = String(name).trim().toLowerCase();
       if(have.has(k)) return;
       have.add(k);
-      let id; do{ id = stepId(); }while(cfg.steps.some(s=>s.id===id));
-      cfg.steps.push({id, name});
+      let id; do{ id = stepId(); }while(tgt.steps.some(s=>s.id===id));
+      tgt.steps.push({id, name});
     });
+    state.libPickOrder = [];
+    await setData('config', CONFIG);
+    render(); return;
+  }
+  if(act==='edit-list-value'){
+    const key = el.dataset.list, idx = +el.dataset.idx;
+    if(!Array.isArray(CONFIG[key])) return;
+    const oldV = CONFIG[key][idx]; if(oldV===undefined) return;
+    const hint = key==='stepLibrary' ? '' : t('renameCascadeHint');
+    const val = await showPrompt(t('editValueTitle'), oldV, hint);
+    if(val===null) return;
+    const nv = val.trim();
+    if(!nv || nv===oldV) return;
+    if(CONFIG[key].some((x,i)=>i!==idx && String(x).toLowerCase()===nv.toLowerCase())){ showAlert(t('alertDuplicateListValue')); return; }
+    const affected = renameListValueEverywhere(key, oldV, nv);
+    CONFIG[key][idx] = nv;
+    await setData('config', CONFIG);
+    if(affected.students) await setData('students', STUDENTS);
+    if(affected.archive) await setData('archive', ARCHIVE);
+    render(); return;
+  }
+  if(act==='move-list-value'){
+    const key = el.dataset.list, idx = +el.dataset.idx, to = el.dataset.dir==='up' ? idx-1 : idx+1;
+    if(!Array.isArray(CONFIG[key]) || to<0 || to>=CONFIG[key].length) return;
+    moveItem(CONFIG[key], idx, to);
     await setData('config', CONFIG);
     render(); return;
   }
@@ -2718,7 +3053,7 @@ async function pollForUpdates(){
   CONFIG = mergedConfig; STUDENTS = mergedStudents; PROGRESS = mergedProgress; ARCHIVE = mergedArchive;
   if(changed){
     const typing = typeof document!=='undefined' && document.activeElement && ['INPUT','TEXTAREA'].includes(document.activeElement.tagName);
-    if(!typing) render();
+    if(!typing && !state.dragging) render();
   }
 }
 
