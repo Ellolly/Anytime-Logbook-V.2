@@ -120,6 +120,21 @@
   .sortable-item.drop-before{box-shadow:0 -3px 0 0 var(--teal-700);}
   .sortable-item.drop-after{box-shadow:0 3px 0 0 var(--teal-700);}
   body.dragging-active{user-select:none;-webkit-user-select:none;cursor:grabbing;}
+  .chip-grid{display:flex;flex-wrap:wrap;gap:8px;}
+  .sortable-chip{position:relative;gap:4px;padding-block:3px;padding-inline:3px 8px;max-width:100%;border:1px solid var(--line);}
+  .sortable-chip .drag-handle{margin:0;padding:6px 3px;}
+  .sortable-chip .chip-text{min-width:0;overflow-wrap:anywhere;cursor:pointer;}
+  .sortable-chip .chip-btn{background:none;border:none;cursor:pointer;padding:4px 3px;line-height:1;display:inline-flex;align-items:center;color:var(--teal-500);font-size:13px;}
+  .sortable-chip .chip-btn:hover{color:var(--teal-700);}
+  .sortable-chip .chip-btn.danger{color:var(--rust);}
+  .sortable-chip.drop-before,.sortable-chip.drop-after{box-shadow:none;}
+  .sortable-chip.drop-before::before,.sortable-chip.drop-after::after{content:'';position:absolute;top:-3px;bottom:-3px;width:3px;border-radius:2px;background:var(--teal-700);}
+  .sortable-chip.drop-before::before{inset-inline-start:-6px;}
+  .sortable-chip.drop-after::after{inset-inline-end:-6px;}
+  @media (pointer:coarse){ .sortable-chip{padding-block:6px;} .sortable-chip .drag-handle{padding:8px 5px;} .sortable-chip .chip-btn{padding:6px 5px;} }
+  .list-count{font-weight:500;color:var(--teal-500);font-size:12px;}
+  .field-label-box{margin-top:14px;border-top:1px dashed var(--line);padding-top:10px;}
+  .field-label-box summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--teal-500);}
   .course-block + .course-block{border-top:1px solid var(--line);margin-top:14px;padding-top:14px;}
   .course-block-title{margin:0;font-size:14.5px;font-weight:800;color:var(--teal-900);}
   .unit-badge{display:inline-block;font-size:10.5px;font-weight:700;background:var(--teal-100);color:var(--teal-900);border-radius:10px;padding:1px 8px;vertical-align:middle;font-family:'Space Mono',monospace;}
@@ -243,7 +258,7 @@ const I18N = {
     confirmRevertSteps:"هتتمسح الخطوات الخاصة بالكورس ده ويرجع يستخدم الخطوات العامة. أي تقدم مسجل على خطوات مش موجودة في الخطوات العامة مش هيظهر. تكمل؟",
     noCaseTypesGlobalHint:"ضيف أنواع حالات من تبويب القوائم الأول.",
     libraryOrderNote:"الخطوات هتتضاف بنفس ترتيب ما بتضغط عليها (الرقم اللي على كل واحدة).",
-    dragToReorder:"اسحب لإعادة الترتيب", editValueTitle:"تعديل القيمة",
+    dragToReorder:"اسحب لإعادة الترتيب", fieldLabelSettings:"اسم الحقل في الفورم (اختياري)", editValueTitle:"تعديل القيمة",
     renameCascadeHint:"لو القيمة دي مستخدمة في طلاب أو حالات، هتتحدّث عندهم تلقائيًا.",
     unitLabel:"رقم اليونيت", unitPlaceholder:"مثلاً 12", unitBadgePrefix:"يونيت ",
     dashNoCourses:"مفيش كورسات في القسم ده لسه.",
@@ -372,7 +387,7 @@ const I18N = {
     confirmRevertSteps:"This course's own steps will be deleted and it will use the global steps again. Progress recorded on steps that aren't in the global steps won't show. Continue?",
     noCaseTypesGlobalHint:"Add case types from the Lists tab first.",
     libraryOrderNote:"Steps are added in the order you click them (the number on each one).",
-    dragToReorder:"Drag to reorder", editValueTitle:"Edit value",
+    dragToReorder:"Drag to reorder", fieldLabelSettings:"Field name in the forms (optional)", editValueTitle:"Edit value",
     renameCascadeHint:"If this value is already used by students or cases, it is updated there automatically.",
     unitLabel:"Unit number", unitPlaceholder:"e.g. 12", unitBadgePrefix:"Unit ",
     dashNoCourses:"No courses in this department yet.",
@@ -870,7 +885,7 @@ let state = {
 };
 
 function esc(s){ return (s+'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-const APP_VERSION = 'v1.4.0';
+const APP_VERSION = 'v1.4.1';
 const ICON_PATHS = {
   trash: '<polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>',
   edit: '<path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>',
@@ -981,6 +996,20 @@ function dropIndexFromRects(rects, y){
   for(let i=0;i<rects.length;i++){ if(y < rects[i].top + rects[i].height/2) return i; }
   return rects.length;
 }
+// Same idea for rows that wrap (chips): find the nearest chip, then decide before/after from the pointer's side of its centre
+function dropIndexGrid(rects, x, y, rtl){
+  if(!rects.length) return 0;
+  let best = 0, bestD = Infinity;
+  rects.forEach((r,i)=>{
+    const dx = x < r.left ? r.left - x : (x > r.left + r.width ? x - (r.left + r.width) : 0);
+    const dy = y < r.top ? r.top - y : (y > r.top + r.height ? y - (r.top + r.height) : 0);
+    const d = dx*dx + dy*dy*3;       // a row-mate beats a neighbour on another row
+    if(d < bestD){ bestD = d; best = i; }
+  });
+  const r = rects[best], centre = r.left + r.width/2;
+  const before = rtl ? (x > centre) : (x < centre);
+  return before ? best : best + 1;
+}
 function insertionToFinalIndex(from, ins){ return ins > from ? ins-1 : ins; }
 
 async function reorderByKind(kind, from, to){
@@ -1001,12 +1030,14 @@ function startDrag(e, container, handle){
   e.preventDefault();
   const items = [...container.querySelectorAll(':scope > .sortable-item')];
   const from = items.indexOf(item);
-  let ins = from, lastY = e.clientY, raf = null, active = true;
+  const grid = container.dataset.layout === 'grid';
+  let ins = from, lastX = e.clientX, lastY = e.clientY, raf = null, active = true;
   state.dragging = true;
   item.classList.add('dragging'); document.body.classList.add('dragging-active');
   const clearMarks = ()=> items.forEach(it=>it.classList.remove('drop-before','drop-after'));
   const update = ()=>{
-    ins = dropIndexFromRects(items.map(it=>it.getBoundingClientRect()), lastY);
+    const rects = items.map(it=>it.getBoundingClientRect());
+    ins = grid ? dropIndexGrid(rects, lastX, lastY, document.documentElement.dir==='rtl') : dropIndexFromRects(rects, lastY);
     clearMarks();
     if(ins < items.length) items[ins].classList.add('drop-before'); else items[items.length-1].classList.add('drop-after');
   };
@@ -1017,7 +1048,7 @@ function startDrag(e, container, handle){
     update();
     raf = requestAnimationFrame(loop);
   };
-  const onMove = ev=>{ lastY = ev.clientY; update(); };
+  const onMove = ev=>{ lastX = ev.clientX; lastY = ev.clientY; update(); };
   const finish = commit=>{
     if(commit) update();   // use the final pointer position, not the last animation frame's
     active = false; cancelAnimationFrame(raf);
@@ -1972,33 +2003,32 @@ function adminStepsHtml(){
 
 function sortableListHtml(listKey, arr){
   if(!arr.length) return `<span style="color:var(--teal-500);font-size:12.5px;">—</span>`;
-  return `<div data-sortable="list:${listKey}">${arr.map((v,i)=>`
-    <div class="list-item sortable-item" data-idx="${i}">
-      <span class="drag-handle" title="${esc(t('dragToReorder'))}">${icon('grip',16)}</span>
-      <div class="txt" style="flex:1;min-width:0;">${esc(v)}</div>
-      <div class="row" style="width:auto;gap:2px;">
-        <button class="icon-btn up-down" data-act="edit-list-value" data-list="${listKey}" data-idx="${i}">${icon('edit')}</button>
-        <button class="icon-btn up-down" data-act="move-list-value" data-dir="up" data-list="${listKey}" data-idx="${i}" ${i===0?'disabled':''}>▲</button>
-        <button class="icon-btn up-down" data-act="move-list-value" data-dir="down" data-list="${listKey}" data-idx="${i}" ${i===arr.length-1?'disabled':''}>▼</button>
-        <button class="icon-btn" data-act="del-list-value" data-list="${listKey}" data-idx="${i}">${icon('trash')}</button>
-      </div>
-    </div>`).join('')}</div>`;
+  return `<div class="chip-grid" data-sortable="list:${listKey}" data-layout="grid">${arr.map((v,i)=>`
+    <span class="chip sortable-item sortable-chip" data-idx="${i}">
+      <span class="drag-handle" title="${esc(t('dragToReorder'))}">${icon('grip',14)}</span>
+      <span class="chip-text" data-act="edit-list-value" data-list="${listKey}" data-idx="${i}" title="${esc(t('editValueTitle'))}">${esc(v)}</span>
+      <button class="chip-btn" data-act="edit-list-value" data-list="${listKey}" data-idx="${i}" title="${esc(t('editValueTitle'))}">${icon('edit',13)}</button>
+      <button class="chip-btn danger" data-act="del-list-value" data-list="${listKey}" data-idx="${i}">✕</button>
+    </span>`).join('')}</div>`;
 }
 function listSectionHtml(listKey, heading, labelKey){
   const arr = CONFIG[listKey] || [];
   const currentLabel = CONFIG.fieldLabels[labelKey] || '';
   return `
     <div class="card">
-      <h2>${heading}</h2>
-      <div class="field"><label>${t('labelForThisField')}</label>
-        <input type="text" id="label-${labelKey}" value="${esc(currentLabel)}" placeholder="${esc(t(labelKey==='group'?'groupSelectLabel':labelKey==='subgroup'?'subgroupSelectLabel':labelKey==='level'?'levelSelectLabel':'caseTypeLabel'))}">
-      </div>
-      <div class="row" style="margin-bottom:10px;">
+      <h2>${heading} <span class="list-count">(${arr.length})</span></h2>
+      <div class="row" style="margin-bottom:12px;">
         <input type="text" id="new-list-${listKey}" placeholder="${t('newValuePlaceholder')}" style="flex:1;">
         <button class="btn sm" style="width:auto;" data-act="add-list-value" data-list="${listKey}">${t('addBtn')}</button>
       </div>
       ${sortableListHtml(listKey, arr)}
-      <button class="btn ghost sm" style="width:auto;margin-top:10px;" data-act="save-field-label" data-label="${labelKey}">${t('saveBrandBtn')}</button>
+      <details class="field-label-box">
+        <summary>${t('fieldLabelSettings')}</summary>
+        <div class="field" style="margin-top:8px;"><label>${t('labelForThisField')}</label>
+          <input type="text" id="label-${labelKey}" value="${esc(currentLabel)}" placeholder="${esc(t(labelKey==='group'?'groupSelectLabel':labelKey==='subgroup'?'subgroupSelectLabel':labelKey==='level'?'levelSelectLabel':'caseTypeLabel'))}">
+        </div>
+        <button class="btn ghost sm" style="width:auto;" data-act="save-field-label" data-label="${labelKey}">${t('saveBrandBtn')}</button>
+      </details>
     </div>
   `;
 }
@@ -2006,7 +2036,7 @@ function stepLibrarySectionHtml(){
   const arr = CONFIG.stepLibrary || [];
   return `
     <div class="card">
-      <h2>${t('stepLibraryHeading')}</h2>
+      <h2>${t('stepLibraryHeading')} <span class="list-count">(${arr.length})</span></h2>
       <p style="font-size:12px;color:var(--teal-500);margin:0 0 10px;line-height:1.7;">${t('stepLibraryHint')}</p>
       <div class="field"><textarea id="new-library-steps" rows="3" placeholder="${esc(t('stepLibraryPlaceholder'))}"></textarea></div>
       <button class="btn sm" style="width:auto;margin-bottom:12px;" data-act="add-library-steps">${t('addBtn')}</button>
