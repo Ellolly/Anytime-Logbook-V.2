@@ -135,6 +135,11 @@
   .list-count{font-weight:500;color:var(--teal-500);font-size:12px;}
   .field-label-box{margin-top:14px;border-top:1px dashed var(--line);padding-top:10px;}
   .field-label-box summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--teal-500);}
+  .audit-details{margin:0 0 10px;}
+  .audit-details summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--teal-900);margin-bottom:6px;}
+  .audit-group{border:1px dashed var(--line);border-radius:8px;padding:6px;margin-bottom:8px;}
+  .audit-id{color:var(--teal-500);font-family:'Space Mono',monospace;font-size:11px;}
+  .audit-ok{font-size:12.5px;color:var(--teal-500);margin:0 0 10px;}
   .course-block + .course-block{border-top:1px solid var(--line);margin-top:14px;padding-top:14px;}
   .course-block-title{margin:0;font-size:14.5px;font-weight:800;color:var(--teal-900);}
   .unit-badge{display:inline-block;font-size:10.5px;font-weight:700;background:var(--teal-100);color:var(--teal-900);border-radius:10px;padding:1px 8px;vertical-align:middle;font-family:'Space Mono',monospace;}
@@ -258,7 +263,22 @@ const I18N = {
     confirmRevertSteps:"هتتمسح الخطوات الخاصة بالكورس ده ويرجع يستخدم الخطوات العامة. أي تقدم مسجل على خطوات مش موجودة في الخطوات العامة مش هيظهر. تكمل؟",
     noCaseTypesGlobalHint:"ضيف أنواع حالات من تبويب القوائم الأول.",
     libraryOrderNote:"الخطوات هتتضاف بنفس ترتيب ما بتضغط عليها (الرقم اللي على كل واحدة).",
-    dragToReorder:"اسحب لإعادة الترتيب", fieldLabelSettings:"اسم الحقل في الفورم (اختياري)", editValueTitle:"تعديل القيمة",
+    dragToReorder:"اسحب لإعادة الترتيب", fieldLabelSettings:"اسم الحقل في الفورم (اختياري)",
+    dashCaseRecords:"سجلات الحالات (الشريكين بيتعدّوا اتنين)",
+    exportCaseStart:"تاريخ بداية الحالة", exportLastStep:"آخر خطوة وصل لها", exportLastStepDate:"تاريخ آخر خطوة", exportLastStepBy:"المشرف (آخر خطوة)", exportNoCase:"لا توجد حالة",
+    tableLastStep:"آخر خطوة", stepFilterMatches:"عدد الحالات المطابقة: ", stepModeLabel:"الشرط على الخطوة",
+    stepModeDone:"أنجزوا الخطوة دي", stepModeNotDone:"لسه ما أنجزوهاش", stepModeCurrent:"آخر خطوة وصلوا لها هي دي",
+    auditHeading:"فحص سلامة البيانات",
+    auditHint:"بيعرض الأعداد الفعلية لكل كورس، وبيدوّر على طلاب متكررين وحالات ما اتسجلش فيها أي خطوة، عشان تتأكد إن الأرقام صح.",
+    auditRunBtn:"افحص دلوقتي", auditHideBtn:"إخفاء التقرير",
+    auditColCourse:"القسم / الكورس", auditColStudents:"الطلاب", auditColRecords:"سجلات الحالات", auditColDistinct:"حالات فعلية", auditColEmpty:"حالات ما اتبدأتش", auditColDup:"مجموعات متكررة",
+    auditExplain:"«حالات فعلية» = بعد ما الحالة المشتركة بين شريكين تتحسب مرة واحدة. «سجلات الحالات» = كل طالب × حالة، فالشريكين بيتعدّوا اتنين. «حالات ما اتبدأتش» = ما اتعلّمش فيها أي خطوة.",
+    auditDupHeading:"طلاب متكررين (نفس الـ ID، أو نفس الاسم لو مفيش ID)", auditDupNone:"مفيش طلاب متكررين.", auditCasesWord:"حالات",
+    auditCleanBtn:"تنظيف المكرر الفاضي", auditNothingToClean:"مفيش مكرر فاضي يتنظف.",
+    auditConfirmClean:"هيتنقل {n} طالب مكرر (مفيهمش أي حالات) للأرشيف، وتقدر ترجّعهم من هناك. بيتاخد نسخة احتياطية قبلها. تكمل؟",
+    auditCleanDone:"تم تنظيف المكررات.",
+    auditEmptyHeading:"حالات ما اتسجلش فيها أي خطوة", auditEmptyNone:"كل الحالات فيها خطوة واحدة على الأقل.",
+    auditOrphansHeading:"طلاب مربوطين بقسم أو كورس اتمسح", auditUnassignedHeading:"حالات من نوع مش متخصص للكورس بتاعها", editValueTitle:"تعديل القيمة",
     renameCascadeHint:"لو القيمة دي مستخدمة في طلاب أو حالات، هتتحدّث عندهم تلقائيًا.",
     unitLabel:"رقم اليونيت", unitPlaceholder:"مثلاً 12", unitBadgePrefix:"يونيت ",
     dashNoCourses:"مفيش كورسات في القسم ده لسه.",
@@ -285,7 +305,7 @@ const I18N = {
     offlinePendingBanner:"مفيش نت دلوقتي — التعديلات محفوظة على جهازك وهتترفع تلقائيًا لما الاتصال يرجع. تعديلات لسه مستنية:",
     warningLabel:"تنبيه:", supervisorBadgePrefix:"مشرف: ", deptBadgePrefix:"قسم: ", courseBadgePrefix:"Course: ",
     addStudentQuick:"+ طالب جديد", logoutBtn:"خروج", changeCourseBtn:"تغيير الـ Course",
-    searchPlaceholder:"بحث بالاسم...", noStudentsYet:"لا يوجد طلاب.", noSearchResults:"لا نتائج مطابقة.",
+    searchPlaceholder:"بحث بالاسم أو الـ ID...", noStudentsYet:"لا يوجد طلاب.", noSearchResults:"لا نتائج مطابقة.",
     levelPrefix:"القسم: ", coursePrefix:"Course: ", groupPrefix:"مج ", subgroupPrefix:"فرعية ",
     signedByPrefix:"وقّع: ", notDoneYet:"لم تتم بعد", noDeptAssigned:"لسه معندكش قسم متعيّن، كلم الأدمن.",
     gradeLabel:"الدرجة", notesLabel:"ملاحظات", saveEvalBtn:"حفظ", totalGradeLabel:"إجمالي الدرجة: ",
@@ -320,7 +340,7 @@ const I18N = {
     labelForThisField:"اسم هذا الحقل", groupsHeading:"قائمة المجموعات", subgroupsHeading:"قائمة المجموعات الفرعية", caseTypesHeading:"قائمة أنواع الحالات",
     newValuePlaceholder:"قيمة جديدة...", addBtn:"إضافة",
     statsHeading:"إحصائية إنجاز الحالات", exportScopeLabel:"نطاق العرض والتصدير",
-    scopeAll:"الكل", scopeGroup:"مجموعة معينة", scopeSubgroup:"مجموعة فرعية معينة", exportCsvBtn:"تصدير CSV",
+    scopeAll:"الكل", scopeGroup:"مجموعة معينة", scopeSubgroup:"مجموعة فرعية معينة", exportCsvBtn:"تصدير Excel",
     tableStudent:"الطالب", tableCase:"الحالة", tablePct:"النسبة", tableStepsCount:"الخطوات", tableGrade:"الدرجة", noDataYet:"لا بيانات بعد",
     brandingHeading:"هوية البرنامج", appNameLabel:"اسم البرنامج", appSubtitleLabel:"الوصف الفرعي",
     logoUrlLabel:"رابط اللوجو (اختياري)", logoUrlHint:"الصق رابط صورة مباشر. سيبها فاضية للأيقونة الافتراضية.",
@@ -387,7 +407,22 @@ const I18N = {
     confirmRevertSteps:"This course's own steps will be deleted and it will use the global steps again. Progress recorded on steps that aren't in the global steps won't show. Continue?",
     noCaseTypesGlobalHint:"Add case types from the Lists tab first.",
     libraryOrderNote:"Steps are added in the order you click them (the number on each one).",
-    dragToReorder:"Drag to reorder", fieldLabelSettings:"Field name in the forms (optional)", editValueTitle:"Edit value",
+    dragToReorder:"Drag to reorder", fieldLabelSettings:"Field name in the forms (optional)",
+    dashCaseRecords:"Case records (partners count twice)",
+    exportCaseStart:"Case start date", exportLastStep:"Last step reached", exportLastStepDate:"Last step date", exportLastStepBy:"Supervisor (last step)", exportNoCase:"No case",
+    tableLastStep:"Last step", stepFilterMatches:"Matching cases: ", stepModeLabel:"Step condition",
+    stepModeDone:"Completed this step", stepModeNotDone:"Haven't completed it yet", stepModeCurrent:"This is the furthest step they reached",
+    auditHeading:"Data check",
+    auditHint:"Shows the real numbers per course and looks for duplicated students and cases with no step recorded, so you can confirm the figures are right.",
+    auditRunBtn:"Run check", auditHideBtn:"Hide report",
+    auditColCourse:"Department / Course", auditColStudents:"Students", auditColRecords:"Case records", auditColDistinct:"Actual cases", auditColEmpty:"Not started", auditColDup:"Duplicate groups",
+    auditExplain:"“Actual cases” counts a case shared by two partners once. “Case records” is student × case, so partners count twice. “Not started” means no step has been marked in the case.",
+    auditDupHeading:"Duplicated students (same ID, or same name when there is no ID)", auditDupNone:"No duplicated students.", auditCasesWord:"cases",
+    auditCleanBtn:"Clean empty duplicates", auditNothingToClean:"No empty duplicates to clean.",
+    auditConfirmClean:"{n} duplicated student(s) with no cases will be moved to the archive (you can restore them from there). A backup is taken first. Continue?",
+    auditCleanDone:"Duplicates cleaned.",
+    auditEmptyHeading:"Cases with no step recorded", auditEmptyNone:"Every case has at least one step done.",
+    auditOrphansHeading:"Students linked to a deleted department or course", auditUnassignedHeading:"Cases of a type not assigned to their course", editValueTitle:"Edit value",
     renameCascadeHint:"If this value is already used by students or cases, it is updated there automatically.",
     unitLabel:"Unit number", unitPlaceholder:"e.g. 12", unitBadgePrefix:"Unit ",
     dashNoCourses:"No courses in this department yet.",
@@ -414,7 +449,7 @@ const I18N = {
     offlinePendingBanner:"No connection right now — your changes are saved on this device and will upload automatically once you're back online. Changes waiting to sync:",
     warningLabel:"Warning:", supervisorBadgePrefix:"Supervisor: ", deptBadgePrefix:"Dept: ", courseBadgePrefix:"Course: ",
     addStudentQuick:"+ New student", logoutBtn:"Log out", changeCourseBtn:"Change course",
-    searchPlaceholder:"Search by name...", noStudentsYet:"No students yet.", noSearchResults:"No matching results.",
+    searchPlaceholder:"Search by name or ID...", noStudentsYet:"No students yet.", noSearchResults:"No matching results.",
     levelPrefix:"Dept: ", coursePrefix:"Course: ", groupPrefix:"Grp ", subgroupPrefix:"Sub ",
     signedByPrefix:"Signed: ", notDoneYet:"Not done yet", noDeptAssigned:"No department assigned, contact the admin.",
     gradeLabel:"Grade", notesLabel:"Notes", saveEvalBtn:"Save", totalGradeLabel:"Total grade: ",
@@ -449,7 +484,7 @@ const I18N = {
     labelForThisField:"Label for this field", groupsHeading:"Group list", subgroupsHeading:"Subgroup list", caseTypesHeading:"Case type list",
     newValuePlaceholder:"New value...", addBtn:"Add",
     statsHeading:"Case completion statistics", exportScopeLabel:"View & export scope",
-    scopeAll:"All", scopeGroup:"Specific group", scopeSubgroup:"Specific subgroup", exportCsvBtn:"Export CSV",
+    scopeAll:"All", scopeGroup:"Specific group", scopeSubgroup:"Specific subgroup", exportCsvBtn:"Export Excel",
     tableStudent:"Student", tableCase:"Case", tablePct:"Progress", tableStepsCount:"Steps", tableGrade:"Grade", noDataYet:"No data yet",
     brandingHeading:"App branding", appNameLabel:"App name", appSubtitleLabel:"Subtitle",
     logoUrlLabel:"Logo URL (optional)", logoUrlHint:"Paste a direct image link. Leave empty for the default icon.",
@@ -880,12 +915,12 @@ let state = {
   adminPass:null, sessionToken:null, resetting:false, lastSaveError:'', stepsScope:'global', libPickOrder:[], dragging:false, adminTab:'dashboard', adminDeptId:'', adminCourseId:'',
   openStudent:null, openCase:null, search:'', loginMode:null, loginErr:'', loading:true, storageOk:true,
   importMsg:'', lang:(typeof localStorage!=='undefined' && localStorage.getItem('prostho_lang')) || 'ar',
-  statsScope:'all', statsScopeValue:'', statsStepId:'', statsCaseTypeFilter:'',
+  statsScope:'all', statsScopeValue:'', statsStepName:'', statsStepMode:'done', statsCaseTypeFilter:'', auditOpen:false,
   addingCaseFor:null, linkingPartnersFor:null
 };
 
 function esc(s){ return (s+'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-const APP_VERSION = 'v1.4.1';
+const APP_VERSION = 'v1.5.0';
 const ICON_PATHS = {
   trash: '<polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>',
   edit: '<path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>',
@@ -1126,6 +1161,135 @@ function renameListValueEverywhere(key, oldV, newV){
     if(state.statsCaseTypeFilter===oldV) state.statsCaseTypeFilter = newV;
   }
   return res;
+}
+
+/* ---------------- Data audit: are the numbers real? ---------------- */
+// Removes a student (keeping a full copy in the archive so it can be restored) and unlinks him from his partners
+function removeStudentToArchive(id){
+  const st = STUDENTS.find(s=>s.id===id);
+  if(st){
+    const progressSnapshot = {};
+    (st.cases||[]).forEach(cs=>{ progressSnapshot[cs.id] = JSON.parse(JSON.stringify(PROGRESS[cs.id]||{})); });
+    if(!ARCHIVE.students) ARCHIVE.students = [];
+    ARCHIVE.students.push({
+      archId: uid(),
+      data: JSON.parse(JSON.stringify(st)),
+      progressSnapshot,
+      deletedAt: new Date().toISOString(),
+      deletedBy: actorLabel()
+    });
+    (st.cases||[]).forEach(cs=>{
+      const partners = cs.partnerIds||[];
+      if(partners.length===0){
+        delete PROGRESS[cs.id];
+      } else {
+        partners.forEach(pid=>{
+          const p = STUDENTS.find(s=>s.id===pid);
+          const pc = p && (p.cases||[]).find(c=>c.id===cs.id);
+          if(pc) pc.partnerIds = (pc.partnerIds||[]).filter(x=>x!==id);
+        });
+      }
+    });
+  }
+  STUDENTS = STUDENTS.filter(s=>s.id!==id);
+}
+// groups of students of ONE course that look like the same person (same ID, or no ID and the same name)
+function findDuplicateGroups(list){
+  const idKey = s => String(s.studentCode||'').trim().toLowerCase();
+  const groups = new Map(), noId = [];
+  list.forEach(s=>{
+    const id = idKey(s);
+    if(id){ if(!groups.has('id:'+id)) groups.set('id:'+id, []); groups.get('id:'+id).push(s); } else noId.push(s);
+  });
+  const idGroupsByName = new Map();
+  groups.forEach((members,key)=> members.forEach(m=>{
+    const nn = normName(m.name); if(!nn) return;
+    if(!idGroupsByName.has(nn)) idGroupsByName.set(nn, new Set());
+    idGroupsByName.get(nn).add(key);
+  }));
+  noId.forEach(s=>{
+    const nn = normName(s.name); if(!nn) return;
+    const keys = idGroupsByName.get(nn);
+    if(keys && keys.size===1){ groups.get([...keys][0]).push(s); return; }   // unambiguous: same name as exactly one student that has an ID
+    const k = 'name:'+nn; if(!groups.has(k)) groups.set(k, []); groups.get(k).push(s);
+  });
+  return [...groups.values()].filter(g=>g.length>1);
+}
+// which duplicates are safe to remove: the ones without any case (never keeping fewer than one of each person)
+function emptyDuplicatesToRemove(groups){
+  const out = [];
+  groups.forEach(g=>{
+    const hasCases = s => (s.cases||[]).length > 0;
+    if(g.some(hasCases)) g.filter(s=>!hasCases(s)).forEach(s=>out.push(s));
+    else g.slice().sort((a,b)=>String(a.createdAt||'').localeCompare(String(b.createdAt||''))).slice(1).forEach(s=>out.push(s));
+  });
+  return out;
+}
+function computeDataAudit(){
+  const out = { courses:[], orphans:[], unassigned:[] };
+  const known = new Set();
+  (CONFIG.departments||[]).forEach(d=>(d.courses||[]).forEach(co=>{
+    known.add(d.id+'|'+co.id);
+    const list = STUDENTS.filter(s=>s.departmentId===d.id && s.courseId===co.id);
+    const seen = new Set(), empty = [];
+    let records = 0, distinct = 0;
+    list.forEach(st=>(st.cases||[]).forEach(cs=>{
+      records++;
+      if(!(co.caseTypes||[]).includes(cs.caseType)) out.unassigned.push({dept:d, course:co, st, cs});
+      if(seen.has(cs.id)) return;
+      seen.add(cs.id); distinct++;
+      const steps = caseSteps(co, cs.caseType), p = PROGRESS[cs.id]||{};
+      if(steps.length && !steps.some(s=>p[s.id] && p[s.id].done)) empty.push({st, cs});
+    }));
+    out.courses.push({ dept:d, course:co, students:list.length, records, distinct, empty, noCaseStudents:list.filter(s=>!(s.cases||[]).length).length, duplicates:findDuplicateGroups(list) });
+  }));
+  STUDENTS.forEach(s=>{ if(!known.has(s.departmentId+'|'+s.courseId)) out.orphans.push(s); });
+  return out;
+}
+function dataAuditHtml(){
+  let report = '';
+  if(state.auditOpen){
+    const a = computeDataAudit();
+    const delStudentBtn = s => `<button class="icon-btn" data-act="del-student" data-id="${s.id}" title="${esc(t('confirmDeleteStudent'))}">${icon('trash')}</button>`;
+    const delCaseBtn = (st,cs) => `<button class="icon-btn" data-act="del-case" data-sid="${st.id}" data-cid="${cs.id}">${icon('trash')}</button>`;
+    const summary = a.courses.map(c=>`<tr>
+        <td>${esc(c.dept.name)} / ${esc(c.course.name)}</td><td>${c.students}</td><td>${c.records}</td><td>${c.distinct}</td><td>${c.empty.length}</td><td>${c.duplicates.length}</td></tr>`).join('');
+    const dupCourses = a.courses.filter(c=>c.duplicates.length);
+    const removable = emptyDuplicatesToRemove([].concat(...a.courses.map(c=>c.duplicates))).length;
+    const dupHtml = dupCourses.length===0 ? `<p class="audit-ok">${t('auditDupNone')}</p>` : dupCourses.map(c=>`
+      <details class="audit-details" open><summary>${esc(c.course.name)} (${c.duplicates.length})</summary>
+        ${c.duplicates.map(g=>`<div class="audit-group">${g.map(s=>`<div class="list-item" style="margin-bottom:4px;">
+            <div class="txt" style="flex:1;min-width:0;">${esc(s.name)}${s.studentCode ? ` <span class="audit-id">#${esc(s.studentCode)}</span>` : ''}<small>${(s.cases||[]).length} ${t('auditCasesWord')}</small></div>
+            ${delStudentBtn(s)}</div>`).join('')}</div>`).join('')}
+      </details>`).join('') + (removable ? `<button class="btn rust sm" style="width:auto;margin-top:8px;" data-act="audit-clean-duplicates">${t('auditCleanBtn')} (${removable})</button>` : '');
+    const emptyCourses = a.courses.filter(c=>c.empty.length);
+    const emptyHtml = emptyCourses.length===0 ? `<p class="audit-ok">${t('auditEmptyNone')}</p>` : emptyCourses.map(c=>`
+      <details class="audit-details"><summary>${esc(c.course.name)} (${c.empty.length})</summary>
+        ${c.empty.map(({st,cs})=>`<div class="list-item" style="margin-bottom:4px;">
+          <div class="txt" style="flex:1;min-width:0;">${esc(st.name)}<small>${esc(cs.caseType||t('caseLabel'))}${cs.createdAt ? ' · '+esc(isoDay(cs.createdAt)) : ''}</small></div>
+          ${delCaseBtn(st,cs)}</div>`).join('')}
+      </details>`).join('');
+    const orphanHtml = a.orphans.length===0 ? '' : `<h3 class="section-title">${t('auditOrphansHeading')} (${a.orphans.length})</h3>` +
+      a.orphans.map(s=>`<div class="list-item" style="margin-bottom:4px;"><div class="txt" style="flex:1;min-width:0;">${esc(s.name)}<small>${(s.cases||[]).length} ${t('auditCasesWord')}</small></div>${delStudentBtn(s)}</div>`).join('');
+    const unassignedHtml = a.unassigned.length===0 ? '' : `<h3 class="section-title">${t('auditUnassignedHeading')} (${a.unassigned.length})</h3>` +
+      a.unassigned.map(({dept,course,st,cs})=>`<div class="list-item" style="margin-bottom:4px;"><div class="txt" style="flex:1;min-width:0;">${esc(st.name)}<small>${esc(course.name)} · ${esc(cs.caseType||'')}</small></div>${delCaseBtn(st,cs)}</div>`).join('');
+    report = `
+      <p style="font-size:12px;color:var(--teal-500);line-height:1.7;margin:12px 0;">${t('auditExplain')}</p>
+      <div class="table-scroll"><table class="stat-table">
+        <thead><tr><th>${t('auditColCourse')}</th><th>${t('auditColStudents')}</th><th>${t('auditColRecords')}</th><th>${t('auditColDistinct')}</th><th>${t('auditColEmpty')}</th><th>${t('auditColDup')}</th></tr></thead>
+        <tbody>${summary || `<tr><td colspan="6" style="text-align:center;color:var(--teal-500);padding:14px;">${t('noDataYet')}</td></tr>`}</tbody>
+      </table></div>
+      <h3 class="section-title">${t('auditDupHeading')}</h3>${dupHtml}
+      <h3 class="section-title">${t('auditEmptyHeading')}</h3>${emptyHtml}
+      ${orphanHtml}${unassignedHtml}`;
+  }
+  return `
+    <div class="card">
+      <h2>${t('auditHeading')}</h2>
+      <p style="font-size:12px;color:var(--teal-500);margin:0 0 12px;line-height:1.7;">${t('auditHint')}</p>
+      <button class="btn ${state.auditOpen?'ghost':''} sm" style="width:auto;" data-act="toggle-audit">${state.auditOpen ? t('auditHideBtn') : t('auditRunBtn')}</button>
+      ${report}
+    </div>`;
 }
 
 /* ---------------- Bulk reset (new semester) ---------------- */
@@ -1569,7 +1733,7 @@ function casesHtml(st, readonly){
 }
 function studentListHtml(readonly, filterFn){
   const q = state.search.trim().toLowerCase();
-  let list = STUDENTS.filter(s => !q || s.name.toLowerCase().includes(q));
+  let list = STUDENTS.filter(s => !q || String(s.name||'').toLowerCase().includes(q) || String(s.studentCode||'').toLowerCase().includes(q));
   if(filterFn) list = list.filter(filterFn);
   list = list.slice().sort((a,b)=> a.name.localeCompare(b.name, state.lang==='ar'?'ar':'en'));
   if(list.length===0) return `<div class="empty"><p>${STUDENTS.length===0 ? t('noStudentsYet') : t('noSearchResults')}</p></div>`;
@@ -1604,9 +1768,16 @@ function supervisorHtml(){
       <span class="pill">${t('supervisorBadgePrefix')}${esc(state.currentSupervisor)} · ${t('deptBadgePrefix')}${esc(dept.name)}</span>
       <button class="btn rust sm" data-act="logout">${t('logoutBtn')}</button>
     </div>
-    <h3 class="section-title">${t('pickCourseHeading')}</h3>
-    ${courses.length===0 ? `<div class="empty"><p>${t('noCoursesInDept')}</p></div>` :
-      courses.map(c=>`<div class="course-card" data-act="pick-course" data-cid="${c.id}"><b>${esc(c.name)}</b></div>`).join('')}
+    <div class="card">
+      <h2>${esc(dept.name)} <span class="list-count">(${courses.length})</span></h2>
+      ${courses.length===0 ? `<div class="empty"><p>${t('noCoursesInDept')}</p></div>` : `
+      <div class="field" style="margin-bottom:0;"><label>${t('pickCourseHeading')}</label>
+        <select id="sup-course-select">
+          <option value="">${t('selectCoursePlaceholder')}</option>
+          ${courses.map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('')}
+        </select>
+      </div>`}
+    </div>
     `;
   }
   const course = getCourse(state.currentDept, state.supervisorCourseId);
@@ -2052,6 +2223,106 @@ function adminListsHtml(){
     + listSectionHtml('levels', t('levelsHeading'), 'level');
 }
 
+function normName(s){
+  return String(s||'').toLowerCase().replace(/[\u064B-\u065F\u0640]/g,'').replace(/[أإآ]/g,'ا').replace(/\s+/g,' ').trim();
+}
+// two student records are "the same person" when both have an ID and the IDs match, or (if either has no ID) the names match
+function sameStudent(a, b){
+  const ia = String(a.studentCode||'').trim().toLowerCase(), ib = String(b.studentCode||'').trim().toLowerCase();
+  if(ia && ib) return ia === ib;
+  const na = normName(a.name), nb = normName(b.name);
+  return !!na && na === nb;
+}
+function stepKey(s){ return String(s).trim().toLowerCase(); }
+function lastDoneStepIndex(steps, p){
+  let idx = -1;
+  steps.forEach((s,i)=>{ if(p[s.id] && p[s.id].done) idx = i; });
+  return idx;
+}
+// the furthest step of the case that is marked done (by the order of the steps)
+function lastStepInfo(course, cs){
+  const steps = caseSteps(course, cs.caseType), p = PROGRESS[cs.id] || {};
+  const i = lastDoneStepIndex(steps, p);
+  if(i < 0) return null;
+  const rec = p[steps[i].id];
+  return { name: steps[i].name, date: rec.date || '', supervisor: rec.supervisor || '', index: i };
+}
+// mode: 'done' = completed that step, 'notDone' = not completed yet, 'current' = it is the furthest step reached
+function stepMatches(course, cs, name, mode){
+  const steps = caseSteps(course, cs.caseType);
+  const i = steps.findIndex(s=>stepKey(s.name) === stepKey(name));
+  if(i < 0) return false;
+  const p = PROGRESS[cs.id] || {};
+  const done = !!(p[steps[i].id] && p[steps[i].id].done);
+  if(mode === 'notDone') return !done;
+  if(mode === 'current') return lastDoneStepIndex(steps, p) === i;
+  return done;
+}
+function statsStepOptions(course){
+  const types = state.statsCaseTypeFilter ? [state.statsCaseTypeFilter] : courseCaseTypes(course);
+  const seen = new Set(), out = [];
+  types.forEach(tn=> caseSteps(course, tn).forEach(s=>{ const k = stepKey(s.name); if(!seen.has(k)){ seen.add(k); out.push(s.name); } }));
+  return out;
+}
+function statsCompute(course){
+  const students = statsFilteredStudents();
+  const allRows = [];
+  students.forEach(st=> (st.cases||[]).forEach(cs=> allRows.push({st, cs})) );
+  const typeRows = state.statsCaseTypeFilter ? allRows.filter(({cs})=>cs.caseType===state.statsCaseTypeFilter) : allRows.slice();
+  let rows = typeRows;
+  if(state.statsStepName) rows = typeRows.filter(({cs})=>stepMatches(course, cs, state.statsStepName, state.statsStepMode));
+  rows = rows.slice().sort((a,b)=> casePct(b.st,b.cs) - casePct(a.st,a.cs));
+  return { students, allRows, typeRows, rows };
+}
+function isoDay(iso){
+  if(!iso) return '';
+  const d = new Date(iso); if(isNaN(d)) return '';
+  const z = n => String(n).padStart(2,'0');
+  return d.getFullYear() + '-' + z(d.getMonth()+1) + '-' + z(d.getDate());
+}
+// The spreadsheet for whatever is selected in the statistics tab: one column per piece of data
+function buildStatsExport(course){
+  const { students, rows } = statsCompute(course);
+  const caseFilterOn = !!(state.statsCaseTypeFilter || state.statsStepName);
+  const locale = state.lang==='ar' ? 'ar' : 'en';
+  const list = rows.slice().sort((a,b)=> String(a.st.name||'').localeCompare(String(b.st.name||''), locale) || String(a.cs.caseType||'').localeCompare(String(b.cs.caseType||''), locale));
+  const noCase = caseFilterOn ? [] : students.filter(s=>(s.cases||[]).length===0).sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''), locale));
+  const stepNames = [], seen = new Set();
+  list.forEach(({cs})=> caseSteps(course, cs.caseType).forEach(s=>{ const k = stepKey(s.name); if(!seen.has(k)){ seen.add(k); stepNames.push(s.name); } }));
+  const headers = [
+    t('tableStudent'), t('studentCodeLabel'), fieldLabel('level'), fieldLabel('group'), fieldLabel('subgroup'),
+    fieldLabel('caseType'), t('unitLabel'), String(t('partnersLabel')).replace(/[:：]\s*$/,''),
+    t('exportCaseStart'), t('exportLastStep'), t('exportLastStepDate'), t('exportLastStepBy'),
+    t('tableStepsCount'), t('tablePct')+' (%)', t('tableGrade'), t('contextCourseLabel')
+  ].concat(stepNames);
+  const out = [headers];
+  list.forEach(({st,cs})=>{
+    const steps = caseSteps(course, cs.caseType), p = PROGRESS[cs.id] || {};
+    const done = steps.filter(s=>p[s.id] && p[s.id].done).length;
+    const last = lastStepInfo(course, cs);
+    const stepCells = stepNames.map(n=>{
+      const step = steps.find(s=>stepKey(s.name) === stepKey(n));
+      if(!step) return 'N/A';
+      const rec = p[step.id];
+      if(!(rec && rec.done)) return '-';
+      return [rec.supervisor, isoDay(rec.date), (rec.grade!==undefined && rec.grade!=='') ? rec.grade : '', rec.notes||''].filter(x=>x!=='').join(' - ');
+    });
+    out.push([
+      st.name||'', st.studentCode||'', st.level||'', st.group||'', st.subgroup||'',
+      cs.caseType||'', cs.unit||'', partnerNames(st,cs).join('; '),
+      isoDay(cs.createdAt), last?last.name:'', last?isoDay(last.date):'', last?last.supervisor:'',
+      done+'/'+steps.length, casePct(st,cs), caseTotalGrade(st,cs), course ? course.name : ''
+    ].concat(stepCells));
+  });
+  noCase.forEach(st=>{
+    out.push([ st.name||'', st.studentCode||'', st.level||'', st.group||'', st.subgroup||'', t('exportNoCase'), '', '', '', '', '', '', '', 0, 0, course ? course.name : '' ].concat(stepNames.map(()=>'')));
+  });
+  return out;
+}
+function aoaToCsv(aoa){
+  const q = v => '"' + String(v===undefined||v===null ? '' : v).replace(/"/g,'""') + '"';
+  return aoa.map(r=>r.map(q).join(',')).join('\r\n') + '\r\n';
+}
 function statsFilteredStudents(){
   let list = STUDENTS.filter(s=>s.departmentId===state.adminDeptId && s.courseId===state.adminCourseId);
   if(state.statsScope==='group' && state.statsScopeValue) list = list.filter(s=>s.group===state.statsScopeValue);
@@ -2062,22 +2333,12 @@ function adminStatsHtml(){
   if(!state.adminDeptId || !state.adminCourseId) return `<div class="banner">${t('pickContextHint')}</div>`;
   const course = getCourse(state.adminDeptId, state.adminCourseId);
   const assignedTypes = courseCaseTypes(course);
-  const students = statsFilteredStudents();
-  let rows = [];
-  students.forEach(st=> (st.cases||[]).forEach(cs=> rows.push({st, cs})) );
-  const allRows = rows;
-  if(state.statsCaseTypeFilter) rows = rows.filter(({cs})=>cs.caseType===state.statsCaseTypeFilter);
-  rows.sort((a,b)=> casePct(b.st,b.cs) - casePct(a.st,a.cs));
+  const stepOptions = statsStepOptions(course);
+  if(state.statsStepName && !stepOptions.some(n=>stepKey(n)===stepKey(state.statsStepName))) state.statsStepName = '';
+  const { students, allRows, typeRows, rows } = statsCompute(course);
   const notStartedCount = students.filter(s=>(s.cases||[]).length===0).length;
-  const stepsForFilter = state.statsCaseTypeFilter ? caseSteps(course, state.statsCaseTypeFilter) : [];
-  let stepSummary = '';
-  if(state.statsStepId){
-    const stepDone = rows.filter(({cs})=>{
-      const p = PROGRESS[cs.id]||{};
-      return p[state.statsStepId] && p[state.statsStepId].done;
-    }).length;
-    stepSummary = `<div class="total-grade">${t('stepFilterSummary')}${stepDone}${t('ofTotalCases')}${rows.length}</div>`;
-  }
+  const stepSummary = state.statsStepName ? `<div class="total-grade">${t('stepFilterMatches')}${rows.length}${t('ofTotalCases')}${typeRows.length}</div>` : '';
+  const modeOpt = (v,k)=>`<option value="${v}" ${state.statsStepMode===v?'selected':''}>${t(k)}</option>`;
   return `
     <div class="card">
       <div class="row wrap" style="justify-content:space-between;align-items:center;margin-bottom:10px;">
@@ -2100,42 +2361,49 @@ function adminStatsHtml(){
           </select>
         </div>` : ''}
       </div>
-      <div class="row" style="margin-bottom:14px;">
+      <div class="row" style="margin-bottom:10px;">
         <div class="field" style="flex:1;margin-bottom:0;"><label>${fieldLabel('caseType')}</label>
           <select id="stats-casetype-filter">
             <option value="">${t('allOption')}</option>
             ${assignedTypes.map(ctName=>`<option value="${esc(ctName)}" ${state.statsCaseTypeFilter===ctName?'selected':''}>${esc(ctName)}</option>`).join('')}
           </select>
         </div>
-        ${state.statsCaseTypeFilter ? `
         <div class="field" style="flex:1;margin-bottom:0;"><label>${t('stepFilterLabel')}</label>
           <select id="stats-step-filter">
             <option value="">${t('noStepFilter')}</option>
-            ${stepsForFilter.map(s=>`<option value="${s.id}" ${state.statsStepId===s.id?'selected':''}>${esc(s.name)}</option>`).join('')}
+            ${stepOptions.map(n=>`<option value="${esc(n)}" ${stepKey(state.statsStepName)===stepKey(n)?'selected':''}>${esc(n)}</option>`).join('')}
           </select>
-        </div>` : ''}
+        </div>
       </div>
+      ${state.statsStepName ? `
+      <div class="field" style="margin-bottom:14px;"><label>${t('stepModeLabel')}</label>
+        <select id="stats-step-mode">
+          ${modeOpt('done','stepModeDone')}${modeOpt('notDone','stepModeNotDone')}${modeOpt('current','stepModeCurrent')}
+        </select>
+      </div>` : '<div style="height:4px"></div>'}
       ${stepSummary}
       <div class="banner">${t('notStartedAnyCaseLabel')}<b>${notStartedCount}</b> / ${students.length}</div>
       ${assignedTypes.length ? `<div class="card" style="margin-bottom:14px;"><h2 style="font-size:13px;">${t('dashByCaseType')}</h2>${miniBarChart(assignedTypes.map(ctName=>{
-        const typeRows = allRows.filter(r=>r.cs.caseType===ctName);
-        const pct = typeRows.length ? Math.round(typeRows.reduce((sum,{st,cs})=>sum+casePct(st,cs),0)/typeRows.length) : 0;
+        const typeOnly = allRows.filter(r=>r.cs.caseType===ctName);
+        const pct = typeOnly.length ? Math.round(typeOnly.reduce((sum,{st,cs})=>sum+casePct(st,cs),0)/typeOnly.length) : 0;
         return {label:ctName, pct};
       }))}</div>` : ''}
       <div class="table-scroll">
         <table class="stat-table">
-          <thead><tr><th>${t('tableStudent')}</th><th>${t('tableCase')}</th><th>${t('tablePct')}</th><th>${t('tableStepsCount')}</th><th>${t('tableGrade')}</th></tr></thead>
+          <thead><tr><th>${t('tableStudent')}</th><th>${t('tableCase')}</th><th>${t('tablePct')}</th><th>${t('tableStepsCount')}</th><th>${t('tableLastStep')}</th><th>${t('tableGrade')}</th></tr></thead>
           <tbody>
-          ${rows.length===0 ? `<tr><td colspan="5" style="text-align:center;color:var(--teal-500);padding:16px;">${t('noDataYet')}</td></tr>` :
+          ${rows.length===0 ? `<tr><td colspan="6" style="text-align:center;color:var(--teal-500);padding:16px;">${t('noDataYet')}</td></tr>` :
             rows.map(({st,cs})=>{
               const pct = casePct(st,cs);
               const rowSteps = caseSteps(course, cs.caseType);
               const p = PROGRESS[cs.id]||{};
               const done = rowSteps.filter(s=>p[s.id]&&p[s.id].done).length;
+              const last = lastStepInfo(course, cs);
               return `<tr>
-                <td>${esc(st.name)}</td><td>${esc(cs.caseType||t('caseLabel'))}</td>
+                <td>${esc(st.name)}${st.studentCode ? ` <span style="color:var(--teal-500);font-family:Space Mono,monospace;font-size:11px;">#${esc(st.studentCode)}</span>` : ''}</td><td>${esc(cs.caseType||t('caseLabel'))}${cs.unit ? ` <span class="unit-badge">${t('unitBadgePrefix')}${esc(cs.unit)}</span>` : ''}</td>
                 <td><div class="row" style="align-items:center;gap:6px;width:auto;"><div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;"></div></div><span>${pct}%</span></div></td>
                 <td>${done}/${rowSteps.length}</td>
+                <td>${last ? esc(last.name) : '—'}</td>
                 <td>${caseTotalGrade(st,cs)}</td>
               </tr>`;
             }).join('')}
@@ -2163,8 +2431,13 @@ function adminDashboardHtml(){
     const courses = d.courses || [];
     const courseBlocks = courses.map(co=>{
       const courseStudents = allStudents.filter(s=>s.departmentId===d.id && s.courseId===co.id);
-      const courseCases = [];
-      courseStudents.forEach(st=> (st.cases||[]).forEach(cs=> courseCases.push({st,cs})) );
+      const courseCases = [], seenCaseIds = new Set();
+      let caseRecords = 0;
+      courseStudents.forEach(st=> (st.cases||[]).forEach(cs=>{
+        caseRecords++;
+        if(seenCaseIds.has(cs.id)) return;       // a case shared by partners is ONE case, not one per student
+        seenCaseIds.add(cs.id); courseCases.push({st,cs});
+      }));
       const pct = courseCases.length ? Math.round(courseCases.reduce((sum,{st,cs})=>sum+casePct(st,cs),0)/courseCases.length) : 0;
       const completedCases = courseCases.filter(({st,cs})=>casePct(st,cs)===100).length;
       const notStarted = courseStudents.filter(s=>(s.cases||[]).length===0).length;
@@ -2177,6 +2450,7 @@ function adminDashboardHtml(){
           <div class="row wrap" style="gap:8px;">
             <span class="pill">${t('dashTotalStudents')}: ${courseStudents.length}</span>
             <span class="pill">${t('dashTotalCases')}: ${courseCases.length}</span>
+            ${caseRecords!==courseCases.length ? `<span class="pill">${t('dashCaseRecords')}: ${caseRecords}</span>` : ''}
             <span class="pill">${t('dashCompletedCases')}: ${completedCases}</span>
             <span class="pill">${t('dashNotStarted')}: ${notStarted}</span>
           </div>
@@ -2248,6 +2522,7 @@ function adminSettingsHtml(){
       <div class="field"><label>${t('newPasswordLabel')}</label><input type="text" id="new-admin-pass" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false"></div>
       <button class="btn gold" data-act="change-admin-pass">${t('savePasswordBtn')}</button>
     </div>
+    ${dataAuditHtml()}
     <div class="card" style="border-color:var(--rust);">
       <h2 style="color:var(--rust);">${t('resetSectionHeading')}</h2>
       <p style="font-size:12px;color:var(--teal-500);margin:0 0 14px;line-height:1.7;">${t('resetSectionDesc')}</p>
@@ -2271,6 +2546,8 @@ function adminSettingsHtml(){
 /* ================= Events ================= */
 function bindEventsCore_(){
   document.querySelectorAll('[data-act]').forEach(el=> el.addEventListener('click', onAction));
+  const supCourseSel = document.getElementById('sup-course-select');
+  if(supCourseSel) supCourseSel.addEventListener('change', e=>{ if(e.target.value){ state.supervisorCourseId = e.target.value; render(); } });
   const search = document.getElementById('search-input');
   if(search) search.addEventListener('input', e=>{ state.search = e.target.value; render(); focusSearch(); });
 
@@ -2284,9 +2561,11 @@ function bindEventsCore_(){
   const scopeValSel = document.getElementById('stats-scope-value');
   if(scopeValSel) scopeValSel.addEventListener('change', e=>{ state.statsScopeValue = e.target.value; render(); });
   const stepFilterSel = document.getElementById('stats-step-filter');
-  if(stepFilterSel) stepFilterSel.addEventListener('change', e=>{ state.statsStepId = e.target.value; render(); });
+  if(stepFilterSel) stepFilterSel.addEventListener('change', e=>{ state.statsStepName = e.target.value; render(); });
+  const stepModeSel = document.getElementById('stats-step-mode');
+  if(stepModeSel) stepModeSel.addEventListener('change', e=>{ state.statsStepMode = e.target.value; render(); });
   const statsCtSel = document.getElementById('stats-casetype-filter');
-  if(statsCtSel) statsCtSel.addEventListener('change', e=>{ state.statsCaseTypeFilter = e.target.value; state.statsStepId=''; render(); });
+  if(statsCtSel) statsCtSel.addEventListener('change', e=>{ state.statsCaseTypeFilter = e.target.value; render(); });
 
   const ctxDept = document.getElementById('ctx-dept');
   if(ctxDept) ctxDept.addEventListener('change', e=>{ state.adminDeptId = e.target.value; state.adminCourseId=''; render(); });
@@ -2615,11 +2894,14 @@ async function onAction(e){
     try{
       await loadXLSX();
       const rows = await parseSpreadsheet(file);
-      let added = 0, skipped = 0;
+      let added = 0, skipped = 0, dupSkipped = 0;
       const newGroups = new Set(), newSubgroups = new Set(), newCaseTypes = new Set(), newLevels = new Set();
+      const known = STUDENTS.filter(s=>s.departmentId===state.adminDeptId && s.courseId===state.adminCourseId);
       rows.forEach(row=>{
         const name = pickField(row, ['الاسم','اسم الطالب','name','الطالب']);
         if(!name){ skipped++; return; }
+        const code = pickField(row, ['الكود','كود الطالب','id','code']) || '';
+        if(known.some(s=>sameStudent(s, {name, studentCode: code}))){ dupSkipped++; return; }   // re-importing the same file must not duplicate students
         const group = pickField(row, ['المجموعة','مجموعة','group']) || '';
         const subgroup = pickField(row, ['المجموعة_الفرعية','المجموعة الفرعية','subgroup','sub_group']) || '';
         const level = pickField(row, ['المستوى','مستوى','level']) || '';
@@ -2629,52 +2911,27 @@ async function onAction(e){
         if(level && !CONFIG.levels.includes(level)) newLevels.add(level);
         if(caseType && !CONFIG.caseTypes.includes(caseType)) newCaseTypes.add(caseType);
         const cases = caseType ? [{ id: caseId(), caseType, createdAt: new Date().toISOString(), partnerIds: [] }] : [];
-        STUDENTS.push({
-          id: uid(), studentCode: pickField(row, ['الكود','كود الطالب','id','code']) || '',
+        const created = {
+          id: uid(), studentCode: code,
           name, departmentId: state.adminDeptId, courseId: state.adminCourseId, group, subgroup, level, cases,
           createdAt: new Date().toISOString()
-        });
+        };
+        STUDENTS.push(created); known.push(created);
         added++;
       });
       CONFIG.groups.push(...newGroups); CONFIG.subgroups.push(...newSubgroups); CONFIG.caseTypes.push(...newCaseTypes); CONFIG.levels.push(...newLevels);
       await setData('students', STUDENTS);
       if(newGroups.size || newSubgroups.size || newCaseTypes.size || newLevels.size) await setData('config', CONFIG);
       state.importMsg = state.lang==='ar'
-        ? `تم استيراد ${added} طالب بنجاح${skipped ? ' (تم تجاهل '+skipped+' صف بدون اسم)' : ''}.`
-        : `Successfully imported ${added} student(s)${skipped ? ' ('+skipped+' row(s) skipped)' : ''}.`;
+        ? `تم استيراد ${added} طالب بنجاح${skipped ? ' (تم تجاهل '+skipped+' صف بدون اسم)' : ''}${dupSkipped ? ' — اتخطّى '+dupSkipped+' طالب موجودين بالفعل في الكورس' : ''}.`
+        : `Successfully imported ${added} student(s)${skipped ? ' ('+skipped+' row(s) without a name skipped)' : ''}${dupSkipped ? ' — skipped '+dupSkipped+' student(s) already in this course' : ''}.`;
       fileInput.value = '';
     }catch(err){ state.importMsg = t('alertImportError'); console.error(err); }
     render(); return;
   }
   if(act==='del-student'){
     if(!(await showConfirm(t('confirmDeleteStudent')))) return;
-    const id = el.dataset.id;
-    const st = STUDENTS.find(s=>s.id===id);
-    if(st){
-      const progressSnapshot = {};
-      (st.cases||[]).forEach(cs=>{ progressSnapshot[cs.id] = JSON.parse(JSON.stringify(PROGRESS[cs.id]||{})); });
-      if(!ARCHIVE.students) ARCHIVE.students = [];
-      ARCHIVE.students.push({
-        archId: uid(),
-        data: JSON.parse(JSON.stringify(st)),
-        progressSnapshot,
-        deletedAt: new Date().toISOString(),
-        deletedBy: actorLabel()
-      });
-      (st.cases||[]).forEach(cs=>{
-        const partners = cs.partnerIds||[];
-        if(partners.length===0){
-          delete PROGRESS[cs.id];
-        } else {
-          partners.forEach(pid=>{
-            const p = STUDENTS.find(s=>s.id===pid);
-            const pc = p && (p.cases||[]).find(c=>c.id===cs.id);
-            if(pc) pc.partnerIds = (pc.partnerIds||[]).filter(x=>x!==id);
-          });
-        }
-      });
-    }
-    STUDENTS = STUDENTS.filter(s=>s.id!==id);
+    removeStudentToArchive(el.dataset.id);
     await setData('students', STUDENTS);
     await setData('progress', PROGRESS);
     await setData('archive', ARCHIVE);
@@ -2973,6 +3230,22 @@ async function onAction(e){
     if(ok) showAlert(t('brandSaved'));
     render(); return;
   }
+  if(act==='toggle-audit'){ state.auditOpen = !state.auditOpen; render(); return; }
+  if(act==='audit-clean-duplicates'){
+    const a = computeDataAudit();
+    const victims = emptyDuplicatesToRemove([].concat(...a.courses.map(c=>c.duplicates)));
+    if(!victims.length){ showAlert(t('auditNothingToClean')); return; }
+    if(!(await showConfirm(t('auditConfirmClean').replace('{n}', victims.length)))) return;
+    state.resetting = true; dataGeneration++;
+    try{
+      const b = await apiBackupNow();
+      if(!b || !b.ok){ showAlert(t('resetBackupFailed')); return; }
+      victims.forEach(s=>removeStudentToArchive(s.id));
+      const ok = [await setData('students', STUDENTS), await setData('progress', PROGRESS), await setData('archive', ARCHIVE)];
+      showAlert(ok.every(Boolean) ? t('auditCleanDone') : t('resetPartial'));
+    } finally { dataGeneration++; state.resetting = false; }
+    render(); return;
+  }
   if(act==='reset-students' || act==='reset-supervisors' || act==='reset-all'){
     const kind = act==='reset-students' ? 'students' : act==='reset-supervisors' ? 'supervisors' : 'all';
     const choice = await showResetDialog(kind);
@@ -2992,31 +3265,27 @@ async function onAction(e){
 
   if(act==='export-csv'){
     const course = getCourse(state.adminDeptId, state.adminCourseId);
-    const students = statsFilteredStudents();
-    let exportRows = [];
-    students.forEach(st=> (st.cases||[]).forEach(cs=> exportRows.push({st,cs})) );
-    if(state.statsCaseTypeFilter) exportRows = exportRows.filter(({cs})=>cs.caseType===state.statsCaseTypeFilter);
-    // union of step names across whichever case types actually appear in the export
-    const seenNames = new Set(), stepNameColumns = [];
-    exportRows.forEach(({cs})=>{ caseSteps(course, cs.caseType).forEach(s=>{ if(!seenNames.has(s.name)){ seenNames.add(s.name); stepNameColumns.push(s.name); } }); });
-    let csv = '\uFEFF' + [t('tableStudent'), t('studentCodeLabel'), fieldLabel('group'), fieldLabel('subgroup'), fieldLabel('level'), t('tableCase'), t('partnersLabel').replace(': ',''), t('tablePct'), t('tableGrade')].map(h=>`"${h}"`).join(',') + ',';
-    csv += stepNameColumns.map(n=>`"${n.replace(/"/g,'""')}"`).join(',') + '\n';
-    exportRows.forEach(({st,cs})=>{
-      const p = PROGRESS[cs.id]||{};
-      const pct = casePct(st,cs);
-      const rowSteps = caseSteps(course, cs.caseType);
-      const cells = stepNameColumns.map(colName=>{
-        const step = rowSteps.find(s=>s.name===colName);
-        if(!step) return 'N/A';
-        const rec = p[step.id];
-        return rec && rec.done ? `"${rec.supervisor} - ${fmtDate(rec.date)}${rec.grade!==undefined&&rec.grade!==''?' - '+rec.grade:''}${rec.notes?' - '+rec.notes:''}"` : '-';
-      });
-      csv += `"${st.name}","${st.studentCode||''}","${st.group||''}","${st.subgroup||''}","${st.level||''}","${cs.caseType||''}","${partnerNames(st,cs).join('; ')}","${pct}%","${caseTotalGrade(st,cs)}",` + cells.join(',') + '\n';
-    });
-    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'prostho-stats.csv'; a.click();
-    URL.revokeObjectURL(url); return;
+    if(!course) return;
+    const aoa = buildStatsExport(course);
+    const safe = String(course.name||'course').replace(/[\\/:*?"<>|]+/g,'_').replace(/\s+/g,'_');
+    const fileBase = 'stats_' + safe + '_' + isoDay(new Date().toISOString());
+    try{
+      await loadXLSX();
+      const ws = XLSX.utils.aoa_to_sheet(aoa);
+      ws['!cols'] = aoa[0].map((h,i)=>({ wch: Math.min(42, Math.max(10, ...aoa.slice(0,80).map(r=>String(r[i]===undefined||r[i]===null?'':r[i]).length))) }));
+      ws['!autofilter'] = { ref: ws['!ref'] };
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Stats');
+      XLSX.writeFile(wb, fileBase + '.xlsx');
+    }catch(err){
+      // offline fallback: CSV with an explicit separator line so Excel splits the columns whatever its regional settings are
+      console.error(err);
+      const blob = new Blob(['\uFEFFsep=,\r\n' + aoaToCsv(aoa)], {type:'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = fileBase + '.csv'; a.click();
+      URL.revokeObjectURL(url);
+    }
+    return;
   }
 }
 
