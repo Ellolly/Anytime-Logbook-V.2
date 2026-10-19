@@ -35,6 +35,16 @@
   .brand.brand-lg h1{font-size:29px;white-space:normal;overflow:visible;text-overflow:clip;}
   .brand.brand-lg span{font-size:14.5px;white-space:normal;overflow:visible;text-overflow:clip;}
   .lang-toggle{flex-shrink:0;background:var(--teal-100);color:var(--teal-900);border:none;border-radius:9px;padding:7px 10px;font-family:inherit;font-weight:800;font-size:11.5px;cursor:pointer;}
+  .save-status{flex-shrink:0;display:none;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:5px 10px;border-radius:20px;white-space:nowrap;}
+  .save-status.show{display:inline-flex;}
+  .save-status .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+  .save-status.saving{background:var(--teal-100);color:var(--teal-700);}
+  .save-status.saving .dot{background:var(--teal-700);animation:save-pulse 1s ease-in-out infinite;}
+  .save-status.saved{background:var(--gold-light);color:var(--banner-text);}
+  .save-status.saved .dot{background:var(--gold);}
+  .save-status.error{background:var(--rust-light);color:var(--rust);}
+  .save-status.error .dot{background:var(--rust);}
+  @keyframes save-pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
   .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:12px;}
   .card h2{margin:0 0 12px;font-size:15px;font-weight:700;color:var(--teal-900);}
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--btn-bg);color:#fff;border:none;border-radius:7px;padding:11px 16px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;transition:opacity .15s ease;width:100%;}
@@ -67,7 +77,8 @@
   .ring svg{transform:rotate(-90deg);}
   .ring .pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:800;color:var(--teal-900);font-family:'Space Mono',monospace;}
   .student-info{flex:1;min-width:0;}
-  .student-info .nm{font-weight:700;font-size:14.5px;color:var(--teal-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .student-info .nm{font-weight:700;font-size:14.5px;color:var(--teal-900);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;}
+  .student-info .code-badge{color:var(--teal-500);font-weight:500;font-family:'Space Mono',monospace;font-size:11.5px;}
   .student-info .meta{font-size:12px;color:var(--teal-500);margin-top:2px;}
   .chev{color:var(--teal-500);font-size:13px;flex-shrink:0;}
   .student-body{border-top:1px solid var(--line);padding:10px 14px 14px;display:none;}
@@ -311,6 +322,8 @@ const I18N = {
     storageConnFailed:"مش قادر أوصل لقاعدة البيانات دلوقتي — البيانات مش هتتحفظ.",
     offlinePendingBanner:"مفيش نت دلوقتي — التعديلات محفوظة على جهازك وهتترفع تلقائيًا لما الاتصال يرجع. تعديلات لسه مستنية:",
     warningLabel:"تنبيه:", supervisorBadgePrefix:"مشرف: ", deptBadgePrefix:"قسم: ", courseBadgePrefix:"Course: ",
+    savingStatus:"بيتحفظ…", savedStatus:"اتحفظ ✓", saveErrorStatus:"فشل الحفظ ⚠",
+    saveConflictAlert:"حد تاني حفظ تعديل على نفس البيانات في نفس اللحظة تقريبًا، فمنعنا حفظ تعديلك عشان متضيعش بياناته. حدّثنا شاشتك بآخر نسخة — لو تعديلك لسه مطلوب، كرره تاني من فضلك.",
     addStudentQuick:"+ طالب جديد", logoutBtn:"خروج", changeCourseBtn:"تغيير الـ Course",
     searchPlaceholder:"بحث بالاسم أو الـ ID...", noStudentsYet:"لا يوجد طلاب.", noSearchResults:"لا نتائج مطابقة.",
     levelPrefix:"القسم: ", coursePrefix:"Course: ", groupPrefix:"مج ", subgroupPrefix:"فرعية ",
@@ -456,6 +469,8 @@ const I18N = {
     storageConnFailed:"Can't reach the database right now — data won't be saved.",
     offlinePendingBanner:"No connection right now — your changes are saved on this device and will upload automatically once you're back online. Changes waiting to sync:",
     warningLabel:"Warning:", supervisorBadgePrefix:"Supervisor: ", deptBadgePrefix:"Dept: ", courseBadgePrefix:"Course: ",
+    savingStatus:"Saving…", savedStatus:"Saved ✓", saveErrorStatus:"Save failed ⚠",
+    saveConflictAlert:"Someone else saved a change to the same data at nearly the same time, so we blocked your save to avoid overwriting their work. Your screen was refreshed with the latest version — please redo your change if it's still needed.",
     addStudentQuick:"+ New student", logoutBtn:"Log out", changeCourseBtn:"Change course",
     searchPlaceholder:"Search by name or ID...", noStudentsYet:"No students yet.", noSearchResults:"No matching results.",
     levelPrefix:"Dept: ", coursePrefix:"Course: ", groupPrefix:"Grp ", subgroupPrefix:"Sub ",
@@ -548,6 +563,9 @@ function scriptConfigured(){ return !!SCRIPT_URL && !SCRIPT_URL.includes('PASTE_
 const CACHE_STORAGE_KEY = 'alb_cache_v1';
 const PENDING_STORAGE_KEY = 'alb_pending_v1';
 let PENDING = {};
+// آخر "بصمة وقت" (updatedAt) شفناها فعليًا من السيرفر لكل مفتاح — بنبعتها مع كل
+// حفظ عشان السيرفر يتأكد إن حد تاني ما غيرش البيانات من ساعتها قبل ما يكسح فوقها.
+let DATA_VERSIONS = { config:'', students:'', progress:'', archive:'' };
 function loadPending(){ try{ PENDING = JSON.parse(localStorage.getItem(PENDING_STORAGE_KEY) || '{}'); }catch(e){ PENDING = {}; } }
 function persistPending(){ try{ localStorage.setItem(PENDING_STORAGE_KEY, JSON.stringify(PENDING)); }catch(e){} }
 function queuePending(key, value){ PENDING[key] = value; persistPending(); }
@@ -661,22 +679,58 @@ async function postSave_(key, value){
   if(state.screen==='admin' && state.adminPass) auth = { role:'admin', password: state.adminPass };
   else if(state.screen==='supervisor' && state.currentSupervisor) auth = { role:'supervisor', name: state.currentSupervisor, password: state.currentSupervisorPass };
   const res = await fetchWithTimeout(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body: JSON.stringify({ action:'save', key, value: JSON.stringify(value), auth }) });
+    body: JSON.stringify({ action:'save', key, value: JSON.stringify(value), auth, baseUpdatedAt: DATA_VERSIONS[key] || '' }) });
   if(!res.ok) throw new Error('bad status ' + res.status);
   const json = await res.json();
-  if(!json.ok){ const err = new Error(json.error || 'rejected'); err.rejected = !json.transient; throw err; }
-  return true;
+  if(!json.ok){
+    const err = new Error(json.error || 'rejected');
+    err.rejected = !json.transient;
+    err.conflict = !!json.conflict;
+    err.currentValue = json.currentValue;
+    err.currentUpdatedAt = json.currentUpdatedAt;
+    throw err;
+  }
+  if(json.updatedAt) DATA_VERSIONS[key] = json.updatedAt;
+  return json;
+}
+/**
+ * بتتنفذ لما السيرفر يرفض الحفظ بسبب تعارض (حد تاني حفظ من ساعة ما جبنا النسخة
+ * اللي عندنا). بنحدّث نسختنا المحلية بآخر نسخة فعلية من السيرفر بدل ما نكسح
+ * فوقها، عشان محدش يضيع شغله.
+ */
+function applyConflictRefresh_(key, err){
+  try{
+    const fresh = (err.currentValue !== undefined && err.currentValue !== null && err.currentValue !== '')
+      ? JSON.parse(err.currentValue) : null;
+    if(key==='config') CONFIG = mergeConfig(fresh);
+    else if(key==='students') STUDENTS = Array.isArray(fresh) ? fresh : [];
+    else if(key==='progress') PROGRESS = fresh || {};
+    else if(key==='archive') ARCHIVE = normalizeArchive(fresh);
+    DATA_VERSIONS[key] = err.currentUpdatedAt || '';
+    saveCache({[key]: key==='config'?CONFIG : key==='students'?STUDENTS : key==='progress'?PROGRESS : ARCHIVE});
+  }catch(parseErr){ console.error('applyConflictRefresh_ failed', parseErr); }
 }
 async function flushPending(){
   const keys = Object.keys(PENDING);
   if(!keys.length) return;
-  let changed = false, stillFailing = false;
+  let changed = false, stillFailing = false, hadConflict = false;
   for(const key of keys){
     try{ await postSave_(key, PENDING[key]); delete PENDING[key]; changed = true; }
-    catch(e){ if(e.rejected){ delete PENDING[key]; changed = true; } else stillFailing = true; }
+    catch(e){
+      if(e.conflict){
+        // حد تاني حفظ تعديل في نفس المفتاح من ساعة ما احنا عملنا التعديل المعلّق ده.
+        // بدل ما نكسح فوق تعديله، بنسيب نسخته هو ونحدّث شاشتنا بيها، ونتخلى عن
+        // تعديلنا المعلّق (كان مبني على نسخة قديمة أصلاً).
+        applyConflictRefresh_(key, e);
+        delete PENDING[key];
+        changed = true; hadConflict = true;
+      } else if(e.rejected){ delete PENDING[key]; changed = true; }
+      else stillFailing = true;
+    }
   }
   if(changed) persistPending();
   state.storageOk = !stillFailing;
+  if(hadConflict) showAlert(t('saveConflictAlert'));
   if(changed) render();
   if(stillFailing) scheduleRetry();
 }
@@ -702,6 +756,7 @@ async function getData(key, fallback){
     if(json && json.value !== undefined && json.value !== null){
       const parsed = JSON.parse(json.value);
       saveCache({[key]: parsed});
+      if(json.updatedAt !== undefined) DATA_VERSIONS[key] = json.updatedAt;
       return parsed;
     }
     return fallback;
@@ -730,6 +785,14 @@ async function getAllData(){
       archive: json.authed ? parseVal(json.archive, null) : (Object.prototype.hasOwnProperty.call(cache,'archive') ? cache.archive : null)
     };
     saveCache(result);
+    if(json.updatedAt){
+      DATA_VERSIONS.config = json.updatedAt.config || DATA_VERSIONS.config;
+      if(json.authed){
+        DATA_VERSIONS.students = json.updatedAt.students || DATA_VERSIONS.students;
+        DATA_VERSIONS.progress = json.updatedAt.progress || DATA_VERSIONS.progress;
+        DATA_VERSIONS.archive = json.updatedAt.archive || DATA_VERSIONS.archive;
+      }
+    }
     return result;
   }catch(e){
     console.error('getAllData failed', e);
@@ -743,22 +806,51 @@ async function getAllData(){
     };
   }
 }
+function isTypingNow(){
+  return typeof document!=='undefined' && document.activeElement && ['INPUT','TEXTAREA'].includes(document.activeElement.tagName);
+}
 async function setData(key, value){
   if(!scriptConfigured()) return false;
+  // Optimistic UI: the caller already mutated the local STUDENTS/PROGRESS/CONFIG/ARCHIVE
+  // objects before calling us, so reflect that on screen right away instead of waiting
+  // for the slow round-trip to finish. We skip this only while the user is actively
+  // typing somewhere else, so we don't yank their focus/cursor mid-sentence.
+  if(!isTypingNow() && !state.dragging) render();
+  setSaveStatus('saving');
   try{
     await postSave_(key, value);
     clearPending(key);
     saveCache({[key]: value});
     state.storageOk = true;
     state.lastSaveError = '';
+    setSaveStatus('saved');
     return true;
   }catch(e){
-    if(e.rejected){ console.error('save rejected', e.message); showAlert(t('saveFailedAlert') + '\n(' + e.message + ')'); state.storageOk = true; return false; }
+    if(e.conflict){
+      // حد تاني حفظ تعديل على نفس البيانات في نفس اللحظة تقريبًا. بدل ما نكسح
+      // فوق تعديله (وده اللي كان بيسبب اختفاء حالات من غير ما حد يمسحها)،
+      // بنسحب نسخته هو ونعرضها، ونقول للمستخدم يكرر خطوته لو لسه محتاجها.
+      console.warn('save conflict detected, refreshing from server', key);
+      applyConflictRefresh_(key, e);
+      setSaveStatus('error');
+      state.storageOk = true;
+      render();
+      showAlert(t('saveConflictAlert'));
+      return false;
+    }
+    if(e.rejected){
+      console.error('save rejected', e.message);
+      setSaveStatus('error');
+      showAlert(t('saveFailedAlert') + '\n(' + e.message + ')');
+      state.storageOk = true;
+      return false;
+    }
     console.error('setData failed, queued for retry when back online', key, e);
     state.lastSaveError = (e && (e.message || e.name)) ? String(e.message || e.name) : '';
     queuePending(key, value);
     saveCache({[key]: value});
     state.storageOk = false;
+    setSaveStatus('error');
     scheduleRetry();
     return false;
   }
@@ -924,7 +1016,7 @@ let state = {
   openStudent:null, openCase:null, search:'', loginMode:null, loginErr:'', loading:true, storageOk:true,
   importMsg:'', lang:(typeof localStorage!=='undefined' && localStorage.getItem('prostho_lang')) || 'ar',
   statsScope:'all', statsScopeValue:'', statsStepName:'', statsStepMode:'done', statsCaseTypeFilter:'', auditOpen:false,
-  addingCaseFor:null, linkingPartnersFor:null
+  addingCaseFor:null, linkingPartnersFor:null, saveStatus:'idle'
 };
 
 function esc(s){ return (s+'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -1497,6 +1589,7 @@ function render(){
     <div class="brand ${state.screen==='login' ? 'brand-lg' : ''}">
       ${CONFIG.logoUrl ? `<img src="${esc(CONFIG.logoUrl)}" alt="logo">` : toothSvg()}
       <div class="brand-text"><h1>${esc(title)}</h1><span>${esc(subtitle)}</span></div>
+      ${saveStatusBadgeHtml()}
       <button class="lang-toggle" data-act="toggle-lang">${state.lang==='ar' ? 'EN' : 'AR'}</button>
     </div>
     ${connectionBannerHtml()}
@@ -1504,6 +1597,25 @@ function render(){
     <div class="version-tag">Anytime Logbook ${APP_VERSION}</div>
   `;
   bindEvents();
+}
+/* -------- Save status badge: lightweight, updates on its own without a full re-render -------- */
+let saveStatusHideTimer = null;
+function saveStatusBadgeHtml(){
+  if(state.saveStatus==='idle') return `<span class="save-status" id="save-status-badge"></span>`;
+  const labelKey = state.saveStatus==='saving' ? 'savingStatus' : state.saveStatus==='saved' ? 'savedStatus' : 'saveErrorStatus';
+  return `<span class="save-status show ${state.saveStatus}" id="save-status-badge"><span class="dot"></span>${t(labelKey)}</span>`;
+}
+function setSaveStatus(status){
+  state.saveStatus = status;
+  if(saveStatusHideTimer){ clearTimeout(saveStatusHideTimer); saveStatusHideTimer = null; }
+  const el = typeof document!=='undefined' ? document.getElementById('save-status-badge') : null;
+  if(el){
+    // تحديث العنصر مباشرة من غير إعادة رسم الشاشة كلها، عشان متقطعش تركيز المستخدم لو بيكتب في حقل تاني
+    el.outerHTML = saveStatusBadgeHtml();
+  }
+  if(status==='saved'){
+    saveStatusHideTimer = setTimeout(()=>{ setSaveStatus('idle'); }, 2500);
+  }
 }
 function connectionBannerHtml(){
   if(!scriptConfigured()) return `<div class="banner err sticky-warn"><b>${t('warningLabel')}</b> ${t('storageNotConfigured')}</div>`;
@@ -1813,8 +1925,8 @@ function studentListHtml(readonly, filterFn){
       <div class="student-head" data-act="toggle-student" data-id="${st.id}">
         ${ringSvg(pct)}
         <div class="student-info">
-          <div class="nm">${esc(st.name)}${st.studentCode ? ' <span style="color:var(--teal-500);font-weight:500;font-family:Space Mono,monospace;">#'+esc(st.studentCode)+'</span>' : ''}</div>
-          <div class="meta">${studentMetaLine(st)}</div>
+          <div class="nm">${esc(st.name)}</div>
+          <div class="meta">${st.studentCode ? '<span class="code-badge">#'+esc(st.studentCode)+'</span>' + (studentMetaLine(st) ? ' · ' : '') : ''}${studentMetaLine(st)}</div>
         </div>
         <div class="chev">${open ? '▲' : '▼'}</div>
       </div>
