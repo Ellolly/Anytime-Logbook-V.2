@@ -1166,7 +1166,7 @@ let state = {
 };
 
 function esc(s){ return (s+'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-const APP_VERSION = 'v1.6.1';
+const APP_VERSION = 'v1.6.2';
 const ICON_PATHS = {
   trash: '<polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>',
   edit: '<path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>',
@@ -1998,6 +1998,13 @@ function casesHtml(st, readonly){
   const cases = st.cases||[];
   const openCase = state.openCase;
   let html = '';
+  if(!readonly){
+    html += `<div class="field" style="margin-bottom:12px;"><label>${t('unitLabel')}</label>
+      <div class="row" style="gap:8px;align-items:center;">
+        <input type="text" id="unit-${st.id}" value="${esc(st.unit||'')}" placeholder="${esc(t('unitPlaceholder'))}" autocomplete="off" style="max-width:150px;">
+        <button class="btn sm" style="width:auto;" data-act="save-unit" data-sid="${st.id}">${t('saveBrandBtn')}</button>
+      </div></div>`;
+  }
   if(cases.length===0) html += `<div class="empty"><p>${t('noCasesYet')}</p></div>`;
   else cases.forEach(cs=>{
     const pct = casePct(st,cs);
@@ -2017,11 +2024,6 @@ function casesHtml(st, readonly){
       <div class="chev">${open?'▲':'▼'}</div>
     </div>
     ${open ? `<div class="case-body">
-      ${!readonly ? `<div class="field" style="margin-bottom:10px;"><label>${t('unitLabel')}</label>
-        <div class="row" style="gap:8px;align-items:center;">
-          <input type="text" id="unit-${st.id}-${cs.id}" value="${esc(cs.unit||'')}" placeholder="${esc(t('unitPlaceholder'))}" autocomplete="off" style="max-width:150px;">
-          <button class="btn sm" style="width:auto;" data-act="save-unit" data-sid="${st.id}" data-cid="${cs.id}">${t('saveBrandBtn')}</button>
-        </div></div>` : (cs.unit ? `<div class="ci-meta" style="margin-bottom:8px;">${t('unitLabel')}: ${esc(cs.unit)}</div>` : '')}
       ${stepsHtmlForCase(st, cs, readonly)}
       ${!readonly ? `<button class="btn ghost sm" style="width:auto;margin-top:8px;" data-act="toggle-link-partners" data-sid="${st.id}" data-cid="${cs.id}">${icon('link')} ${t('linkPartnerBtn')}</button>` : ''}
       ${linkingThis ? partnerPanelHtml(st,cs) : ''}
@@ -2039,7 +2041,9 @@ function casesHtml(st, readonly){
 }
 function studentUnitBadges(st){
   const units = [];
-  (st.cases||[]).forEach(cs=>{ const u = String(cs.unit||'').trim(); if(u && !units.includes(u)) units.push(u); });
+  const own = String(st.unit||'').trim();
+  if(own) units.push(own);
+  else (st.cases||[]).forEach(cs=>{ const u = String(cs.unit||'').trim(); if(u && !units.includes(u)) units.push(u); });
   return units.map(u=>` <span class="unit-badge">${t('unitBadgePrefix')}${esc(u)}</span>`).join('');
 }
 function studentListHtml(readonly, filterFn){
@@ -2620,7 +2624,7 @@ function buildStatsExport(course){
     });
     out.push([
       st.name||'', st.studentCode||'', st.level||'', st.group||'', st.subgroup||'',
-      cs.caseType||'', cs.unit||'', partnerNames(st,cs).join('; '),
+      cs.caseType||'', cs.unit||st.unit||'', partnerNames(st,cs).join('; '),
       isoDay(cs.createdAt), last?last.name:'', last?isoDay(last.date):'', last?last.supervisor:'',
       done+'/'+steps.length, casePct(st,cs), caseTotalGrade(st,cs), course ? course.name : ''
     ].concat(stepCells));
@@ -2711,7 +2715,7 @@ function adminStatsHtml(){
               const done = rowSteps.filter(s=>p[s.id]&&p[s.id].done).length;
               const last = lastStepInfo(course, cs);
               return `<tr>
-                <td>${esc(st.name)}${st.studentCode ? ` <span style="color:var(--teal-500);font-family:Space Mono,monospace;font-size:11px;">#${esc(st.studentCode)}</span>` : ''}</td><td>${esc(cs.caseType||t('caseLabel'))}${cs.unit ? ` <span class="unit-badge">${t('unitBadgePrefix')}${esc(cs.unit)}</span>` : ''}</td>
+                <td>${esc(st.name)}${st.studentCode ? ` <span style="color:var(--teal-500);font-family:Space Mono,monospace;font-size:11px;">#${esc(st.studentCode)}</span>` : ''}</td><td>${esc(cs.caseType||t('caseLabel'))}${(cs.unit||st.unit) ? ` <span class="unit-badge">${t('unitBadgePrefix')}${esc(cs.unit||st.unit)}</span>` : ''}</td>
                 <td><div class="row" style="align-items:center;gap:6px;width:auto;"><div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;"></div></div><span>${pct}%</span></div></td>
                 <td>${done}/${rowSteps.length}</td>
                 <td>${last ? esc(last.name) : '—'}</td>
@@ -3167,9 +3171,8 @@ async function onAction(e){
 
   if(act==='save-unit'){
     const st = STUDENTS.find(s=>s.id===el.dataset.sid); if(!st) return;
-    const cs = (st.cases||[]).find(x=>x.id===el.dataset.cid); if(!cs) return;
-    const inp = document.getElementById('unit-'+st.id+'-'+cs.id);   // partners share the case id, so the input id includes the student
-    cs.unit = inp ? inp.value.trim() : '';          // belongs to this student's copy of the case only — partners keep their own
+    const inp = document.getElementById('unit-'+st.id);
+    st.unit = inp ? inp.value.trim() : '';          // student-level: independent of cases, so it can be set before any case exists
     saveData('students');
     render(); return;
   }
