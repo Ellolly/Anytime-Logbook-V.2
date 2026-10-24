@@ -35,16 +35,6 @@
   .brand.brand-lg h1{font-size:29px;white-space:normal;overflow:visible;text-overflow:clip;}
   .brand.brand-lg span{font-size:14.5px;white-space:normal;overflow:visible;text-overflow:clip;}
   .lang-toggle{flex-shrink:0;background:var(--teal-100);color:var(--teal-900);border:none;border-radius:9px;padding:7px 10px;font-family:inherit;font-weight:800;font-size:11.5px;cursor:pointer;}
-  .save-status{flex-shrink:0;display:none;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:5px 10px;border-radius:20px;white-space:nowrap;}
-  .save-status.show{display:inline-flex;}
-  .save-status .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
-  .save-status.saving{background:var(--teal-100);color:var(--teal-700);}
-  .save-status.saving .dot{background:var(--teal-700);animation:save-pulse 1s ease-in-out infinite;}
-  .save-status.saved{background:var(--gold-light);color:var(--banner-text);}
-  .save-status.saved .dot{background:var(--gold);}
-  .save-status.error{background:var(--rust-light);color:var(--rust);}
-  .save-status.error .dot{background:var(--rust);}
-  @keyframes save-pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
   .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:12px;}
   .card h2{margin:0 0 12px;font-size:15px;font-weight:700;color:var(--teal-900);}
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--btn-bg);color:#fff;border:none;border-radius:7px;padding:11px 16px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;transition:opacity .15s ease;width:100%;}
@@ -77,8 +67,7 @@
   .ring svg{transform:rotate(-90deg);}
   .ring .pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:800;color:var(--teal-900);font-family:'Space Mono',monospace;}
   .student-info{flex:1;min-width:0;}
-  .student-info .nm{font-weight:700;font-size:14.5px;color:var(--teal-900);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;}
-  .student-info .code-badge{color:var(--teal-500);font-weight:500;font-family:'Space Mono',monospace;font-size:11.5px;}
+  .student-info .nm{font-weight:700;font-size:14.5px;color:var(--teal-900);white-space:normal;overflow-wrap:anywhere;line-height:1.45;unicode-bidi:plaintext;text-align:start;}   /* wrap instead of cutting the start of long names on narrow portrait screens */
   .student-info .meta{font-size:12px;color:var(--teal-500);margin-top:2px;}
   .chev{color:var(--teal-500);font-size:13px;flex-shrink:0;}
   .student-body{border-top:1px solid var(--line);padding:10px 14px 14px;display:none;}
@@ -178,7 +167,10 @@
   h3.section-title{font-size:12.5px;font-weight:800;color:var(--teal-500);text-transform:uppercase;letter-spacing:.4px;margin:18px 0 8px;}
   .file-drop{border:1.5px dashed var(--teal-500);border-radius:10px;padding:14px;text-align:center;background:var(--teal-100);margin-bottom:8px;}
   .file-drop input[type=file]{width:100%;font-size:12.5px;}
-  .sticky-warn{position:sticky;top:0;z-index:20;}
+  .sticky-warn{position:static;}   /* was sticky: on a portrait phone the tall banner covered the first students while scrolling */
+  #save-indicator{position:fixed;inset-inline-start:12px;bottom:calc(76px + env(safe-area-inset-bottom));z-index:60;padding:7px 12px;border-radius:20px;font-size:12px;font-weight:700;background:var(--card);color:var(--teal-900);border:1px solid var(--line);box-shadow:0 2px 10px rgba(0,0,0,.15);pointer-events:none;max-width:80vw;}
+  #save-indicator.mode-queued,#save-indicator.mode-failed{background:var(--rust-light);color:var(--banner-err-text);border-color:var(--rust);}
+  #save-indicator.mode-merged{background:var(--gold-light);color:var(--banner-text);border-color:var(--gold);}
   .context-bar{position:sticky;top:0;z-index:15;}
 
   /* ---- Custom modal (replaces native alert/confirm) ---- */
@@ -322,8 +314,6 @@ const I18N = {
     storageConnFailed:"مش قادر أوصل لقاعدة البيانات دلوقتي — البيانات مش هتتحفظ.",
     offlinePendingBanner:"مفيش نت دلوقتي — التعديلات محفوظة على جهازك وهتترفع تلقائيًا لما الاتصال يرجع. تعديلات لسه مستنية:",
     warningLabel:"تنبيه:", supervisorBadgePrefix:"مشرف: ", deptBadgePrefix:"قسم: ", courseBadgePrefix:"Course: ",
-    savingStatus:"بيتحفظ…", savedStatus:"اتحفظ ✓", saveErrorStatus:"فشل الحفظ ⚠",
-    saveConflictAlert:"حد تاني حفظ تعديل على نفس البيانات في نفس اللحظة تقريبًا، فمنعنا حفظ تعديلك عشان متضيعش بياناته. حدّثنا شاشتك بآخر نسخة — لو تعديلك لسه مطلوب، كرره تاني من فضلك.",
     addStudentQuick:"+ طالب جديد", logoutBtn:"خروج", changeCourseBtn:"تغيير الـ Course",
     searchPlaceholder:"بحث بالاسم أو الـ ID...", noStudentsYet:"لا يوجد طلاب.", noSearchResults:"لا نتائج مطابقة.",
     levelPrefix:"القسم: ", coursePrefix:"Course: ", groupPrefix:"مج ", subgroupPrefix:"فرعية ",
@@ -375,6 +365,8 @@ const I18N = {
     alertDuplicateStep:"هذه الخطوة موجودة بالفعل", confirmDeleteStep:"حذف هذه الخطوة؟",
     alertEnterNewPassword:"اكتب كلمة مرور جديدة", alertPasswordChanged:"تم تغيير كلمة مرور الأدمن.",
     saveFailedAlert:"تعذّر الحفظ: تأكد إنك مسجّل دخول بشكل صحيح.",
+    saveIndSaving:"جاري الحفظ…", saveIndSaved:"✓ تم الحفظ", saveIndQueued:"محفوظ على الجهاز — هيترفع لما النت يرجع", saveIndFailed:"لم يتم الحفظ", saveIndMerged:"✓ تم الحفظ ودمج تعديلات من مشرف آخر",
+    clientOutdatedAlert:"نسخة الصفحة قديمة. اعمل تحديث للصفحة (Refresh) وحاول تاني.",
     promptStudentName:"اسم الطالب:", promptNewStepName:"اسم الخطوة الجديد:",
     promptNewListValue:"القيمة الجديدة:", alertDuplicateListValue:"هذه القيمة موجودة بالفعل", confirmDeleteListValue:"حذف هذه القيمة؟",
     levelsHeading:"قائمة المستويات", levelSelectLabel:"المستوى", lvlValPrefix:"مستوى ",
@@ -469,8 +461,6 @@ const I18N = {
     storageConnFailed:"Can't reach the database right now — data won't be saved.",
     offlinePendingBanner:"No connection right now — your changes are saved on this device and will upload automatically once you're back online. Changes waiting to sync:",
     warningLabel:"Warning:", supervisorBadgePrefix:"Supervisor: ", deptBadgePrefix:"Dept: ", courseBadgePrefix:"Course: ",
-    savingStatus:"Saving…", savedStatus:"Saved ✓", saveErrorStatus:"Save failed ⚠",
-    saveConflictAlert:"Someone else saved a change to the same data at nearly the same time, so we blocked your save to avoid overwriting their work. Your screen was refreshed with the latest version — please redo your change if it's still needed.",
     addStudentQuick:"+ New student", logoutBtn:"Log out", changeCourseBtn:"Change course",
     searchPlaceholder:"Search by name or ID...", noStudentsYet:"No students yet.", noSearchResults:"No matching results.",
     levelPrefix:"Dept: ", coursePrefix:"Course: ", groupPrefix:"Grp ", subgroupPrefix:"Sub ",
@@ -522,6 +512,8 @@ const I18N = {
     alertDuplicateStep:"This step already exists", confirmDeleteStep:"Delete this step?",
     alertEnterNewPassword:"Enter a new password", alertPasswordChanged:"Admin password changed.",
     saveFailedAlert:"Save failed: make sure you're logged in correctly.",
+    saveIndSaving:"Saving…", saveIndSaved:"✓ Saved", saveIndQueued:"Saved on this device — will upload when back online", saveIndFailed:"Not saved", saveIndMerged:"✓ Saved and merged with another supervisor's changes",
+    clientOutdatedAlert:"This page is out of date. Please refresh the page and try again.",
     promptStudentName:"Student name:", promptNewStepName:"New step name:",
     promptNewListValue:"New value:", alertDuplicateListValue:"This value already exists", confirmDeleteListValue:"Delete this value?",
     levelsHeading:"Level list", levelSelectLabel:"Level", lvlValPrefix:"Level ",
@@ -563,9 +555,6 @@ function scriptConfigured(){ return !!SCRIPT_URL && !SCRIPT_URL.includes('PASTE_
 const CACHE_STORAGE_KEY = 'alb_cache_v1';
 const PENDING_STORAGE_KEY = 'alb_pending_v1';
 let PENDING = {};
-// آخر "بصمة وقت" (updatedAt) شفناها فعليًا من السيرفر لكل مفتاح — بنبعتها مع كل
-// حفظ عشان السيرفر يتأكد إن حد تاني ما غيرش البيانات من ساعتها قبل ما يكسح فوقها.
-let DATA_VERSIONS = { config:'', students:'', progress:'', archive:'' };
 function loadPending(){ try{ PENDING = JSON.parse(localStorage.getItem(PENDING_STORAGE_KEY) || '{}'); }catch(e){ PENDING = {}; } }
 function persistPending(){ try{ localStorage.setItem(PENDING_STORAGE_KEY, JSON.stringify(PENDING)); }catch(e){} }
 function queuePending(key, value){ PENDING[key] = value; persistPending(); }
@@ -674,67 +663,239 @@ function scheduleRetry(){
   if(retryTimer) return;
   retryTimer = setTimeout(()=>{ retryTimer = null; flushPending(); }, 15000);
 }
-async function postSave_(key, value){
+
+/* -------- Safe concurrent saving --------
+   Every save carries the server "version" it was based on. If somebody else saved in between, the server refuses
+   (conflict) and sends back its copy; we merge their changes with ours (3-way, against the last copy we knew) and retry,
+   so two people working at once never overwrite each other. */
+const CAS_KEYS = ['config','students','progress','archive'];
+const BASE_STORAGE_KEY = 'alb_base_v1';
+let BASE = { url: SCRIPT_URL, versions:{}, values:{} };
+function loadBase(){ try{ const b = JSON.parse(localStorage.getItem(BASE_STORAGE_KEY) || 'null'); if(b && b.url===SCRIPT_URL) BASE = { url:SCRIPT_URL, versions:b.versions||{}, values:b.values||{} }; }catch(e){} }
+function persistBase(){ try{ localStorage.setItem(BASE_STORAGE_KEY, JSON.stringify(BASE)); }catch(e){} }
+function setBase(key, raw, version){
+  BASE.versions[key] = Number(version)||0;
+  if(raw===null || raw===undefined) delete BASE.values[key]; else BASE.values[key] = raw;
+  persistBase();
+}
+function baseVersionFor(key){ return Number(BASE.versions[key])||0; }
+function emptyValueFor(key){ return key==='students' ? [] : key==='archive' ? {students:[],cases:[]} : {}; }
+function baseValueFor(key){ const raw = BASE.values[key]; if(raw===undefined) return emptyValueFor(key); try{ return JSON.parse(raw); }catch(e){ return emptyValueFor(key); } }
+function stable(v){
+  if(Array.isArray(v)) return '['+v.map(stable).join(',')+']';
+  if(v && typeof v==='object') return '{'+Object.keys(v).filter(k=>v[k]!==undefined).sort().map(k=>JSON.stringify(k)+':'+stable(v[k])).join(',')+'}';
+  return JSON.stringify(v);
+}
+function jsonEq(a,b){ return stable(a)===stable(b); }
+function isPlainObj(v){ return v!==null && typeof v==='object' && !Array.isArray(v); }
+function mergeKeyOf(item){
+  if(!isPlainObj(item)) return undefined;
+  if(item.id!==undefined && item.id!==null) return 'id:'+item.id;
+  if(item.archId!==undefined && item.archId!==null) return 'a:'+item.archId;
+  if(typeof item.name==='string') return 'n:'+item.name;
+  return undefined;
+}
+function keyedMap(arr){
+  const m = new Map();
+  for(const it of arr){ const k = mergeKeyOf(it); if(k===undefined || m.has(k)) return null; m.set(k,it); }
+  return m;
+}
+function mergeKeyed(B, M, T, bm, mm, tm){
+  const out = [];
+  const seen = new Set();
+  for(const it of M){
+    const k = mergeKeyOf(it); seen.add(k);
+    const b = bm.get(k), t = tm.get(k);
+    if(t===undefined){ if(b!==undefined && jsonEq(it,b)) continue; out.push(it); }   // other side deleted it: drop only if we never touched it
+    else if(b===undefined) out.push(merge3(undefined, it, t));
+    else out.push(merge3(b, it, t));
+  }
+  for(const it of T){
+    const k = mergeKeyOf(it); if(seen.has(k)) continue;
+    const b = bm.get(k);
+    if(b!==undefined && jsonEq(it,b)) continue;   // we deleted it and they did not change it
+    out.push(it);
+  }
+  return out;
+}
+function mergePrims(B, M, T){
+  const inB = x=>B.some(y=>jsonEq(x,y)), inM = x=>M.some(y=>jsonEq(x,y)), inT = x=>T.some(y=>jsonEq(x,y));
+  const out = M.filter(x=> !(inB(x) && !inT(x)));   // theirs removed it
+  T.forEach(x=>{ if(!inB(x) && !inM(x)) out.push(x); });
+  return out;
+}
+function merge3(base, mine, theirs){
+  if(jsonEq(mine, base)) return theirs;
+  if(jsonEq(theirs, base)) return mine;
+  if(jsonEq(mine, theirs)) return mine;
+  if(Array.isArray(mine) && Array.isArray(theirs)){
+    const B = Array.isArray(base) ? base : [];
+    const bm = keyedMap(B), mm = keyedMap(mine), tm = keyedMap(theirs);
+    if(bm && mm && tm) return mergeKeyed(B, mine, theirs, bm, mm, tm);
+    const prim = x=>x===null || typeof x!=='object';
+    if(B.every(prim) && mine.every(prim) && theirs.every(prim)) return mergePrims(B, mine, theirs);
+    return mine;
+  }
+  if(isPlainObj(mine) && isPlainObj(theirs)){
+    const B = isPlainObj(base) ? base : {};
+    const out = {};
+    const keys = new Set([...Object.keys(B), ...Object.keys(mine), ...Object.keys(theirs)]);
+    keys.forEach(k=>{
+      const v = merge3(B[k], mine[k], theirs[k]);
+      if(v!==undefined) out[k] = v;
+    });
+    return out;
+  }
+  return mine === undefined ? theirs : mine;
+}
+function adoptMerged(key, merged){
+  let v = merged;
+  if(key==='students') STUDENTS = v;
+  else if(key==='progress') PROGRESS = v;
+  else if(key==='config'){ v = mergeConfig(v); CONFIG = v; }
+  else if(key==='archive'){ v = normalizeArchive(v); ARCHIVE = v; }
+  if(Object.prototype.hasOwnProperty.call(PENDING, key)){ PENDING[key] = v; persistPending(); }
+  state.mergedFlag = true;
+  return v;
+}
+async function postSave_(key, value, overwrite){
   let auth = null;
   if(state.screen==='admin' && state.adminPass) auth = { role:'admin', password: state.adminPass };
   else if(state.screen==='supervisor' && state.currentSupervisor) auth = { role:'supervisor', name: state.currentSupervisor, password: state.currentSupervisorPass };
-  const res = await fetchWithTimeout(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body: JSON.stringify({ action:'save', key, value: JSON.stringify(value), auth, baseUpdatedAt: DATA_VERSIONS[key] || '' }) });
-  if(!res.ok) throw new Error('bad status ' + res.status);
-  const json = await res.json();
-  if(!json.ok){
-    const err = new Error(json.error || 'rejected');
-    err.rejected = !json.transient;
-    err.conflict = !!json.conflict;
-    err.currentValue = json.currentValue;
-    err.currentUpdatedAt = json.currentUpdatedAt;
-    throw err;
+  const cas = CAS_KEYS.includes(key);
+  let current = value;
+  for(let attempt=0; attempt<5; attempt++){
+    const sent = JSON.stringify(current);
+    const body = { action:'save', key, value: sent, auth };
+    if(cas) body.baseVersion = baseVersionFor(key);
+    const res = await fetchWithTimeout(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(body) });
+    if(!res.ok) throw new Error('bad status ' + res.status);
+    const json = await res.json();
+    if(json.ok){
+      if(cas) setBase(key, sent, json.version);
+      state.saveTick++;
+      return current;
+    }
+    if(json.conflict && cas){
+      if(overwrite){ setBase(key, json.value===undefined ? null : json.value, json.version); continue; }   // deliberate overwrite (admin reset)
+      let theirs;
+      try{ theirs = json.value ? JSON.parse(json.value) : emptyValueFor(key); }catch(e){ theirs = emptyValueFor(key); }
+      const merged = merge3(baseValueFor(key), current, theirs);
+      setBase(key, json.value===undefined ? null : json.value, json.version);
+      current = adoptMerged(key, merged);
+      continue;
+    }
+    const err = new Error(json.error || 'rejected'); err.rejected = !json.transient; throw err;
   }
-  if(json.updatedAt) DATA_VERSIONS[key] = json.updatedAt;
-  return json;
+  throw new Error('could not reconcile with changes made by someone else — will retry');
 }
-/**
- * بتتنفذ لما السيرفر يرفض الحفظ بسبب تعارض (حد تاني حفظ من ساعة ما جبنا النسخة
- * اللي عندنا). بنحدّث نسختنا المحلية بآخر نسخة فعلية من السيرفر بدل ما نكسح
- * فوقها، عشان محدش يضيع شغله.
- */
-function applyConflictRefresh_(key, err){
+
+/* -------- Optimistic saving: the screen updates at once, the upload happens in the background -------- */
+const SAVE_GETTERS = { students:()=>STUDENTS, progress:()=>PROGRESS, config:()=>CONFIG, archive:()=>ARCHIVE };
+const saveSlots = {}, inflightKeys = new Set(), keyChains = {};
+let flushing = false, pollRunning = false;
+function serialized(key, fn){
+  const prev = keyChains[key] || Promise.resolve();
+  const run = prev.then(fn, fn);
+  keyChains[key] = run.catch(()=>{});
+  return run;
+}
+function typingNow(){ return typeof document!=='undefined' && document.activeElement && ['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName); }
+let saveMode = 'idle', saveModeTimer = null;
+function setSaveMode(m, hideAfter){
+  saveMode = m;
+  if(saveModeTimer){ clearTimeout(saveModeTimer); saveModeTimer = null; }
+  paintIndicator();
+  if(hideAfter) saveModeTimer = setTimeout(()=>{ if(saveMode===m){ saveMode='idle'; paintIndicator(); } }, hideAfter);
+}
+function paintIndicator(){
+  if(typeof document==='undefined' || !document.body) return;
+  let el = document.getElementById('save-indicator');
+  if(!el){ el = document.createElement('div'); el.id='save-indicator'; el.setAttribute('role','status'); el.setAttribute('aria-live','polite'); document.body.appendChild(el); }
+  const labels = { saving:t('saveIndSaving'), saved:t('saveIndSaved'), queued:t('saveIndQueued'), failed:t('saveIndFailed'), merged:t('saveIndMerged') };
+  el.className = 'mode-'+saveMode;
+  el.textContent = labels[saveMode] || '';
+  el.style.display = (saveMode==='idle' || state.screen==='login') ? 'none' : 'block';
+}
+function afterSaveSettled(failed){
+  if(inflightKeys.size>0){ setSaveMode('saving'); return; }
+  if(pendingCount()>0 || failed){ setSaveMode('queued'); if(state.mergedFlag){ state.mergedFlag=false; if(!typingNow() && !state.dragging) render(); } return; }
+  if(state.mergedFlag){
+    state.mergedFlag = false;
+    setSaveMode('merged', 4000);
+    if(!typingNow() && !state.dragging) render();
+  } else setSaveMode('saved', 2000);
+}
+function queueSave(key){
+  const getter = SAVE_GETTERS[key];
+  state.saveTick++;
+  queuePending(key, getter());
+  saveCache({[key]: getter()});
+  const slot = saveSlots[key] || (saveSlots[key] = { dirty:false, running:null, lastOk:true });
+  slot.dirty = true;
+  setSaveMode('saving');
+  if(!slot.running) slot.running = runSaveSlot(key);
+  return slot.running;
+}
+async function runSaveSlot(key, overwriteOnce){
+  const slot = saveSlots[key] || (saveSlots[key] = { dirty:true, running:null, lastOk:true });
+  inflightKeys.add(key);
+  let failed = false;
   try{
-    const fresh = (err.currentValue !== undefined && err.currentValue !== null && err.currentValue !== '')
-      ? JSON.parse(err.currentValue) : null;
-    if(key==='config') CONFIG = mergeConfig(fresh);
-    else if(key==='students') STUDENTS = Array.isArray(fresh) ? fresh : [];
-    else if(key==='progress') PROGRESS = fresh || {};
-    else if(key==='archive') ARCHIVE = normalizeArchive(fresh);
-    DATA_VERSIONS[key] = err.currentUpdatedAt || '';
-    saveCache({[key]: key==='config'?CONFIG : key==='students'?STUDENTS : key==='progress'?PROGRESS : ARCHIVE});
-  }catch(parseErr){ console.error('applyConflictRefresh_ failed', parseErr); }
+    do{
+      slot.dirty = false;
+      try{
+        await serialized(key, ()=>postSave_(key, SAVE_GETTERS[key](), slot.overwrite));
+        if(!slot.dirty) clearPending(key);
+        saveCache({[key]: SAVE_GETTERS[key]()});
+        state.storageOk = true; state.lastSaveError = ''; slot.lastOk = true;
+      }catch(e){
+        if(e.rejected){
+          console.error('save rejected', e.message);
+          showAlert((e.message==='client-outdated' ? t('clientOutdatedAlert') : t('saveFailedAlert') + '\n(' + e.message + ')'));
+          clearPending(key); state.storageOk = true; slot.lastOk = false; slot.dirty = false;
+        } else {
+          console.error('save failed, kept for retry', key, e);
+          state.lastSaveError = (e && (e.message || e.name)) ? String(e.message || e.name) : '';
+          queuePending(key, SAVE_GETTERS[key]());
+          saveCache({[key]: SAVE_GETTERS[key]()});
+          state.storageOk = false; slot.lastOk = false; slot.dirty = false; failed = true;
+          scheduleRetry();
+        }
+      }
+    } while(slot.dirty && !failed);
+  } finally {
+    inflightKeys.delete(key); slot.running = null; slot.overwrite = false;
+  }
+  afterSaveSettled(failed);
+  return slot.lastOk;
 }
 async function flushPending(){
+  if(flushing) return;
   const keys = Object.keys(PENDING);
   if(!keys.length) return;
-  let changed = false, stillFailing = false, hadConflict = false;
-  for(const key of keys){
-    try{ await postSave_(key, PENDING[key]); delete PENDING[key]; changed = true; }
-    catch(e){
-      if(e.conflict){
-        // حد تاني حفظ تعديل في نفس المفتاح من ساعة ما احنا عملنا التعديل المعلّق ده.
-        // بدل ما نكسح فوق تعديله، بنسيب نسخته هو ونحدّث شاشتنا بيها، ونتخلى عن
-        // تعديلنا المعلّق (كان مبني على نسخة قديمة أصلاً).
-        applyConflictRefresh_(key, e);
-        delete PENDING[key];
-        changed = true; hadConflict = true;
-      } else if(e.rejected){ delete PENDING[key]; changed = true; }
-      else stillFailing = true;
+  flushing = true;
+  let stillFailing = false;
+  try{
+    for(const key of keys){
+      if(SAVE_GETTERS[key]){
+        const slot = saveSlots[key] || (saveSlots[key] = { dirty:false, running:null, lastOk:true });
+        slot.dirty = true;
+        if(!slot.running) slot.running = runSaveSlot(key);
+        const ok = await slot.running;
+        if(!ok && Object.prototype.hasOwnProperty.call(PENDING, key)) stillFailing = true;
+      } else {
+        try{ await serialized(key, ()=>postSave_(key, PENDING[key])); clearPending(key); }
+        catch(e){ if(e.rejected) clearPending(key); else stillFailing = true; }
+      }
     }
-  }
-  if(changed) persistPending();
+  } finally { flushing = false; }
   state.storageOk = !stillFailing;
-  if(hadConflict) showAlert(t('saveConflictAlert'));
-  if(changed) render();
   if(stillFailing) scheduleRetry();
+  render();
 }
-window.addEventListener('online', ()=>{ flushPending(); });
+window.addEventListener('online', ()=>{ flushPending().then(()=>pollForUpdates()); });
+if(typeof document!=='undefined') document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') flushPending().then(()=>pollForUpdates()); });
 // fetch() has no built-in timeout — without this, a stalled connection leaves the UI stuck forever
 // (e.g. a disabled button stuck on "checking...") instead of showing a clear error.
 async function fetchWithTimeout(url, opts={}, ms=25000){
@@ -756,7 +917,6 @@ async function getData(key, fallback){
     if(json && json.value !== undefined && json.value !== null){
       const parsed = JSON.parse(json.value);
       saveCache({[key]: parsed});
-      if(json.updatedAt !== undefined) DATA_VERSIONS[key] = json.updatedAt;
       return parsed;
     }
     return fallback;
@@ -772,6 +932,7 @@ async function getAllData(){
   const parseVal = (v, fb) => { if(v===undefined || v===null || v==='') return fb; return JSON.parse(v); }; // a corrupt value throws => we fall back to the cache instead of wiping data
   try{
     const tokenParam = state.sessionToken ? `&token=${encodeURIComponent(state.sessionToken)}` : '';
+    const tickAtStart = state.saveTick;
     const res = await fetchWithTimeout(`${SCRIPT_URL}?action=get-all${tokenParam}`);
     if(!res.ok) throw new Error('bad status ' + res.status);
     const json = await res.json();
@@ -784,14 +945,14 @@ async function getAllData(){
       progress: json.authed ? parseVal(json.progress, {}) : (Object.prototype.hasOwnProperty.call(cache,'progress') ? cache.progress : {}),
       archive: json.authed ? parseVal(json.archive, null) : (Object.prototype.hasOwnProperty.call(cache,'archive') ? cache.archive : null)
     };
-    saveCache(result);
-    if(json.updatedAt){
-      DATA_VERSIONS.config = json.updatedAt.config || DATA_VERSIONS.config;
-      if(json.authed){
-        DATA_VERSIONS.students = json.updatedAt.students || DATA_VERSIONS.students;
-        DATA_VERSIONS.progress = json.updatedAt.progress || DATA_VERSIONS.progress;
-        DATA_VERSIONS.archive = json.updatedAt.archive || DATA_VERSIONS.archive;
-      }
+    const toCache = Object.assign({}, result);
+    Object.keys(PENDING).forEach(k=>{ if(k in toCache) toCache[k] = PENDING[k]; });   // never let the server copy hide edits still waiting to upload
+    saveCache(toCache);
+    if(json.authed && json.versions && state.saveTick===tickAtStart){
+      CAS_KEYS.forEach(k=>{
+        if(Object.prototype.hasOwnProperty.call(PENDING,k) || inflightKeys.has(k)) return;
+        setBase(k, (json[k]===undefined || json[k]===null || json[k]==='') ? null : json[k], json.versions[k]);
+      });
     }
     return result;
   }catch(e){
@@ -806,54 +967,39 @@ async function getAllData(){
     };
   }
 }
-function isTypingNow(){
-  return typeof document!=='undefined' && document.activeElement && ['INPUT','TEXTAREA'].includes(document.activeElement.tagName);
-}
-async function setData(key, value){
+async function setData(key, value, opts){
   if(!scriptConfigured()) return false;
-  // Optimistic UI: the caller already mutated the local STUDENTS/PROGRESS/CONFIG/ARCHIVE
-  // objects before calling us, so reflect that on screen right away instead of waiting
-  // for the slow round-trip to finish. We skip this only while the user is actively
-  // typing somewhere else, so we don't yank their focus/cursor mid-sentence.
-  if(!isTypingNow() && !state.dragging) render();
-  setSaveStatus('saving');
+  if(SAVE_GETTERS[key] && SAVE_GETTERS[key]() === value){
+    const slot = saveSlots[key] || (saveSlots[key] = { dirty:false, running:null, lastOk:true });
+    if(opts && opts.overwrite) slot.overwrite = true;
+    return await queueSave(key);
+  }
   try{
-    await postSave_(key, value);
+    await serialized(key, ()=>postSave_(key, value));
     clearPending(key);
     saveCache({[key]: value});
-    state.storageOk = true;
-    state.lastSaveError = '';
-    setSaveStatus('saved');
+    state.storageOk = true; state.lastSaveError = '';
     return true;
   }catch(e){
-    if(e.conflict){
-      // حد تاني حفظ تعديل على نفس البيانات في نفس اللحظة تقريبًا. بدل ما نكسح
-      // فوق تعديله (وده اللي كان بيسبب اختفاء حالات من غير ما حد يمسحها)،
-      // بنسحب نسخته هو ونعرضها، ونقول للمستخدم يكرر خطوته لو لسه محتاجها.
-      console.warn('save conflict detected, refreshing from server', key);
-      applyConflictRefresh_(key, e);
-      setSaveStatus('error');
-      state.storageOk = true;
-      render();
-      showAlert(t('saveConflictAlert'));
-      return false;
-    }
-    if(e.rejected){
-      console.error('save rejected', e.message);
-      setSaveStatus('error');
-      showAlert(t('saveFailedAlert') + '\n(' + e.message + ')');
-      state.storageOk = true;
-      return false;
-    }
+    if(e.rejected){ console.error('save rejected', e.message); showAlert((e.message==='client-outdated' ? t('clientOutdatedAlert') : t('saveFailedAlert') + '\n(' + e.message + ')')); state.storageOk = true; return false; }
     console.error('setData failed, queued for retry when back online', key, e);
     state.lastSaveError = (e && (e.message || e.name)) ? String(e.message || e.name) : '';
     queuePending(key, value);
     saveCache({[key]: value});
     state.storageOk = false;
-    setSaveStatus('error');
     scheduleRetry();
     return false;
   }
+}
+function saveData(key){ if(!scriptConfigured()) return; queueSave(key); }   // fire-and-forget: screen updates now, upload happens in the background
+async function fetchVersions(){
+  try{
+    const tokenParam = state.sessionToken ? `&token=${encodeURIComponent(state.sessionToken)}` : '';
+    const res = await fetchWithTimeout(`${SCRIPT_URL}?action=versions${tokenParam}`);
+    if(!res.ok) return null;
+    const json = await res.json();
+    return (json && json.authed && json.versions) ? json.versions : null;
+  }catch(e){ return null; }
 }
 async function fetchSupervisorNames(){
   if(!scriptConfigured()) return [];
@@ -1013,14 +1159,14 @@ let state = {
   screen:'login', currentSupervisor:null, currentSupervisorPass:null, currentDept:null,
   supervisorCourseId:null, supervisorGroupFilter:'all', supervisorSubgroupFilter:'all',
   adminPass:null, sessionToken:null, resetting:false, lastSaveError:'', stepsScope:'global', libPickOrder:[], dragging:false, partnerPick:null, partnerQuery:'', adminTab:'dashboard', adminDeptId:'', adminCourseId:'',
-  openStudent:null, openCase:null, search:'', loginMode:null, loginErr:'', loading:true, storageOk:true,
+  openStudent:null, openCase:null, search:'', loginMode:null, loginErr:'', loading:true, storageOk:true, saveTick:0, mergedFlag:false,
   importMsg:'', lang:(typeof localStorage!=='undefined' && localStorage.getItem('prostho_lang')) || 'ar',
   statsScope:'all', statsScopeValue:'', statsStepName:'', statsStepMode:'done', statsCaseTypeFilter:'', auditOpen:false,
-  addingCaseFor:null, linkingPartnersFor:null, saveStatus:'idle'
+  addingCaseFor:null, linkingPartnersFor:null
 };
 
 function esc(s){ return (s+'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-const APP_VERSION = 'v1.5.1';
+const APP_VERSION = 'v1.6.0';
 const ICON_PATHS = {
   trash: '<polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>',
   edit: '<path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>',
@@ -1455,7 +1601,7 @@ async function performReset(kind, includeConfig){
     if(kind==='students' || kind==='all'){
       STUDENTS = []; PROGRESS = {}; ARCHIVE = {students:[], cases:[]};
       state.openStudent = null; state.openCase = null; state.search = '';
-      results.push(await setData('students', STUDENTS), await setData('progress', PROGRESS), await setData('archive', ARCHIVE));
+      results.push(await setData('students', STUDENTS, {overwrite:true}), await setData('progress', PROGRESS, {overwrite:true}), await setData('archive', ARCHIVE, {overwrite:true}));
     }
     if(kind==='supervisors' || kind==='all'){
       if(!CREDENTIALS) CREDENTIALS = { supervisors: [], pendingSupervisors: [] };
@@ -1469,7 +1615,7 @@ async function performReset(kind, includeConfig){
       const prev = CONFIG;
       CONFIG = Object.assign(defaultConfig(), { brandTitle: prev.brandTitle, brandSubtitle: prev.brandSubtitle, logoUrl: prev.logoUrl, theme: prev.theme, fieldLabels: prev.fieldLabels });
       state.adminDeptId = ''; state.adminCourseId = ''; state.stepsCaseType = '';
-      results.push(await setData('config', CONFIG));
+      results.push(await setData('config', CONFIG, {overwrite:true}));
     }
     showAlert(results.every(Boolean) ? t('resetDone') : t('resetPartial'));
     return true;
@@ -1589,7 +1735,6 @@ function render(){
     <div class="brand ${state.screen==='login' ? 'brand-lg' : ''}">
       ${CONFIG.logoUrl ? `<img src="${esc(CONFIG.logoUrl)}" alt="logo">` : toothSvg()}
       <div class="brand-text"><h1>${esc(title)}</h1><span>${esc(subtitle)}</span></div>
-      ${saveStatusBadgeHtml()}
       <button class="lang-toggle" data-act="toggle-lang">${state.lang==='ar' ? 'EN' : 'AR'}</button>
     </div>
     ${connectionBannerHtml()}
@@ -1597,25 +1742,6 @@ function render(){
     <div class="version-tag">Anytime Logbook ${APP_VERSION}</div>
   `;
   bindEvents();
-}
-/* -------- Save status badge: lightweight, updates on its own without a full re-render -------- */
-let saveStatusHideTimer = null;
-function saveStatusBadgeHtml(){
-  if(state.saveStatus==='idle') return `<span class="save-status" id="save-status-badge"></span>`;
-  const labelKey = state.saveStatus==='saving' ? 'savingStatus' : state.saveStatus==='saved' ? 'savedStatus' : 'saveErrorStatus';
-  return `<span class="save-status show ${state.saveStatus}" id="save-status-badge"><span class="dot"></span>${t(labelKey)}</span>`;
-}
-function setSaveStatus(status){
-  state.saveStatus = status;
-  if(saveStatusHideTimer){ clearTimeout(saveStatusHideTimer); saveStatusHideTimer = null; }
-  const el = typeof document!=='undefined' ? document.getElementById('save-status-badge') : null;
-  if(el){
-    // تحديث العنصر مباشرة من غير إعادة رسم الشاشة كلها، عشان متقطعش تركيز المستخدم لو بيكتب في حقل تاني
-    el.outerHTML = saveStatusBadgeHtml();
-  }
-  if(status==='saved'){
-    saveStatusHideTimer = setTimeout(()=>{ setSaveStatus('idle'); }, 2500);
-  }
 }
 function connectionBannerHtml(){
   if(!scriptConfigured()) return `<div class="banner err sticky-warn"><b>${t('warningLabel')}</b> ${t('storageNotConfigured')}</div>`;
@@ -1925,8 +2051,8 @@ function studentListHtml(readonly, filterFn){
       <div class="student-head" data-act="toggle-student" data-id="${st.id}">
         ${ringSvg(pct)}
         <div class="student-info">
-          <div class="nm">${esc(st.name)}</div>
-          <div class="meta">${st.studentCode ? '<span class="code-badge">#'+esc(st.studentCode)+'</span>' + (studentMetaLine(st) ? ' · ' : '') : ''}${studentMetaLine(st)}</div>
+          <div class="nm">${esc(st.name)}${st.studentCode ? ' <span style="color:var(--teal-500);font-weight:500;font-family:Space Mono,monospace;">#'+esc(st.studentCode)+'</span>' : ''}</div>
+          <div class="meta">${studentMetaLine(st)}</div>
         </div>
         <div class="chev">${open ? '▲' : '▼'}</div>
       </div>
@@ -2901,8 +3027,8 @@ async function onAction(e){
       if(!course.caseTypeConfigs) course.caseTypeConfigs = [];
       if(!course.caseTypeConfigs.some(c=>c.name===custom)){ course.caseTypeConfigs.push({name:custom, steps:[], custom:false}); configChanged = true; }
     }
-    await setData('students', STUDENTS);
-    if(configChanged) await setData('config', CONFIG);
+    saveData('students');
+    if(configChanged) saveData('config');
     render(); return;
   }
   if(act==='toggle-link-partners'){
@@ -2948,7 +3074,7 @@ async function onAction(e){
     });
 
     state.linkingPartnersFor = null; state.partnerPick = null; state.partnerQuery = '';
-    await setData('students', STUDENTS);
+    saveData('students');
     render(); return;
   }
   if(act==='toggle-step'){
@@ -2961,7 +3087,7 @@ async function onAction(e){
     } else {
       PROGRESS[cid][stepid] = { done:true, supervisor: state.currentSupervisor, date: new Date().toISOString(), grade:'', notes:'' };
     }
-    await setData('progress', PROGRESS);
+    saveData('progress');
     render(); return;
   }
   if(act==='save-eval'){
@@ -2971,7 +3097,7 @@ async function onAction(e){
     if(PROGRESS[cid] && PROGRESS[cid][stepid]){
       PROGRESS[cid][stepid].grade = grade;
       PROGRESS[cid][stepid].notes = notes;
-      await setData('progress', PROGRESS);
+      saveData('progress');
     }
     render(); return;
   }
@@ -3039,7 +3165,7 @@ async function onAction(e){
     const cs = (st.cases||[]).find(x=>x.id===el.dataset.cid); if(!cs) return;
     const inp = document.getElementById('unit-'+st.id+'-'+cs.id);   // partners share the case id, so the input id includes the student
     cs.unit = inp ? inp.value.trim() : '';          // belongs to this student's copy of the case only — partners keep their own
-    await setData('students', STUDENTS);
+    saveData('students');
     render(); return;
   }
   if(act==='edit-student'){
@@ -3524,22 +3650,24 @@ function startPolling(){
 async function pollForUpdates(){
   if(!scriptConfigured() || (typeof navigator!=='undefined' && navigator.onLine===false)) return;
   if(state.screen==='login' || state.resetting) return;
-  const gen = dataGeneration;
-  const all = await getAllData();
-  if(!all || state.resetting || gen !== dataGeneration) return;
-  const mergedConfig = mergeConfig(applyPending('config', all.config));
-  const mergedStudents = applyPending('students', all.students);
-  const mergedProgress = applyPending('progress', all.progress);
-  const mergedArchive = normalizeArchive(applyPending('archive', all.archive));
-  const changed = JSON.stringify(mergedStudents)!==JSON.stringify(STUDENTS)
-    || JSON.stringify(mergedProgress)!==JSON.stringify(PROGRESS)
-    || JSON.stringify(mergedConfig)!==JSON.stringify(CONFIG)
-    || JSON.stringify(mergedArchive)!==JSON.stringify(ARCHIVE);
-  CONFIG = mergedConfig; STUDENTS = mergedStudents; PROGRESS = mergedProgress; ARCHIVE = mergedArchive;
-  if(changed){
-    const typing = typeof document!=='undefined' && document.activeElement && ['INPUT','TEXTAREA'].includes(document.activeElement.tagName);
-    if(!typing && !state.dragging) render();
-  }
+  if(pollRunning || inflightKeys.size>0 || flushing || pendingCount()>0) return;
+  pollRunning = true;
+  try{
+    const tick = state.saveTick;
+    const vs = await fetchVersions();
+    if(vs && CAS_KEYS.every(k=> (Number(vs[k])||0) === baseVersionFor(k))) return;   // nothing changed on the server
+    const gen = dataGeneration;
+    const all = await getAllData();
+    if(!all || state.resetting || gen !== dataGeneration) return;
+    if(state.saveTick!==tick || inflightKeys.size>0 || flushing || pendingCount()>0) return;   // we edited meanwhile: our copy is newer, do not overwrite it
+    const mergedConfig = mergeConfig(applyPending('config', all.config));
+    const mergedStudents = applyPending('students', all.students);
+    const mergedProgress = applyPending('progress', all.progress);
+    const mergedArchive = normalizeArchive(applyPending('archive', all.archive));
+    const changed = !jsonEq(mergedStudents, STUDENTS) || !jsonEq(mergedProgress, PROGRESS) || !jsonEq(mergedConfig, CONFIG) || !jsonEq(mergedArchive, ARCHIVE);
+    CONFIG = mergedConfig; STUDENTS = mergedStudents; PROGRESS = mergedProgress; ARCHIVE = mergedArchive;
+    if(changed && !typingNow() && !state.dragging) render();
+  } finally { pollRunning = false; }
 }
 
 function showSplash(){
@@ -3573,6 +3701,7 @@ function hideSplash(overlay){
 const splashOverlay = showSplash();
 async function init(){
   state.storageOk = scriptConfigured();
+  loadBase();
   loadPending();
   const session = loadSession();
   if(session) state.sessionToken = session.token || null;
